@@ -34,6 +34,8 @@ export const HW2Events = {
      */
 	SHOOT_LASER: "SHOOT_LASER",
 
+    ENEMY_STALACTITE_COLLISION: "ENEMY_STALACTITE_COLLISION",
+
     /**
      * The event that gets emitted when a laser first starts to fire.
      * 

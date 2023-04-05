@@ -54,19 +54,33 @@ export const HW2Layers = {
 	PAUSE: "PAUSE"
 } as const;
 
+type movementPatternInfo = {
+	movmentPattern: number;
+	period?: number;
+	amplitude?: number;
+	offset?: number;
+}
+
 type monsterInfo = {
 	spawnTime: number;  //Amount of seconds after level has started that the enemy should spawn
 	spriteKey: string;
 	spawnY: number;
-	movementPattern: number;
+
+	movementPattern: number; //Info about movement, conisdered making this its own type but it makes it more verbose
+	period?: number;
+	amplitude?: number;
+	offset?: number;
+
+	phaseTime?: number;
+
 	monsterType?: number;
 	//speed
-	//type
 	//projectile
-	//offset for wave movementPatterns
-	//magnitude for wave movementPatterns
-	//frequency for wave movementPattern
-	//phasing frequency
+}
+
+type level = {
+	monsters: Array<monsterInfo>;
+	Objs: Array<monsterInfo>;
 }
 const level1: Array<monsterInfo> = [
 	{
@@ -75,6 +89,13 @@ const level1: Array<monsterInfo> = [
 	spawnY: 450,
 	movementPattern: movementPatterns.moveLeft,
 	monsterType: monsterTypes.weakToLight,
+	},
+	{
+	spawnTime: 0.0,
+	spriteKey: "MINE",
+	spawnY: 100,
+	movementPattern: movementPatterns.moveLeft,
+	monsterType: monsterTypes.stalactite,
 	},
 	{
 	spawnTime: 2.0,
@@ -318,7 +339,9 @@ export default class HW2Scene extends Scene {
 		//spawns enemies if enough time has passed
 		this.progressEnemies();
 
-		// TODO Remove despawning of mines and bubbles here
+		this.handleStalactiteMonsterCollisions();
+
+        // TODO Remove despawning of mines and bubbles here
 
 		// Handle screen despawning of mines and bubbles
 		for (let mine of this.mines) if (mine.visible) this.handleScreenDespawn(mine);
@@ -1095,6 +1118,26 @@ export default class HW2Scene extends Scene {
 				}
 			}
 		}
+		return collisions;
+	}
+
+	//Could seperate out the stactites from the mines list to speed this up but its probably fine
+	public handleStalactiteMonsterCollisions(): number {
+		let collisions = 0;
+		for (let mineInd in this.mines) {
+			let mine = this.mines[mineInd];
+			if (mine.visible && this.levelObjs[mineInd].monsterType == monsterTypes.stalactite) {
+				
+				for (let mon of this.mines)
+				{
+					if(mon.visible && mon.id !== mine.id && mine.collisionShape.overlaps(mon.collisionShape))
+					{
+						this.emitter.fireEvent(HW2Events.ENEMY_STALACTITE_COLLISION, {stalactiteID: mine.id, monsterID: mon.id});
+						collisions += 1;
+					}
+				}
+			}
+		}	
 		return collisions;
 	}
 
