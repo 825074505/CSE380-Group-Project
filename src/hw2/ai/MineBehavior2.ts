@@ -25,7 +25,8 @@ export enum movementPatterns {
     sineWave,
     triangleWave,
     runAway,
-    phasing
+    phasing,
+    falling,
 }
 
 export enum monsterStates {
@@ -38,6 +39,11 @@ export enum monsterTypes {
     weakToLight,
     weakToDark,
     spinning,
+    weakFromTop,
+    stalactite,
+    stalactiteTop,
+    stalagmite,
+    electricField
 }
 
 export enum projectileBehaviors {
@@ -75,6 +81,9 @@ export default class MineBehavior2 implements AI {
     private timeSinceLight: number = 0;
     private lightState: number = 0;
 
+    private fallingSpeed: number = 0;
+    private gravity: number = 10;
+
     /**
      * @see {AI.initializeAI}
      */
@@ -86,6 +95,7 @@ export default class MineBehavior2 implements AI {
         this.receiver.subscribe(HW2Events.LASER_MINE_COLLISION);
         this.receiver.subscribe(HW2Events.MINE_EXPLODED);
         this.receiver.subscribe(HW2Events.PLAYER_MINE_COLLISION);
+        this.receiver.subscribe(HW2Events.ENEMY_STALACTITE_COLLISION);
         this.monsterType = monsterTypes.default;
         this.activate(options);
     }
@@ -134,6 +144,10 @@ export default class MineBehavior2 implements AI {
                 this.handlePlayerMineCollision(event);
                 break;
             }
+            case HW2Events.ENEMY_STALACTITE_COLLISION: {
+                this.handleMonsterStalactitleCollision(event);
+                break;
+            }
             default: {
                 throw new Error("Unhandled event in MineBehavior! Event type: " + event.type);
             }
@@ -155,6 +169,15 @@ export default class MineBehavior2 implements AI {
             //this.owner.position.add(this.direction.scaled(this.speed * deltaT));
             
             //Movement
+
+            //Make the enemies chase the player if they get close, commented out for testing reasons but this works
+            /*
+            if(this.owner.position.x < 200 && this.movementPattern != movementPatterns.trackPlayer)
+            {
+                this.movementPattern = movementPatterns.trackPlayer;
+            }
+            */
+
             switch(this.movementPattern)
             {
                 case movementPatterns.moveLeft:
@@ -187,11 +210,17 @@ export default class MineBehavior2 implements AI {
                     this.owner.position.add(this.direction.scaled(this.speed * deltaT));
                     //need to do fading in and out
                     //should use a different counter probably.
+                    this.owner.alpha = (MathUtils.tri(this.timeSinceSpawn, 2) + 1)/2;
                     if(this.timeSinceSpawn > 2)
                     {
                         this.owner.position = new Vec2(this.owner.position.x, RandUtils.randInt(0, 900)); //HARDCODED WORLDSIZE
                         this.timeSinceSpawn = 0;
                     }
+                    break;
+                case movementPatterns.falling:
+                    this.owner.position.add(this.direction.scaled(this.speed * deltaT));
+                    this.fallingSpeed += this.gravity; //clamp this
+                    this.owner.position.add(Vec2.DOWN.scaled(this.fallingSpeed * deltaT));
                     break;
 
             }
@@ -199,7 +228,7 @@ export default class MineBehavior2 implements AI {
             this.owner.position = new Vec2(this.owner.position.x, MathUtils.clamp(this.owner.position.y, 20, 880));
 
 
-            //gonna refactor this eventually with some functions that handle state changes
+            //gonna refactor this eventually with some functions that handle state changes and reduce repeated code
             //Detect if in Light  -  Only check for appropriate types of enemy
             //console.log("hi");
             if(this.monsterType == monsterTypes.weakToLight && this.monsterState != monsterStates.weak)
@@ -277,9 +306,6 @@ export default class MineBehavior2 implements AI {
                 }
                 
             }
-            
-
-
         }
     }
 
@@ -304,8 +330,19 @@ export default class MineBehavior2 implements AI {
 
     protected handleLaserMineCollision(event: GameEvent): void {
         let id = event.data.get("mineId");
-        if (id === this.owner.id && this.monsterState == monsterStates.weak) {
-            this.owner.animation.playIfNotAlready(MineAnimations.EXPLODING, false, HW2Events.MINE_EXPLODED)
+        if (id === this.owner.id) {
+            switch(this.monsterType)
+            {
+                case monsterTypes.stalactite:
+                    this.movementPattern = movementPatterns.falling;
+                    break;
+                    
+                default:
+                    if(this.monsterState == monsterStates.weak)
+                        this.owner.animation.playIfNotAlready(MineAnimations.EXPLODING, false, HW2Events.MINE_EXPLODED);
+                    break;
+                
+            }
         }
     }
 
@@ -320,7 +357,21 @@ export default class MineBehavior2 implements AI {
     protected handlePlayerMineCollision(event: GameEvent): void {
         let id = event.data.get("id");
         if (id === this.owner.id) {
-            this.owner.animation.playIfNotAlready(MineAnimations.EXPLODING, false, HW2Events.MINE_EXPLODED)
+            this.owner.animation.playIfNotAlready(MineAnimations.EXPLODING, false, HW2Events.MINE_EXPLODED);
+        }
+    }
+
+    protected handleMonsterStalactitleCollision(event: GameEvent): void {
+        let stalactiteID = event.data.get("stalactiteID");
+        let monsterID = event.data.get("monsterID");
+        if (stalactiteID === this.owner.id) {
+            this.owner.animation.playIfNotAlready(MineAnimations.EXPLODING, false, HW2Events.MINE_EXPLODED);
+        }else if (monsterID === this.owner.id)
+        {
+            if(this.monsterState == monsterStates.weak || this.monsterType == monsterTypes.weakFromTop)
+            {
+                this.owner.animation.playIfNotAlready(MineAnimations.EXPLODING, false, HW2Events.MINE_EXPLODED);
+            }
         }
     }
 }
