@@ -133,22 +133,58 @@ export default class MainMenu extends Scene {
         back.backgroundColor = Color.TRANSPARENT;
         back.onClickEventId = MainMenuEvent.MENU;
 
-        const aboutHeader = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 250), text: "BackStory"});
+        const aboutHeader = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 350), text: "BackStory"});
         aboutHeader.textColor = Color.WHITE;
 
-        const text1 = "This game was made by <YOUR NAME HERE>, Peter Walsh and Richard McKenna";
-        const text2 = "using the Wolfie2D game engine, a TypeScript game engine created by";
-        const text3 = "Joe Weaver and Richard McKenna.";
+        const text1 = "In the midst of a fierce dogfight, pilot John Summers narrowly ";
+        const text2 = "evades destruction as his plane suffers critical damage. Gasping ";
+        const text3 = "for breath and with his vision blurring, he steers his crippled aircraft";
+        const text4 = "towards the earth below. Desperate to evade his relentless";
+        const text5 = "pursuers, John veers into the shadowy embrace of a nearby cave,";
+        const text6 = "his plane disappearing into the darkness just as his consciousness";
+        const text7 = "slips away. Awakening to the unnerving hum of his plane's engine,";
+        const text8 = "John is disoriented and alarmed. The air whistles past his aircraft.";
+        const text9 = "He peers through the windshield, but sees nothing but a deep";
+        const text10 = "darkness. With a hesitant flick, he switches on the plane's ";
+        const text11 = "headlights, revealing the vast expanse of an enigmatic";
+        const text12 = "subterranean cave network. Sinister echoes reverberate through";
+        const text13 = "the cavern, sending a shiver down John's spine. Gripping the";
+        const text14 = "controls, he braces himself for the harrowing journey ahead.";
+        
 
-        const line1 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 50), text: text1});
-        const line2 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y), text: text2});
-        const line3 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 50), text: text3});
+        const line1 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 300), text: text1});
+        const line2 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 250), text: text2});
+        const line3 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 200), text: text3});
+        const line4 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 150), text: text4});
+        const line5 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 100), text: text5});
+        const line6 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 50 ), text: text6});
+        const line7 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y), text: text7});
+        const line8 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 50), text: text8});
+        const line9 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 100), text: text9});
+        const line10 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 150), text: text10});
+        const line11 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 200), text: text11});
+        const line12 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 250), text: text12});
+        const line13 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 300), text: text13});
+        const line14 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 350), text: text14});
+
+        
 
         line1.textColor = Color.WHITE;
         line2.textColor = Color.WHITE;
         line3.textColor = Color.WHITE;
+        line4.textColor = Color.WHITE;
+        line5.textColor = Color.WHITE;
+        line6.textColor = Color.WHITE;
+        line7.textColor = Color.WHITE;
+        line8.textColor = Color.WHITE;
+        line9.textColor = Color.WHITE;
+        line10.textColor = Color.WHITE;
+        line11.textColor = Color.WHITE;
+        line12.textColor = Color.WHITE;
+        line13.textColor = Color.WHITE;
+        line14.textColor = Color.WHITE;
 
-        const aboutBack = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 250), text: "Back"});
+        const aboutBack = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 400), text: "Back"});
         aboutBack.size.set(200, 50);
         aboutBack.borderWidth = 2;
         aboutBack.borderColor = Color.WHITE;
