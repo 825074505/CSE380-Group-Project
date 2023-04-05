@@ -35,6 +35,8 @@ import Layer from "../../Wolfie2D/Scene/Layer";
 
 import MainMenu from "./MainMenu";
 import Light from "../../Wolfie2D/Nodes/Graphics/Light";
+import Input from "../../Wolfie2D/Input/Input";
+import GameLoop from "../../Wolfie2D/Loop/GameLoop";
 
 /**
  * A type for layers in the HW3Scene. It seems natural to want to use some kind of enum type to
@@ -48,7 +50,8 @@ import Light from "../../Wolfie2D/Nodes/Graphics/Light";
 export const HW2Layers = {
 	PRIMARY: "PRIMARY",
 	BACKGROUND: "BACKGROUND", 
-	UI: "UI"
+	UI: "UI",
+	PAUSE: "PAUSE"
 } as const;
 
 type monsterInfo = {
@@ -121,6 +124,13 @@ export default class HW2Scene extends Scene {
 	public static BACKGROUND_KEY = "BACKGROUND"
     public static BACKGROUND_PATH = "hw2_assets/sprites/WavyBlueLines.png"
 
+
+	//PAUSE Screen Pop Up Layer
+	private pause : Layer;
+	private paused: boolean;
+
+	
+
     // A flag to indicate whether or not this scene is being recorded
     private recording: boolean;
     // The seed that should be set before the game starts
@@ -186,6 +196,7 @@ export default class HW2Scene extends Scene {
 	 * @see Scene.initScene()
 	 */
 	public override initScene(options: Record<string, any>): void {
+		this.paused = false;
 		console.log("SEED:" + options.seed);
 		this.seed = options.seed === undefined ? RandUtils.randomSeed() : options.seed;
 		RandUtils.seed = this.seed;
@@ -218,6 +229,30 @@ export default class HW2Scene extends Scene {
 	 * @see Scene.startScene()
 	 */
 	public override startScene(){
+
+		// Add Pause Screen
+		const center = this.viewport.getCenter();
+
+		this.pause = this.addUILayer(HW2Layers.PAUSE);
+		this.pause.setHidden(true);
+		const pauseScreen = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.PAUSE, {position: new Vec2(center.x, center.y - 100), text: "Game Paused"});
+        pauseScreen.fontSize = 20
+		pauseScreen.textColor = Color.BLACK
+
+		const resume = this.add.uiElement(UIElementType.BUTTON, HW2Layers.PAUSE, {position: new Vec2(center.x - 100, center.y - 200), text: "Resume"});
+        resume.size.set(200, 50);
+        resume.borderWidth = 2;
+        resume.borderColor = Color.WHITE;
+        resume.backgroundColor = Color.TRANSPARENT;
+        resume.onClickEventId = HW2Events.RESUME_GAME;
+
+		const back = this.add.uiElement(UIElementType.BUTTON, HW2Layers.PAUSE, {position: new Vec2(center.x + 100, center.y - 200), text: "Back to Main"});
+        back.size.set(200, 50);
+        back.borderWidth = 2;
+        back.borderColor = Color.WHITE;
+        back.backgroundColor = Color.TRANSPARENT;
+        back.onClickEventId = HW2Events.BACK_TO_MAIN;
+
 		this.worldPadding = new Vec2(64, 64);
 
 		// Create a background layer
@@ -245,6 +280,9 @@ export default class HW2Scene extends Scene {
 		this.receiver.subscribe(HW2Events.PLAYER_HEALTH_CHANGE);
 		this.receiver.subscribe(HW2Events.AIR_CHANGE);
 
+		//Game events
+		this.receiver.subscribe(HW2Events.RESUME_GAME);
+		this.receiver.subscribe(HW2Events.BACK_TO_MAIN);
 		// Subscribe to laser events
 		this.receiver.subscribe(HW2Events.FIRING_LASER);
 		if(this.recording)
@@ -256,11 +294,16 @@ export default class HW2Scene extends Scene {
 	 * @see Scene.updateScene 
 	 */
 	public override updateScene(deltaT: number){
-		this.timePassed += deltaT;
-		// Handle events
-		while (this.receiver.hasNextEvent()) {
-			this.handleEvent(this.receiver.getNextEvent());
+
+		if(Input.isKeyPressed("escape")){
+			this.paused = true;
+			this.pause.setHidden(false)
 		}
+
+
+
+
+		this.timePassed += deltaT;
 		
 		// Move the backgrounds
 		this.moveBackgrounds(deltaT);
@@ -271,17 +314,24 @@ export default class HW2Scene extends Scene {
 
 		// Handle timers
 		this.handleTimers();
-		
+			
 		//spawns enemies if enough time has passed
 		this.progressEnemies();
 
-        // TODO Remove despawning of mines and bubbles here
+		// TODO Remove despawning of mines and bubbles here
 
 		// Handle screen despawning of mines and bubbles
 		for (let mine of this.mines) if (mine.visible) this.handleScreenDespawn(mine);
 		for (let bubble of this.bubbles) if (bubble.visible) this.handleScreenDespawn(bubble);
 		this.wrapPlayer(this.player, this.viewport.getCenter(), this.viewport.getHalfSize());
 		this.lockPlayer(this.player, this.viewport.getCenter(), this.viewport.getHalfSize());
+
+
+
+		// Handle events
+		while (this.receiver.hasNextEvent()) {
+			this.handleEvent(this.receiver.getNextEvent());
+		}
 	}
     /**
      * @see Scene.unloadScene()
@@ -338,6 +388,16 @@ export default class HW2Scene extends Scene {
 			case HW2Events.AIR_CHANGE: {
 				this.handleAirChange(event.data.get("curair"), event.data.get("maxair"));
 				break;
+			}
+			case HW2Events.RESUME_GAME:{
+				this.paused = false
+				this.pause.setHidden(true)
+				break;
+			}
+			case HW2Events.BACK_TO_MAIN:{
+				this.sceneManager.changeToScene(MainMenu,{level:1})
+				break;
+				
 			}
 			default: {
 				throw new Error(`Unhandled event with type ${event.type} caught in ${this.constructor.name}`);

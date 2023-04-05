@@ -10,5 +10,6 @@ export const HW2Controls = {
 	NARROW_HEADLIGHT:"NARROW_HEADLIGHT",
 	SHOOT: "SHOOT",
 	DISABLE_LIGHTING: "DISABLE_LIGHTING",
+	
 } as const;
 
