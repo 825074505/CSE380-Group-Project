@@ -1,0 +1,15 @@
+node_modules
+
+hw2.zip
+
+dist/*
+
+!dist/builtin
+
+!dist/demo_assets
+
+!dist/hw2_assets
+
+**/.DS_store
+
+.vs

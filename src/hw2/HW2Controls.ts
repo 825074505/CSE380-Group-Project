@@ -1,0 +1,14 @@
+/**
+ * An enum for the HW2 key-binding
+ */
+export const HW2Controls = {
+	MOVE_UP: "MOVE_UP",
+	MOVE_DOWN: "MOVE_DOWN",
+	MOVE_RIGHT: "MOVE_RIGHT",
+	MOVE_LEFT: "MOVE_LEFT",
+	WIDE_HEADLIGHT: "WIDE_HEADLIGHT",
+	NARROW_HEADLIGHT:"NARROW_HEADLIGHT",
+	SHOOT: "SHOOT",
+	DISABLE_LIGHTING: "DISABLE_LIGHTING",
+} as const;
+
