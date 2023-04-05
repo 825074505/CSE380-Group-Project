@@ -68,6 +68,9 @@ export default class SpriteShaderType extends QuadShaderType {
 		const u_Sampler = gl.getUniformLocation(program, "u_Sampler");
 		gl.uniform1i(u_Sampler, texture);
 
+		const u_Alpha = gl.getUniformLocation(program, "u_Alpha");
+		gl.uniform1f(u_Alpha, options.alpha);
+
 		// Pass in texShift
 		const u_texShift = gl.getUniformLocation(program, "u_texShift");
 		gl.uniform2fv(u_texShift, options.texShift);
@@ -126,6 +129,7 @@ export default class SpriteShaderType extends QuadShaderType {
 		let options: Record<string, any> = {
 			position: sprite.position,
 			rotation: sprite.rotation,
+			alpha: sprite.alpha,
 			size: sprite.size,
 			scale: sprite.scale.toArray(),
 			imageKey: sprite.imageId,

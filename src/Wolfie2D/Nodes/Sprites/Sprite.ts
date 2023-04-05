@@ -23,6 +23,7 @@ export default class Sprite extends CanvasNode {
         this.imageOffset = Vec2.ZERO;
         this.invertX = false;
         this.invertY = false;
+        this.alpha = 1.0;
     }
 
     /**
