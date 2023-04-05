@@ -14,7 +14,9 @@ import { GameEventType } from "../../Wolfie2D/Events/GameEventType";
 const MainMenuLayer = {
     MAIN_MENU: "MAIN_MENU", 
     CONTROLS: "CONTROLS",
-    ABOUT: "ABOUT"
+    ABOUT: "ABOUT",
+    LEVEL_SELECT: "LEVEL_SELECT",
+    BEST_SCORES: "BEST_SCORES"
 } as const
 
 // Events triggered in the main menu
@@ -23,7 +25,11 @@ const MainMenuEvent = {
 	CONTROLS: "CONTROLS",
 	ABOUT: "ABOUT",
 	MENU: "MENU",
-    PLAY_RECORDING: "PLAY_RECORDING"
+    PLAY_RECORDING: "PLAY_RECORDING",
+    LEVEL_SELECT: "LEVEL_SELECT",
+    BEST_SCORES: "BEST_SCORES",
+    EXIT: "EXIT"
+
 } as const;
 
 export default class MainMenu extends Scene {
@@ -31,6 +37,8 @@ export default class MainMenu extends Scene {
     private mainMenu: Layer;
     private controls: Layer;
     private about: Layer;
+    private levelSelect: Layer;
+    private bestScores : Layer;
     private seed: string;
 
     public override startScene(){
@@ -47,8 +55,16 @@ export default class MainMenu extends Scene {
         this.about = this.addUILayer(MainMenuLayer.ABOUT);
         this.about.setHidden(true);
 
+        this.levelSelect = this.addUILayer(MainMenuLayer.LEVEL_SELECT);
+        this.levelSelect.setHidden(true);
+
+        this.bestScores = this.addUILayer(MainMenuLayer.BEST_SCORES);
+        this.bestScores.setHidden(true);
+
+
+
         // Add play button, and give it an event to emit on press
-        const play = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y - 100), text: "Play"});
+        const play = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y - 100), text: "Arcade Mode"});
         play.size.set(200, 50);
         play.borderWidth = 2;
         play.borderColor = Color.WHITE;
@@ -64,7 +80,7 @@ export default class MainMenu extends Scene {
         controls.onClickEventId = MainMenuEvent.CONTROLS;
 
         // Add event button
-        const about = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y + 100), text: "About"});
+        const about = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y + 100), text: "Back Story"});
         about.size.set(200, 50);
         about.borderWidth = 2;
         about.borderColor = Color.WHITE;
@@ -72,26 +88,43 @@ export default class MainMenu extends Scene {
         about.onClickEventId = MainMenuEvent.ABOUT;
 
         // Add play recording button
-        const playRecording = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y + 200), text: "Play Recording"});
-        playRecording.size.set(200, 50);
-        playRecording.borderWidth = 2;
-        playRecording.borderColor = Color.WHITE;
-        playRecording.backgroundColor = Color.TRANSPARENT;
-        playRecording.onClickEventId = MainMenuEvent.PLAY_RECORDING;
+        const levelSelect = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y + 200), text: "Level Select"});
+        levelSelect.size.set(200, 50);
+        levelSelect.borderWidth = 2;
+        levelSelect.borderColor = Color.WHITE;
+        levelSelect.backgroundColor = Color.TRANSPARENT;
+        levelSelect.onClickEventId = MainMenuEvent.LEVEL_SELECT;
+
+
+        // Add best score button
+        const bestScores = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y + 300), text: "Best Scores"});
+        bestScores.size.set(200, 50);
+        bestScores.borderWidth = 2;
+        bestScores.borderColor = Color.WHITE;
+        bestScores.backgroundColor = Color.TRANSPARENT;
+        bestScores.onClickEventId = MainMenuEvent.BEST_SCORES;
+
+        // Add exit button
+        const exit = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y + 400), text: "Exit"});
+        exit.size.set(200, 50);
+        exit.borderWidth = 2;
+        exit.borderColor = Color.WHITE;
+        exit.backgroundColor = Color.TRANSPARENT;
+        exit.onClickEventId = MainMenuEvent.EXIT;
 
         const header = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y - 250), text: "Controls"});
         header.textColor = Color.WHITE;
 
-        const ws = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y - 50), text: "-Press W to speed up and S to slow down"});
+        const ws = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y - 50), text: "-Press W to pitch up"});
         ws.textColor = Color.WHITE;
-        const ad = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y), text: "-Press A and D to to move left and right respectively"});
-        ad.textColor = Color.WHITE;
-        const click = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y + 50), text: "-Click to shoot bullets"});
-        click.textColor = Color.WHITE;
-        const shift = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y + 100), text: "-Press shift to speed up, however you cannot shoot bullets"});
-        shift.textColor = Color.WHITE
-        const shift2 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y + 150), text: "while moving faster"});
-        shift2.textColor = Color.WHITE;
+        const ss = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y), text: "-Press S to pitch down"});
+        ss.textColor = Color.WHITE;
+        const ls = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y + 50), text: "-Press L to shoot bullets"});
+        ls.textColor = Color.WHITE;
+        const js = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y + 100), text: "-Press J to Toggle Headlights"});
+        js.textColor = Color.WHITE
+        const ks = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y + 150), text: "-Held K to Narrow Headlights"});
+        ks.textColor = Color.WHITE;
 
         const back = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y + 250), text: "Back"});
         back.size.set(200, 50);
@@ -100,7 +133,7 @@ export default class MainMenu extends Scene {
         back.backgroundColor = Color.TRANSPARENT;
         back.onClickEventId = MainMenuEvent.MENU;
 
-        const aboutHeader = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 250), text: "About"});
+        const aboutHeader = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 250), text: "BackStory"});
         aboutHeader.textColor = Color.WHITE;
 
         const text1 = "This game was made by <YOUR NAME HERE>, Peter Walsh and Richard McKenna";
@@ -128,6 +161,9 @@ export default class MainMenu extends Scene {
         this.receiver.subscribe(MainMenuEvent.ABOUT);
         this.receiver.subscribe(MainMenuEvent.MENU);
         this.receiver.subscribe(MainMenuEvent.PLAY_RECORDING);
+        this.receiver.subscribe(MainMenuEvent.LEVEL_SELECT);
+        this.receiver.subscribe(MainMenuEvent.BEST_SCORES);
+        this.receiver.subscribe(MainMenuEvent.EXIT);
     }
 
     public override updateScene(){
@@ -146,22 +182,49 @@ export default class MainMenu extends Scene {
             case MainMenuEvent.CONTROLS: {
                 this.controls.setHidden(false);
                 this.mainMenu.setHidden(true);
+                this.about.setHidden(true);
+                this.levelSelect.setHidden(true);
+                this.bestScores.setHidden(true);
                 break;
             }
             case MainMenuEvent.ABOUT: {
                 this.about.setHidden(false);
                 this.mainMenu.setHidden(true);
+                this.controls.setHidden(true);
+                this.levelSelect.setHidden(true);
+                this.bestScores.setHidden(true);
                 break;
             }
             case MainMenuEvent.MENU: {
                 this.mainMenu.setHidden(false);
                 this.controls.setHidden(true);
                 this.about.setHidden(true);
+                this.levelSelect.setHidden(true);
+                this.bestScores.setHidden(true);
                 break;
             }
-            case MainMenuEvent.PLAY_RECORDING: {
-                // TODO play the recording here
-                this.emitter.fireEvent(GameEventType.PLAY_RECORDING, {onEnd: () => this.sceneManager.changeToScene(MainMenu)});
+            case MainMenuEvent.LEVEL_SELECT: {
+                // LEVEL SELECT SCREEN NOT IMPLEMENTED YET
+                this.mainMenu.setHidden(true);
+                this.controls.setHidden(true);
+                this.about.setHidden(true);
+                this.levelSelect.setHidden(false);
+                this.bestScores.setHidden(true);
+
+                break;
+            }
+            case MainMenuEvent.BEST_SCORES:{
+                // Best Scores NOT IMPLEMENTED YET
+                this.mainMenu.setHidden(true);
+                this.controls.setHidden(true);
+                this.about.setHidden(true);
+                this.levelSelect.setHidden(true);
+                this.bestScores.setHidden(false);
+                break;
+                
+            }
+            case MainMenuEvent.EXIT:{
+                // Implement the exit functionality
                 break;
             }
             default: {
