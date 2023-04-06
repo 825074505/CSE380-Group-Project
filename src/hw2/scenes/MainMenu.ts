@@ -27,6 +27,7 @@ const MainMenuEvent = {
 	MENU: "MENU",
     PLAY_RECORDING: "PLAY_RECORDING",
     LEVEL_SELECT: "LEVEL_SELECT",
+    LEVEL_PRESSED: "LEVEL_PRESSED",
     BEST_SCORES: "BEST_SCORES",
     EXIT: "EXIT"
 
@@ -41,7 +42,19 @@ export default class MainMenu extends Scene {
     private bestScores : Layer;
     private seed: string;
 
+    private levels_Unlocked : number;
+    private current_Level : number;
+
+
+
+    public initScene(options: Record<string, any>): void {
+        this.levels_Unlocked = options.levels ? options.levels : 1
+        this.current_Level = 1
+        
+    }
+
     public override startScene(){
+
         const center = this.viewport.getCenter();
 
         // Main menu screen
@@ -115,9 +128,9 @@ export default class MainMenu extends Scene {
         const header = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y - 250), text: "Controls"});
         header.textColor = Color.WHITE;
 
-        const ws = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y - 50), text: "-Press W to pitch up"});
+        const ws = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y - 50), text: "-Press A to pitch up"});
         ws.textColor = Color.WHITE;
-        const ss = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y), text: "-Press S to pitch down"});
+        const ss = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y), text: "-Press D to pitch down"});
         ss.textColor = Color.WHITE;
         const ls = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y + 50), text: "-Press L to shoot bullets"});
         ls.textColor = Color.WHITE;
@@ -133,27 +146,119 @@ export default class MainMenu extends Scene {
         back.backgroundColor = Color.TRANSPARENT;
         back.onClickEventId = MainMenuEvent.MENU;
 
-        const aboutHeader = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 250), text: "BackStory"});
+        const aboutHeader = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 350), text: "BackStory"});
         aboutHeader.textColor = Color.WHITE;
 
-        const text1 = "This game was made by <YOUR NAME HERE>, Peter Walsh and Richard McKenna";
-        const text2 = "using the Wolfie2D game engine, a TypeScript game engine created by";
-        const text3 = "Joe Weaver and Richard McKenna.";
+        const text1 = "In the midst of a fierce dogfight, pilot John Summers narrowly ";
+        const text2 = "evades destruction as his plane suffers critical damage. Gasping ";
+        const text3 = "for breath and with his vision blurring, he steers his crippled aircraft";
+        const text4 = "towards the earth below. Desperate to evade his relentless";
+        const text5 = "pursuers, John veers into the shadowy embrace of a nearby cave,";
+        const text6 = "his plane disappearing into the darkness just as his consciousness";
+        const text7 = "slips away. Awakening to the unnerving hum of his plane's engine,";
+        const text8 = "John is disoriented and alarmed. The air whistles past his aircraft.";
+        const text9 = "He peers through the windshield, but sees nothing but a deep";
+        const text10 = "darkness. With a hesitant flick, he switches on the plane's ";
+        const text11 = "headlights, revealing the vast expanse of an enigmatic";
+        const text12 = "subterranean cave network. Sinister echoes reverberate through";
+        const text13 = "the cavern, sending a shiver down John's spine. Gripping the";
+        const text14 = "controls, he braces himself for the harrowing journey ahead.";
+        
 
-        const line1 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 50), text: text1});
-        const line2 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y), text: text2});
-        const line3 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 50), text: text3});
+        const line1 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 300), text: text1});
+        const line2 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 250), text: text2});
+        const line3 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 200), text: text3});
+        const line4 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 150), text: text4});
+        const line5 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 100), text: text5});
+        const line6 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 50 ), text: text6});
+        const line7 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y), text: text7});
+        const line8 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 50), text: text8});
+        const line9 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 100), text: text9});
+        const line10 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 150), text: text10});
+        const line11 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 200), text: text11});
+        const line12 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 250), text: text12});
+        const line13 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 300), text: text13});
+        const line14 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 350), text: text14});
+
+        
 
         line1.textColor = Color.WHITE;
         line2.textColor = Color.WHITE;
         line3.textColor = Color.WHITE;
+        line4.textColor = Color.WHITE;
+        line5.textColor = Color.WHITE;
+        line6.textColor = Color.WHITE;
+        line7.textColor = Color.WHITE;
+        line8.textColor = Color.WHITE;
+        line9.textColor = Color.WHITE;
+        line10.textColor = Color.WHITE;
+        line11.textColor = Color.WHITE;
+        line12.textColor = Color.WHITE;
+        line13.textColor = Color.WHITE;
+        line14.textColor = Color.WHITE;
 
-        const aboutBack = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 250), text: "Back"});
+        const aboutBack = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 400), text: "Back"});
         aboutBack.size.set(200, 50);
         aboutBack.borderWidth = 2;
         aboutBack.borderColor = Color.WHITE;
         aboutBack.backgroundColor = Color.TRANSPARENT;
         aboutBack.onClickEventId = MainMenuEvent.MENU;
+
+
+        // add Level Select screen Buttons
+        
+        
+
+        const level1 = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.LEVEL_SELECT, {position: new Vec2(center.x, center.y - 100), text: "Level 1"});
+        level1.size.set(200, 50);
+        level1.borderWidth = 2;
+        level1.borderColor = Color.WHITE;
+        level1.backgroundColor = Color.GREEN;
+        level1.onClick = () => {this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":1})}
+
+        
+        const level2 = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.LEVEL_SELECT, {position: new Vec2(center.x, center.y), text: "Level 2"});
+        level2.size.set(200, 50);
+        level2.borderWidth = 2;
+        level2.borderColor = Color.WHITE;
+        level2.backgroundColor = this.levels_Unlocked >= 2 ? Color.GREEN : Color.TRANSPARENT
+        level2.onClick = () => {this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":2})}
+
+        const level3 = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.LEVEL_SELECT, {position: new Vec2(center.x, center.y + 100), text: "Level 3"});
+        level3.size.set(200, 50);
+        level3.borderWidth = 2;
+        level3.borderColor = Color.WHITE;
+        level3.backgroundColor = this.levels_Unlocked >= 3 ? Color.GREEN : Color.TRANSPARENT
+        level3.onClick = () => {this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":3})}
+
+        const level4 = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.LEVEL_SELECT, {position: new Vec2(center.x, center.y + 200), text: "Level 4"});
+        level4.size.set(200, 50);
+        level4.borderWidth = 2;
+        level4.borderColor = Color.WHITE;
+        level4.backgroundColor = this.levels_Unlocked >= 4 ? Color.GREEN : Color.TRANSPARENT
+        level4.onClick = () => {this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":4})}
+
+
+        const level5 = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.LEVEL_SELECT, {position: new Vec2(center.x, center.y + 300), text: "Level 5"});
+        level5.size.set(200, 50);
+        level5.borderWidth = 2;
+        level5.borderColor = Color.WHITE;
+        level5.backgroundColor = this.levels_Unlocked >= 5 ? Color.GREEN : Color.TRANSPARENT
+        level5.onClick = () => {this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":5})}
+
+        const level6 = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.LEVEL_SELECT, {position: new Vec2(center.x, center.y + 400), text: "Level 6"});
+        level6.size.set(200, 50);
+        level6.borderWidth = 2;
+        level6.borderColor = Color.WHITE;
+        level6.backgroundColor = this.levels_Unlocked >= 6 ? Color.GREEN : Color.RED
+        level6.onClick = () => {this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":6})}
+
+        const LevelBack = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.LEVEL_SELECT, {position: new Vec2(center.x, center.y -200), text: "Back"});
+        LevelBack.size.set(200, 50);
+        LevelBack.borderWidth = 2;
+        LevelBack.borderColor = Color.WHITE;
+        LevelBack.backgroundColor = Color.TRANSPARENT;
+        LevelBack.onClickEventId = MainMenuEvent.MENU;
 
         // Subscribe to the button events
         this.receiver.subscribe(MainMenuEvent.PLAY_GAME);
@@ -164,6 +269,8 @@ export default class MainMenu extends Scene {
         this.receiver.subscribe(MainMenuEvent.LEVEL_SELECT);
         this.receiver.subscribe(MainMenuEvent.BEST_SCORES);
         this.receiver.subscribe(MainMenuEvent.EXIT);
+
+        this.receiver.subscribe(MainMenuEvent.LEVEL_PRESSED);
     }
 
     public override updateScene(){
@@ -212,6 +319,20 @@ export default class MainMenu extends Scene {
                 this.bestScores.setHidden(true);
 
                 break;
+            }
+
+            case MainMenuEvent.LEVEL_PRESSED: {
+                if(this.levels_Unlocked >= event.data.get("level")){
+                    // Switch To Game Level Scene correspond to level selected
+                    this.current_Level = event.data.get("level")
+                    this.mainMenu.setHidden(false);
+                    this.controls.setHidden(true);
+                    this.about.setHidden(true);
+                    this.levelSelect.setHidden(true);
+                    this.bestScores.setHidden(true);
+                }
+                break;
+
             }
             case MainMenuEvent.BEST_SCORES:{
                 // Best Scores NOT IMPLEMENTED YET

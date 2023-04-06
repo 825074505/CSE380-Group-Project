@@ -49,6 +49,10 @@ export const HW2Events = {
 
     PLAYER_HEALTH_CHANGE: "PLAYER_HEALTH_CHANGE",
 
-    AIR_CHANGE: "AIR_CHANGE"
+    AIR_CHANGE: "AIR_CHANGE",
+
+    RESUME_GAME: "RESUME_GAME",
+
+    BACK_TO_MAIN: "BACK_TO_MAIN"
     
 } as const;
