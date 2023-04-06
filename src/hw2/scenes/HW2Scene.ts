@@ -71,6 +71,8 @@ type monsterInfo = {
 	phaseTime?: number;
 
 	monsterType?: number;
+
+	weakToLight?: boolean;
 	//speed
 	//projectile
 }
@@ -85,14 +87,14 @@ const level1: Array<monsterInfo> = [
 	spriteKey: "MINE",
 	spawnY: 450,
 	movementPattern: movementPatterns.moveLeft,
-	monsterType: monsterTypes.weakToLight,
+	weakToLight: true,
 	},
 	{
-	spawnTime: 0.0,
+	spawnTime: 1.0,
 	spriteKey: "MINE",
-	spawnY: 100,
+	spawnY: 250,
 	movementPattern: movementPatterns.moveLeft,
-	monsterType: monsterTypes.stalactite,
+	monsterType: monsterTypes.spinning,
 	},
 	{
 	spawnTime: 2.0,
@@ -106,6 +108,14 @@ const level1: Array<monsterInfo> = [
 	spriteKey: "MINE",
 	spawnY: 450,
 	movementPattern: movementPatterns.sineWave,
+	monsterType: monsterTypes.weakFromTop,
+	},
+	{
+	spawnTime: 4.0,
+	spriteKey: "MINE",
+	spawnY: 100,
+	movementPattern: movementPatterns.moveLeft,
+	monsterType: monsterTypes.stalactite,
 	},
 	{
 	spawnTime: 6.0,
@@ -711,7 +721,8 @@ export default class HW2Scene extends Scene {
 			mine.position = new Vec2((viewportSize.x + paddedViewportSize.x)/2, this.levelObjs[this.curMonsterIndex].spawnY);
 			//mine.position = new Vec2(450, 450);
 			const mineInfo = this.levelObjs[this.curMonsterIndex];
-			mine.setAIActive(true, {movementPattern: mineInfo.movementPattern, player: this.player, narrowLight: this.narrowLight, wideLight: this.wideLight, monsterType: mineInfo.monsterType});
+			mine.setAIActive(true, {movementPattern: mineInfo.movementPattern, monsterType: mineInfo.monsterType, weakToLight: mineInfo.weakToLight,
+									player: this.player, narrowLight: this.narrowLight, wideLight: this.wideLight});
 			this.curMonsterIndex++; 
 			// Start the mine spawn timer - spawn a mine every half a second I think
 			//this.mineSpawnTimer.start(100);
@@ -1033,6 +1044,7 @@ export default class HW2Scene extends Scene {
 	 * If a collision is detected between a laser and a mine, the mine should
 	 * be returned to it's respective object-pool. The laser should be unaffected. 
 	 */
+	 /*
 	public handleMineLaserCollisions(laser: Graphic, mines: Array<Sprite>): number {
 		let collisions = 0;
 		if (laser.visible) {
@@ -1045,6 +1057,7 @@ export default class HW2Scene extends Scene {
 		}
 		return collisions;
 	}
+	*/
 
 	public handleShootCollisions(laser: Graphic, firePosition : Vec2, angle: number, mines: Array<Sprite>){
 		//TODO switch to circles and implement circle segment intersection?
@@ -1052,8 +1065,9 @@ export default class HW2Scene extends Scene {
 		let collisions = 0;
 		if (laser.visible) {
 			for (let mine of mines) {
-				if (mine.collisionShape.getBoundingRect().intersectSegment(firePosition, new Vec2(1200, Math.tan(angle)*1200 * -1))) {
-					this.emitter.fireEvent(HW2Events.LASER_MINE_COLLISION, { mineId: mine.id, laserId: laser.id });
+				let hitInfo = mine.collisionShape.getBoundingRect().intersectSegment(firePosition, new Vec2(1200, Math.tan(angle)*1200 * -1));
+				if (hitInfo != null) {
+					this.emitter.fireEvent(HW2Events.LASER_MINE_COLLISION, { mineId: mine.id, laserId: laser.id, hit: hitInfo});
 					collisions += 1;
 				}
 			}

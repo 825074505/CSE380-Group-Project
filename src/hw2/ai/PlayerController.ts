@@ -232,6 +232,7 @@ export default class PlayerController implements AI {
 
 		if(this.shootLight.intensity > 0)
 		{
+			//TODO make it so that the player cant shoot or turn on lights until shootLight intensity hits 0;
 			this.shootLight.intensity = MathUtils.clamp(this.shootLight.intensity - deltaT, 0, 1);
 		}
 

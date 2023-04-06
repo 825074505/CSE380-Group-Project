@@ -17,6 +17,8 @@ export const MineAnimations = {
     EXPLODING: "EXPLODING",
     INVINCIBLE: "INVINCIBLE",
     WEAKENING: "WEAKENING",
+    HALFWEAK: "HALFWEAK",
+    TOPWEAK: "TOPWEAK",
 } as const;
 
 export enum movementPatterns {
@@ -73,6 +75,7 @@ export default class MineBehavior2 implements AI {
     private monsterState: number = 0;
     private monsterType: number = 0;
     private projectileBehaviors: number;
+    private weakToLight: boolean = false;
 
     private timeSinceSpawn: number;
 
@@ -115,10 +118,24 @@ export default class MineBehavior2 implements AI {
         if (options.monsterType != null)
             this.monsterType = options.monsterType;
 
-        if(this.monsterType == monsterTypes.weakToLight || this.monsterType == monsterTypes.weakToDark)
+        if (options.weakToLight != null)
+            this.weakToLight = options.weakToLight;
+
+        if(this.weakToLight || this.monsterType == monsterTypes.weakToDark)
         {
             this.monsterState = monsterStates.invincible;
             this.owner.animation.playIfNotAlready(MineAnimations.INVINCIBLE, true);
+        }
+
+        if(this.monsterType == monsterTypes.spinning)
+        {
+            this.owner.animation.playIfNotAlready(MineAnimations.HALFWEAK, true);
+        }
+
+        if(this.monsterType == monsterTypes.weakFromTop)
+        {
+            this.monsterState = monsterStates.invincible;
+            this.owner.animation.playIfNotAlready(MineAnimations.TOPWEAK, true);
         }
 
 
@@ -231,7 +248,8 @@ export default class MineBehavior2 implements AI {
             //gonna refactor this eventually with some functions that handle state changes and reduce repeated code
             //Detect if in Light  -  Only check for appropriate types of enemy
             //console.log("hi");
-            if(this.monsterType == monsterTypes.weakToLight && this.monsterState != monsterStates.weak)
+            //ABSTRACT OUT ANIMATIONS SO THAT EACH ENEMY TYPE HAS EACH APPROPRIATE SPRITE
+            if(this.weakToLight && this.monsterState != monsterStates.weak)
             {
                 if(this.narrowLight.visible && this.checkLightCollision(this.narrowLight, this.owner.collisionShape))
                 {
@@ -306,6 +324,11 @@ export default class MineBehavior2 implements AI {
                 }
                 
             }
+
+            if(this.monsterType == monsterTypes.spinning)
+            {
+                this.owner.rotation += 0.04; //Make a parameter
+            }
         }
     }
 
@@ -330,13 +353,30 @@ export default class MineBehavior2 implements AI {
 
     protected handleLaserMineCollision(event: GameEvent): void {
         let id = event.data.get("mineId");
+        let hit = event.data.get("hit");
         if (id === this.owner.id) {
             switch(this.monsterType)
             {
                 case monsterTypes.stalactite:
                     this.movementPattern = movementPatterns.falling;
                     break;
-                    
+                case monsterTypes.spinning:
+                    if(this.monsterState == monsterStates.weak)
+                    {
+                        //Assuming only hit from leftside which is ok I think
+                        let angle = Math.atan((this.owner.position.y - hit.pos.y)/(this.owner.position.x - hit.pos.x)) + Math.PI;
+                        /*
+                        if(angle < 0)
+                            angle += Math.PI * 2;
+                        */
+                        console.log(angle);
+
+                        if(angle > (Math.PI/2 + this.owner.rotation) % (2 * Math.PI)   &&    angle < ((3 * Math.PI)/2 + this.owner.rotation) % (2 * Math.PI))
+                        {
+                            this.owner.animation.playIfNotAlready(MineAnimations.EXPLODING, false, HW2Events.MINE_EXPLODED);
+                        }
+                    }
+                    break;
                 default:
                     if(this.monsterState == monsterStates.weak)
                         this.owner.animation.playIfNotAlready(MineAnimations.EXPLODING, false, HW2Events.MINE_EXPLODED);
