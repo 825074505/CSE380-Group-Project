@@ -580,7 +580,7 @@ export default class HW2Scene extends Scene {
 		// AirBar
 		this.airBar = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(225, 100), text: ""});
 		this.airBar.size = new Vec2(300, 25);
-		this.airBar.backgroundColor = Color.CYAN;
+		this.airBar.backgroundColor = Color.WHITE;
 
 		// HealthBar Border
 		this.healthBarBg = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(225, 50), text: ""});
@@ -1006,6 +1006,8 @@ export default class HW2Scene extends Scene {
 		let unit = this.airBarBg.size.x / maxAir;
 		this.airBar.size.set(this.airBarBg.size.x - unit * (maxAir - currentAir), this.airBarBg.size.y);
 		this.airBar.position.set(this.airBarBg.position.x - (unit / 2) * (maxAir - currentAir), this.airBarBg.position.y);
+		//TODO FIX HARDCODED COST FOR SHOT
+		this.airBar.backgroundColor = currentAir < 2.5 ? Color.RED : Color.WHITE;
 	}
 	/**
 	 * This method handles updating the charge of player's laser in the UI.

@@ -59,11 +59,16 @@ export default class PlayerController implements AI {
 
 	private deadSent: boolean;
 
+	private shootTimeOut: boolean = false;
+	private laserEnergyCost: number = 2.5;
+
 	private p1: Graphic;
 	private p2: Graphic;
 	private wideLight: Light;
 	private narrowLight: Light;
 	private blinkingLight: Light;
+	private wideLightTargetIntensity: number;
+	private narrowLightTargetIntensity: number;
 	private shootLight: Light;
 	private renderingManager: RenderingManager;
 
@@ -125,6 +130,9 @@ export default class PlayerController implements AI {
 		this.p2 = options.p2;
 		this.wideLight = options.wideLight;
 		this.narrowLight = options.narrowLight;
+		this.wideLightTargetIntensity = this.wideLight.intensity;
+		this.narrowLightTargetIntensity = this.narrowLight.intensity;
+
 		this.blinkingLight = options.blinkingLight;
 		this.shootLight = options.shootLight;
 
@@ -184,12 +192,19 @@ export default class PlayerController implements AI {
 
 
 		// Handle trying to shoot a laser from the submarine
+		/*
 		if (Input.isJustPressed(HW2Controls.SHOOT) && this.currentCharge > 0) {
 			this.currentCharge -= 1;
 			this.emitter.fireEvent(HW2Events.SHOOT_LASER, {src: this.p2.position, angle: this.currentAngle});
 			this.emitter.fireEvent(HW2Events.CHARGE_CHANGE, {curchrg: this.currentCharge, maxchrg: this.maxCharge});
 		}
-
+		*/
+		if (Input.isJustPressed(HW2Controls.SHOOT) && this.shootTimeOut == false && this.currentAir > this.laserEnergyCost) {
+			//this.currentCharge -= 1;
+			this.shootTimeOut = true;
+			this.emitter.fireEvent(HW2Events.SHOOT_LASER, {src: this.p2.position, angle: this.currentAngle});
+			//this.emitter.fireEvent(HW2Events.CHARGE_CHANGE, {curchrg: this.currentCharge, maxchrg: this.maxCharge});
+		}
 		// Move the player
 		//old
 		//let movement = Vec2.UP.scaled(forwardAxis * this.currentSpeed).add(new Vec2(horizontalAxis * this.currentSpeed, 0));
@@ -212,16 +227,17 @@ export default class PlayerController implements AI {
 
 		this.blinkingLight.position = new Vec2(this.owner.position.x-20, this.owner.position.y);
 
-		if(Input.isJustPressed(HW2Controls.WIDE_HEADLIGHT))
+
+		if(Input.isJustPressed(HW2Controls.WIDE_HEADLIGHT) && this.shootTimeOut == false)
 		{
 			this.wideLight.visible = !this.wideLight.visible;
-			this.wideLight.intensity = 0.3;
+			this.wideLightTargetIntensity = 0.3;
 			this.narrowLight.visible = false;
 		}
 
-		if(Input.isJustPressed(HW2Controls.NARROW_HEADLIGHT))
+		if(Input.isPressed(HW2Controls.NARROW_HEADLIGHT) && this.shootTimeOut == false)
 		{
-			this.wideLight.intensity = 0.1;
+			this.wideLightTargetIntensity = 0.1;
 			this.wideLight.visible = true;
 			this.narrowLight.visible = true;
 		}
@@ -230,12 +246,27 @@ export default class PlayerController implements AI {
 		if(!Input.isPressed(HW2Controls.NARROW_HEADLIGHT) && this.narrowLight.visible)
 		{
 			this.narrowLight.visible = false;
-			this.wideLight.intensity = 0.3;
+			this.wideLightTargetIntensity = 0.3;
 		}
 
+		//scale light intensity when air is low
+		this.wideLight.intensity = this.wideLightTargetIntensity * MathUtils.clamp((this.currentAir/this.maxAir)*3, 0, 1);
+		this.narrowLight.intensity = this.narrowLightTargetIntensity * MathUtils.clamp((this.currentAir/this.maxAir)*3, 0, 1);
+
+		//this whole thing is kinda gross fix later
 		if(this.shootLight.intensity > 0)
 		{
 			//TODO make it so that the player cant shoot or turn on lights until shootLight intensity hits 0;
+			//make this a timer probably this is kinda hacky
+			if(this.shootLight.intensity - deltaT <= 0.2 && this.shootLight.intensity > 0.2)
+			{
+				this.shootTimeOut = false;
+				if(Input.isPressed(HW2Controls.WIDE_HEADLIGHT))
+				{
+					this.wideLight.visible = true;
+					this.wideLight.intensity = 0.3;
+				}
+			}
 			this.shootLight.intensity = MathUtils.clamp(this.shootLight.intensity - deltaT, 0, 1);
 		}
 
@@ -251,6 +282,10 @@ export default class PlayerController implements AI {
 		}else if(this.wideLight.visible)
 		{
 			this.currentAir = MathUtils.clamp(this.currentAir - 0.01, this.minAir, this.maxAir);
+			this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
+		}else
+		{
+			this.currentAir = MathUtils.clamp(this.currentAir + 0.01, this.minAir, this.maxAir);
 			this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
 		}
 
@@ -328,6 +363,8 @@ export default class PlayerController implements AI {
 	 * @param event 
 	 */
 	protected handleShootLaserEvent(event: GameEvent): void {
+		this.currentAir -= this.laserEnergyCost;
+		this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
 		this.shootLight.intensity = 0.8;
 		this.wideLight.visible = false;
 		this.narrowLight.visible = false;
