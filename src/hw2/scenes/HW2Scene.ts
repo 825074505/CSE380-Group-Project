@@ -93,6 +93,13 @@ const level1: Array<monsterInfo> = [
 	weakToLight: true,
 	},
 	{
+	spawnTime: 0.0,
+	spriteKey: "ELECTRICITY",
+	spawnY: 800,
+	movementPattern: movementPatterns.moveLeft,
+	monsterType: monsterTypes.electricField,
+	},
+	{
 	spawnTime: 1.0,
 	spriteKey: "MINE",
 	spawnY: 250,
@@ -154,6 +161,9 @@ export default class HW2Scene extends Scene {
     // The key and path to the background sprite
 	public static BACKGROUND_KEY = "BACKGROUND"
     public static BACKGROUND_PATH = "hw2_assets/sprites/WavyBlueLines.png"
+
+	public static ELECTRICITY_KEY = "ELECTRICITY";
+	public static ELECTRICITY_PATH = "hw2_assets/spritesheets/Electricity.json";
 
 
 	//PAUSE Screen Pop Up Layer
@@ -243,6 +253,8 @@ export default class HW2Scene extends Scene {
 		this.load.image(HW2Scene.BACKGROUND_KEY, HW2Scene.BACKGROUND_PATH);
 		// Load in the naval mine
 		this.load.spritesheet(HW2Scene.MINE_KEY, HW2Scene.MINE_PATH);
+
+		this.load.spritesheet(HW2Scene.ELECTRICITY_KEY, HW2Scene.ELECTRICITY_PATH);
 		// Load in the shader for bubble.
 		this.load.shader(
 			BubbleShaderType.KEY,
@@ -467,6 +479,7 @@ export default class HW2Scene extends Scene {
 		this.playerP1 = this.add.graphic(GraphicType.RECT, HW2Layers.PRIMARY, {position: this.player.position.clone(), size: new Vec2(10, 10)});
 		this.playerP2 = this.add.graphic(GraphicType.RECT, HW2Layers.PRIMARY, {position: this.player.position.clone(), size: new Vec2(10, 10)});
 
+
 		this.wideLight = this.add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: this.player.position.clone(), 
 																					angle : 0,
 																					intensity : 0.3,
@@ -500,6 +513,16 @@ export default class HW2Scene extends Scene {
 																					tintColor : Color.WHITE,
 																					angleRange : new Vec2(270, 0),
 																					opacity : 1.0});
+		/*
+		this.add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: this.player.position.clone(), 
+																					angle : 0,
+																					intensity : 0.6,
+																					distance : 0,
+																					tintColor : Color.BLUE,
+																					angleRange : new Vec2(30, 0),
+																					opacity : 0.5,
+																					lineEndPosition : new Vec2(700, 700)});
+		*/
 
 
 		
@@ -656,7 +679,7 @@ export default class HW2Scene extends Scene {
 		*/
 		for (let i = 0; i < this.mines.length; i++){
 			this.mines[i] = this.add.animatedSprite(this.levelObjs[i].spriteKey, HW2Layers.PRIMARY);
-
+			
 			// Make our mine inactive by default
 			this.mines[i].visible = false;
 
@@ -781,7 +804,21 @@ export default class HW2Scene extends Scene {
 			mine.position = new Vec2((viewportSize.x + paddedViewportSize.x)/2, this.levelObjs[this.curMonsterIndex].spawnY);
 			//mine.position = new Vec2(450, 450);
 			const mineInfo = this.levelObjs[this.curMonsterIndex];
-			mine.setAIActive(true, {movementPattern: mineInfo.movementPattern, monsterType: mineInfo.monsterType, weakToLight: mineInfo.weakToLight,
+
+			let electricLight = null;
+			if(mineInfo.monsterType == monsterTypes.electricField)
+			{
+				electricLight = this.add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: new Vec2(0, 0), 
+																					angle : 0,
+																					intensity : 0.5,
+																					distance : 10,
+																					tintColor : Color.BLUE,
+																					angleRange : new Vec2(360, 360),
+																					opacity : 0.5,
+																					lightScale : 1.0});
+			}
+
+			mine.setAIActive(true, {movementPattern: mineInfo.movementPattern, monsterType: mineInfo.monsterType, weakToLight: mineInfo.weakToLight, electricLight: electricLight,
 									player: this.player, narrowLight: this.narrowLight, wideLight: this.wideLight});
 			this.curMonsterIndex++; 
 			// Start the mine spawn timer - spawn a mine every half a second I think
@@ -1078,9 +1115,10 @@ export default class HW2Scene extends Scene {
 	 */
 	public handleMinePlayerCollisions(): number {
 		let collisions = 0;
-		for (let mine of this.mines) {
+		for (const mineInd in this.mines) {
+			let mine = this.mines[mineInd];
 			if (mine.visible && this.player.collisionShape.overlaps(mine.collisionShape)) {
-				this.emitter.fireEvent(HW2Events.PLAYER_MINE_COLLISION, {id: mine.id});
+				this.emitter.fireEvent(HW2Events.PLAYER_MINE_COLLISION, {id: mine.id, monsterType: this.levelObjs[mineInd].monsterType});
 				collisions += 1;
 			}
 		}	

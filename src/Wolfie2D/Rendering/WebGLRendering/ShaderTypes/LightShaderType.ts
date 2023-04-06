@@ -86,6 +86,12 @@ export default class LightShaderType extends QuadShaderType {
 		const angleRangeLocation = gl.getUniformLocation(program, "angleRange");
 		gl.uniform2f(angleRangeLocation, options.angleRange.x, options.angleRange.y);
 
+		const lineEndPositionLocation = gl.getUniformLocation(program, "lineEndPosition");
+		if(options.lineEndPosition.x == -1)
+			gl.uniform2f(lineEndPositionLocation, options.lineEndPosition.x, options.lineEndPosition.y);
+		else
+			gl.uniform2f(lineEndPositionLocation, options.lineEndPosition.x, gl.canvas.height - options.lineEndPosition.y);
+
 		// Draw the quad
 		gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 	}
@@ -100,6 +106,7 @@ export default class LightShaderType extends QuadShaderType {
 			tintColor: light.tintColor,
 			angleRange: light.angleRange,
 			scale: light.lightScale,
+			lineEndPosition: light.lineEndPosition,
 		}
 
 		return options;

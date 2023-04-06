@@ -87,6 +87,8 @@ export default class MineBehavior2 implements AI {
     private fallingSpeed: number = 0;
     private gravity: number = 10;
 
+    private electricLight: Light;
+
     /**
      * @see {AI.initializeAI}
      */
@@ -114,12 +116,21 @@ export default class MineBehavior2 implements AI {
         this.player = options.player;
         this.narrowLight = options.narrowLight;
         this.wideLight = options.wideLight;
+        this.electricLight = options.electricLight;
+
+        if(this.electricLight != null)
+        {
+            this.electricLight.visible = true;
+            this.monsterState = monsterStates.invincible;
+        }
 
         if (options.monsterType != null)
             this.monsterType = options.monsterType;
 
         if (options.weakToLight != null)
             this.weakToLight = options.weakToLight;
+
+
 
         if(this.weakToLight || this.monsterType == monsterTypes.weakToDark)
         {
@@ -329,6 +340,11 @@ export default class MineBehavior2 implements AI {
             {
                 this.owner.rotation += 0.04; //Make a parameter
             }
+
+            if(this.monsterType == monsterTypes.electricField)
+            {
+                this.electricLight.position = this.owner.position.clone();
+            }
         }
     }
 
@@ -397,7 +413,12 @@ export default class MineBehavior2 implements AI {
     protected handlePlayerMineCollision(event: GameEvent): void {
         let id = event.data.get("id");
         if (id === this.owner.id) {
-            this.owner.animation.playIfNotAlready(MineAnimations.EXPLODING, false, HW2Events.MINE_EXPLODED);
+            if(this.monsterType == monsterTypes.electricField)
+            {
+            }else
+            {
+                this.owner.animation.playIfNotAlready(MineAnimations.EXPLODING, false, HW2Events.MINE_EXPLODED);
+            }
         }
     }
 

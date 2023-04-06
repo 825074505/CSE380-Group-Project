@@ -14,8 +14,9 @@ export default class Light extends Graphic {
     opacity: number;
     lightScale: number;
     tintColor: Color;
+    lineEndPosition: Vec2;
 
-    constructor(position: Vec2, angle: number, intensity: number, distance: number, opacity: number, tintColor: Color, angleRange: Vec2, lightScale: number = 1.0){
+    constructor(position: Vec2, angle: number, intensity: number, distance: number, opacity: number, tintColor: Color, angleRange: Vec2, lightScale: number = 1.0, lineEndPosition: Vec2 = new Vec2(-1.0, -1.0)){
         super();
         this.position = position;
         this.angle = angle;
@@ -25,5 +26,6 @@ export default class Light extends Graphic {
         this.angleRange = angleRange;
         this.opacity = opacity;
         this.lightScale = lightScale;
+        this.lineEndPosition = lineEndPosition;
     }
 }

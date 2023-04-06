@@ -11,6 +11,8 @@ import Graphic from "../../Wolfie2D/Nodes/Graphic";
 import Light from "../../Wolfie2D/Nodes/Graphics/Light";
 import RenderingManager from "../../Wolfie2D/Rendering/RenderingManager";
 
+import {monsterTypes} from "../ai/MineBehavior2";
+
 import { HW2Events } from "../HW2Events";
 import { HW2Controls } from "../HW2Controls";
 
@@ -224,6 +226,7 @@ export default class PlayerController implements AI {
 			this.narrowLight.visible = true;
 		}
 
+		//check if narrow headlight key was released
 		if(!Input.isPressed(HW2Controls.NARROW_HEADLIGHT) && this.narrowLight.visible)
 		{
 			this.narrowLight.visible = false;
@@ -237,17 +240,29 @@ export default class PlayerController implements AI {
 		}
 
 		// Player looses a little bit of air each frame
-		this.currentAir = MathUtils.clamp(this.currentAir - deltaT, this.minAir, this.maxAir);
+		//this.currentAir = MathUtils.clamp(this.currentAir - deltaT, this.minAir, this.maxAir);
 
-		this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
+		//this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
+
+		if(this.narrowLight.visible)
+		{
+			this.currentAir = MathUtils.clamp(this.currentAir - 0.05, this.minAir, this.maxAir);
+			this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
+		}else if(this.wideLight.visible)
+		{
+			this.currentAir = MathUtils.clamp(this.currentAir - 0.01, this.minAir, this.maxAir);
+			this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
+		}
 
 		// If the player is out of air - start subtracting from the player's health
-		this.currentHealth = this.currentAir <= this.minAir ? MathUtils.clamp(this.currentHealth - deltaT*2, this.minHealth, this.maxHealth) : this.currentHealth;
+		//this.currentHealth = this.currentAir <= this.minAir ? MathUtils.clamp(this.currentHealth - deltaT*2, this.minHealth, this.maxHealth) : this.currentHealth;
 
 		if(this.currentAir <= this.minAir)
 		{
-			this.currentHealth = MathUtils.clamp(this.currentHealth - deltaT*2, this.minHealth, this.maxHealth);
-			this.emitter.fireEvent(HW2Events.PLAYER_HEALTH_CHANGE, {curhealth: this.currentHealth, maxhealth: this.maxHealth});
+			//this.currentHealth = MathUtils.clamp(this.currentHealth - deltaT*2, this.minHealth, this.maxHealth);
+			//this.emitter.fireEvent(HW2Events.PLAYER_HEALTH_CHANGE, {curhealth: this.currentHealth, maxhealth: this.maxHealth});
+			this.narrowLight.visible = false;
+			this.wideLight.visible = false;
 		}
 
 		//Blinking Light
@@ -322,15 +337,25 @@ export default class PlayerController implements AI {
 
 	protected handlePlayerMineCollisionEvent(event: GameEvent): void {
 		//this.currentHealth -= 2;
+		let monsterType = event.data.get("monsterType");
 		if(!this.invincible)
 		{
-			this.currentHealth -= 2;
-			this.emitter.fireEvent(HW2Events.PLAYER_HEALTH_CHANGE, {curhealth: this.currentHealth, maxhealth: this.maxHealth});
-			this.owner.animation.playIfNotAlready(PlayerAnimations.HIT, false);
-			this.owner.animation.queue(PlayerAnimations.IDLE, true);
-			this.invincible = true;
-			this.invinTimer.reset();
-			this.invinTimer.start();
+			switch(monsterType)
+			{
+				case monsterTypes.electricField:
+					this.currentAir = MathUtils.clamp(this.currentAir + 0.1, this.minAir, this.maxAir);
+					this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
+					break;
+				default:
+					this.currentHealth -= 2;
+					this.emitter.fireEvent(HW2Events.PLAYER_HEALTH_CHANGE, {curhealth: this.currentHealth, maxhealth: this.maxHealth});
+					this.owner.animation.playIfNotAlready(PlayerAnimations.HIT, false);
+					this.owner.animation.queue(PlayerAnimations.IDLE, true);
+					this.invincible = true;
+					this.invinTimer.reset();
+					this.invinTimer.start();
+					break;
+			}
 		}
 	}
 

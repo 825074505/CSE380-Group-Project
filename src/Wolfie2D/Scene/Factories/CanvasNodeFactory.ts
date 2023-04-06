@@ -240,10 +240,13 @@ export default class CanvasNodeFactory {
 		this.checkIfPropExists("Light", options, "tintColor", Color, "object");
 		this.checkIfPropExists("Light", options, "angleRange", Vec2, "Vec2");
 
-		if(options.lightScale != null)
-			return new Light(options.position, options.angle, options.intensity, options.distance, options.opacity, options.tintColor, options.angleRange, options.lightScale);
+		if(options.lightScale == null)
+			options.lightScale = 1.0;
 
-		return new Light(options.position, options.angle, options.intensity, options.distance, options.opacity, options.tintColor, options.angleRange);
+		if(options.lineEndPosition == null)
+			options.lineEndPosition = new Vec2(-1.0, -1.0);
+
+		return new Light(options.position, options.angle, options.intensity, options.distance, options.opacity, options.tintColor, options.angleRange, options.lightScale, options.lineEndPosition);
 	}
 
 	/* ---------- ERROR HANDLING ---------- */
