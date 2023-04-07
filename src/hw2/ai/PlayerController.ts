@@ -11,7 +11,7 @@ import Graphic from "../../Wolfie2D/Nodes/Graphic";
 import Light from "../../Wolfie2D/Nodes/Graphics/Light";
 import RenderingManager from "../../Wolfie2D/Rendering/RenderingManager";
 
-import {monsterTypes} from "../ai/MineBehavior2";
+import {monsterTypes} from "./MineBehavior2";
 
 import { HW2Events } from "../HW2Events";
 import { HW2Controls } from "../HW2Controls";
@@ -76,6 +76,8 @@ export default class PlayerController implements AI {
 	private blinkingLightMinBrightness: number;
 	private blinkingLightBrightnessIncreasing: boolean;
 
+	private lightPressBuffered: boolean = false;
+
 	/**
 	 * This method initializes all variables inside of this AI class.
      * 
@@ -97,6 +99,7 @@ export default class PlayerController implements AI {
 		this.receiver.subscribe(HW2Events.PLAYER_MINE_COLLISION);
 		this.receiver.subscribe(HW2Events.DEAD);
 		this.receiver.subscribe(HW2Events.PLAYER_BUBBLE_COLLISION);
+		this.receiver.subscribe(HW2Events.PLAYER_PROJECTILE_COLLISION);
 
 		this.activate(options);
 	}
@@ -228,11 +231,25 @@ export default class PlayerController implements AI {
 		this.blinkingLight.position = new Vec2(this.owner.position.x-20, this.owner.position.y);
 
 
-		if(Input.isJustPressed(HW2Controls.WIDE_HEADLIGHT) && this.shootTimeOut == false)
+		if(Input.isJustPressed(HW2Controls.WIDE_HEADLIGHT))
 		{
-			this.wideLight.visible = !this.wideLight.visible;
+			if(this.shootTimeOut == false)
+			{
+				this.wideLight.visible = !this.wideLight.visible;
+				this.wideLightTargetIntensity = 0.3;
+				this.narrowLight.visible = false;
+			}else
+			{
+				this.lightPressBuffered = !this.lightPressBuffered;
+			}
+		}
+
+		if(this.lightPressBuffered && this.shootTimeOut == false)
+		{
+			this.wideLight.visible = true;
 			this.wideLightTargetIntensity = 0.3;
 			this.narrowLight.visible = false;
+			this.lightPressBuffered = false;
 		}
 
 		if(Input.isPressed(HW2Controls.NARROW_HEADLIGHT) && this.shootTimeOut == false)
@@ -346,6 +363,10 @@ export default class PlayerController implements AI {
 				this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
 				break;
 			}
+			case HW2Events.PLAYER_PROJECTILE_COLLISION: {
+				this.handlePlayerProjectileCollision(event);
+				break;
+			}
 			default: {
 				throw new Error(`Unhandled event of type: ${event.type} caught in PlayerController`);
 			}
@@ -393,6 +414,20 @@ export default class PlayerController implements AI {
 					this.invinTimer.start();
 					break;
 			}
+		}
+	}
+
+	protected handlePlayerProjectileCollision(event: GameEvent): void {
+		//this.currentHealth -= 2;
+		if(!this.invincible)
+		{
+			this.currentHealth -= 2;
+			this.emitter.fireEvent(HW2Events.PLAYER_HEALTH_CHANGE, {curhealth: this.currentHealth, maxhealth: this.maxHealth});
+			this.owner.animation.playIfNotAlready(PlayerAnimations.HIT, false);
+			this.owner.animation.queue(PlayerAnimations.IDLE, true);
+			this.invincible = true;
+			this.invinTimer.reset();
+			this.invinTimer.start();
 		}
 	}
 

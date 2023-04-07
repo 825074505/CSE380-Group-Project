@@ -6,11 +6,16 @@ import Graphic from "../../Wolfie2D/Nodes/Graphic";
 import AnimatedSprite from "../../Wolfie2D/Nodes/Sprites/AnimatedSprite";
 import Timer from "../../Wolfie2D/Timing/Timer";
 import { HW2Events } from "../HW2Events";
+import { HW2Layers } from "../scenes/HW2Scene";
 import MathUtils from "../../Wolfie2D/Utils/MathUtils";
 import RandUtils from "../../Wolfie2D/Utils/RandUtils";
 import Light from "../../Wolfie2D/Nodes/Graphics/Light";
 import Shape from "../../Wolfie2D/DataTypes/Shapes/Shape";
 import AABB from "../../Wolfie2D/DataTypes/Shapes/AABB";
+import ProjectileBehavior, {projectileBehaviors} from "./ProjectileBehavior";
+import Emitter from "../../Wolfie2D/Events/Emitter";
+import { GraphicType } from "../../Wolfie2D/Nodes/Graphics/GraphicTypes";
+import Color from "../../Wolfie2D/Utils/Color";
 
 export const MineAnimations = {
     IDLE: "IDLE",
@@ -48,10 +53,6 @@ export enum monsterTypes {
     electricField
 }
 
-export enum projectileBehaviors {
-    none,
-}
-
 enum lightStates {
     dark,
     wide,
@@ -67,6 +68,7 @@ export default class MineBehavior2 implements AI {
     private speed: number;
     private direction: Vec2;
     private receiver: Receiver;
+    private emitter: Emitter;
 
     private wideLight: Light;
 	private narrowLight: Light;
@@ -74,10 +76,17 @@ export default class MineBehavior2 implements AI {
     private movementPattern: number = 0;
     private monsterState: number = 0;
     private monsterType: number = 0;
-    private projectileBehaviors: number;
-    private weakToLight: boolean = false;
 
-    private timeSinceSpawn: number;
+    private projectileBehavior: number = 0;
+    private projectileSpeed: number = 0;
+    private projectileFrequency: number = 3; //seconds
+    private projectileLaserLength: number = 1;
+    private projectileTimer: number = 0;
+
+    private weakToLight: boolean = false;
+    private stoppingX: number = -500;
+
+    private timeSincePhased: number;
 
     private spawnLoc: Vec2;
 
@@ -96,6 +105,7 @@ export default class MineBehavior2 implements AI {
         this.owner = owner;
         this.direction = Vec2.LEFT;
 
+        this.emitter = new Emitter();
         this.receiver = new Receiver();
         this.receiver.subscribe(HW2Events.LASER_MINE_COLLISION);
         this.receiver.subscribe(HW2Events.MINE_EXPLODED);
@@ -109,7 +119,7 @@ export default class MineBehavior2 implements AI {
      */
     activate(options: Record<string, any>): void {
         this.speed = 100;
-        this.timeSinceSpawn = 0;
+        this.timeSincePhased = 0;
         this.owner.animation.play(MineAnimations.IDLE, true);
         this.spawnLoc = new Vec2(this.owner.position.x, this.owner.position.y);
         this.movementPattern = options.movementPattern;
@@ -129,6 +139,26 @@ export default class MineBehavior2 implements AI {
 
         if (options.weakToLight != null)
             this.weakToLight = options.weakToLight;
+
+        if(options.stoppingX != null)
+            this.stoppingX = options.stoppingX;
+
+        if(options.projectileBehavior != null)
+            this.projectileBehavior = options.projectileBehavior;
+
+        if(options.projectileSpeed != null)
+            this.projectileSpeed = options.projectileSpeed;
+
+        if(options.projectileFrequency != null)
+            this.projectileFrequency = options.projectileFrequency;
+
+        if(options.projectileLaserLength != null)
+            this.projectileLaserLength = options.projectileLaserLength;
+        //TODO rest of projectile vars also maybe reconsider this
+        if(this.projectileBehavior == projectileBehaviors.laser)
+            this.projectileFrequency += this.projectileLaserLength;
+            
+            
 
 
 
@@ -187,8 +217,7 @@ export default class MineBehavior2 implements AI {
      */
     update(deltaT: number): void {
         //console.log(this.movementPattern);
-        this.timeSinceSpawn += deltaT;
-        //console.log(this.timeSinceSpawn);
+        //console.log(this.timeSincePhased);
         while (this.receiver.hasNextEvent()) {
             this.handleEvent(this.receiver.getNextEvent());
         }
@@ -211,10 +240,12 @@ export default class MineBehavior2 implements AI {
                 case movementPatterns.moveLeft:
                     this.owner.position.add(this.direction.scaled(this.speed * deltaT));
                     break;
+
                 case movementPatterns.trackPlayer:
                     this.direction = new Vec2(this.player.position.x - this.owner.position.x, this.player.position.y - this.owner.position.y);
                     this.owner.position.add(this.direction.normalize().scaled(this.speed * deltaT));
                     break;
+
                 case movementPatterns.sineWave:
                     //should be set to left
                     this.owner.position.add(this.direction.scaled(this.speed * deltaT));
@@ -223,6 +254,7 @@ export default class MineBehavior2 implements AI {
                     const sineRange = 150;
                     this.owner.position = new Vec2(this.owner.position.x, this.spawnLoc.y + Math.sin(this.owner.position.x/71) * sineRange);
                     break;
+
                 case movementPatterns.triangleWave:
                     this.owner.position.add(this.direction.scaled(this.speed * deltaT));
                     //add this to parameters at some point
@@ -230,21 +262,23 @@ export default class MineBehavior2 implements AI {
                     const triRange = 400;
                     this.owner.position = new Vec2(this.owner.position.x, this.spawnLoc.y + MathUtils.tri(this.owner.position.x + 450/4, 450) * triRange);
                     break;
+
                 case movementPatterns.runAway:
                     this.direction = new Vec2(-1, -1 * Math.sign(this.player.position.y - this.owner.position.y));
                     this.owner.position.add(this.direction.normalize().scaled(this.speed * deltaT));
                     break;
+
                 case movementPatterns.phasing:
                     this.owner.position.add(this.direction.scaled(this.speed * deltaT));
-                    //need to do fading in and out
-                    //should use a different counter probably.
-                    this.owner.alpha = (MathUtils.tri(this.timeSinceSpawn, 2) + 1)/2;
-                    if(this.timeSinceSpawn > 2)
+                    this.timeSincePhased += deltaT;
+                    this.owner.alpha = (MathUtils.tri(this.timeSincePhased, 2) + 1)/2;
+                    if(this.timeSincePhased > 2)
                     {
                         this.owner.position = new Vec2(this.owner.position.x, RandUtils.randInt(0, 900)); //HARDCODED WORLDSIZE
-                        this.timeSinceSpawn = 0;
+                        this.timeSincePhased = 0;
                     }
                     break;
+
                 case movementPatterns.falling:
                     this.owner.position.add(this.direction.scaled(this.speed * deltaT));
                     this.fallingSpeed += this.gravity; //clamp this
@@ -253,7 +287,8 @@ export default class MineBehavior2 implements AI {
 
             }
             //clamp Positions TODO unhardcode canvas size
-            this.owner.position = new Vec2(this.owner.position.x, MathUtils.clamp(this.owner.position.y, 20, 880));
+            //
+            this.owner.position = new Vec2(MathUtils.clamp(this.owner.position.x, this.stoppingX, 3000), MathUtils.clamp(this.owner.position.y, 20, 880));
 
 
             //gonna refactor this eventually with some functions that handle state changes and reduce repeated code
@@ -345,7 +380,53 @@ export default class MineBehavior2 implements AI {
             {
                 this.electricLight.position = this.owner.position.clone();
             }
+
+            //projectiles
+            if(this.projectileBehavior != projectileBehaviors.none)
+            {
+                this.projectileTimer += deltaT;
+                if(this.projectileTimer >= this.projectileFrequency)
+                {
+                    this.projectileTimer = 0;
+                    this.spawnProjectile();
+                }
+            }
+
         }
+    }
+
+    protected spawnProjectile(): void {
+        //TODO give this access to sprites and set sprite to weak or invincible depending
+        let projectile = this.owner.getScene().add.animatedSprite("MINE", HW2Layers.PRIMARY);
+			
+		// Make our mine inactive by default
+		projectile.visible = true;
+
+		// Assign them mine ai
+		projectile.addAI(ProjectileBehavior, {});
+
+		projectile.scale.set(0.1, 0.1);
+
+		// Give them a collision shape
+		let collider = new AABB(Vec2.ZERO, projectile.sizeWithZoom);
+		projectile.setCollisionShape(collider);
+
+        this.emitter.fireEvent(HW2Events.PROJECTILE_SPAWNED, {projectile: projectile});
+
+        let light = this.owner.getScene().add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: this.owner.position.clone(), 
+																					angle : 0,
+																					intensity : 0.3,
+																					distance : 1000,
+																					tintColor : Color.RED,
+																					angleRange : new Vec2(360, 360),
+																					opacity : 0.5,
+																					lightScale : 0.1});
+
+        projectile.setAIActive(true, {behavior: this.projectileBehavior, src: this.owner, dst: this.player.position, player: this.player,
+                                        projectileSpeed: this.projectileSpeed, projectileFrequency: this.projectileFrequency, projectileLaserLength: this.projectileLaserLength,
+                                        light: light});
+
+
     }
 
     /**
@@ -381,11 +462,6 @@ export default class MineBehavior2 implements AI {
                     {
                         //Assuming only hit from leftside which is ok I think
                         let angle = Math.atan((this.owner.position.y - hit.pos.y)/(this.owner.position.x - hit.pos.x)) + Math.PI;
-                        /*
-                        if(angle < 0)
-                            angle += Math.PI * 2;
-                        */
-                        console.log(angle);
 
                         if(angle > (Math.PI/2 + this.owner.rotation) % (2 * Math.PI)   &&    angle < ((3 * Math.PI)/2 + this.owner.rotation) % (2 * Math.PI))
                         {
@@ -413,9 +489,7 @@ export default class MineBehavior2 implements AI {
     protected handlePlayerMineCollision(event: GameEvent): void {
         let id = event.data.get("id");
         if (id === this.owner.id) {
-            if(this.monsterType == monsterTypes.electricField)
-            {
-            }else
+            if(this.monsterType != monsterTypes.electricField)
             {
                 this.owner.animation.playIfNotAlready(MineAnimations.EXPLODING, false, HW2Events.MINE_EXPLODED);
             }

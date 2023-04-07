@@ -38,6 +38,8 @@ import Light from "../../Wolfie2D/Nodes/Graphics/Light";
 import Input from "../../Wolfie2D/Input/Input";
 import GameLoop from "../../Wolfie2D/Loop/GameLoop";
 
+import {projectileBehaviors} from "../ai/ProjectileBehavior";
+
 /**
  * A type for layers in the HW3Scene. It seems natural to want to use some kind of enum type to
  * represent the different layers in the HW3Scene, however, it is generally bad practice to use
@@ -65,19 +67,25 @@ type monsterInfo = {
 	spawnTime: number;  //Amount of seconds after level has started that the enemy should spawn
 	spriteKey: string;
 	spawnY: number;
+	stoppingX?: number; //x position to stop moving left at
 
 	movementPattern: number; //Info about movement, conisdered making this its own type but it makes it more verbose
 	period?: number;
 	amplitude?: number;
 	offset?: number;
 
-	phaseTime?: number;
+	phaseTime?: number; //if monsterType is phasing
 
 	monsterType?: number;
 
 	weakToLight?: boolean;
 	//speed
 	//projectile
+	projectileBehavior?: number;
+    projectileSpeed?: number;
+    projectileFrequency?: number; //seconds between firing (after firing is complete for case of laser behavior)
+	projectileLaserLength?: number; //seconds TODO change to length in pixels
+	projectileInvincible?: boolean; //default false
 }
 
 type level = {
@@ -88,7 +96,7 @@ const level1: Array<monsterInfo> = [
 	{
 	spawnTime: 0.0,
 	spriteKey: "MINE",
-	spawnY: 450,
+	spawnY: 600,
 	movementPattern: movementPatterns.moveLeft,
 	weakToLight: true,
 	},
@@ -105,6 +113,12 @@ const level1: Array<monsterInfo> = [
 	spawnY: 250,
 	movementPattern: movementPatterns.moveLeft,
 	monsterType: monsterTypes.spinning,
+	stoppingX: 800,
+
+	projectileBehavior: projectileBehaviors.laser,
+	projectileSpeed: 200,
+	projectileFrequency: 3,
+	projectileLaserLength: 1,
 	},
 	{
 	spawnTime: 2.0,
@@ -199,6 +213,8 @@ export default class HW2Scene extends Scene {
 	private mines: Array<AnimatedSprite>;
 	// Object pool for bubbles
 	private bubbles: Array<Graphic>;
+
+	private projectiles: Array<AnimatedSprite>;
 
 	// Laser/Charge labels
 	private chrgLabel: Label;
@@ -315,6 +331,7 @@ export default class HW2Scene extends Scene {
 		this.initUI();
 		// Initialize object pools
 		this.initObjectPools();
+		this.projectiles = new Array();
 
 		// Subscribe to player events
 		this.receiver.subscribe(HW2Events.CHARGE_CHANGE);
@@ -322,6 +339,7 @@ export default class HW2Scene extends Scene {
 		this.receiver.subscribe(HW2Events.DEAD);
 		this.receiver.subscribe(HW2Events.PLAYER_HEALTH_CHANGE);
 		this.receiver.subscribe(HW2Events.AIR_CHANGE);
+		this.receiver.subscribe(HW2Events.PROJECTILE_SPAWNED);
 
 		//Game events
 		this.receiver.subscribe(HW2Events.RESUME_GAME);
@@ -443,6 +461,10 @@ export default class HW2Scene extends Scene {
 				this.sceneManager.changeToScene(MainMenu,{level:1})
 				break;
 				
+			}
+			case HW2Events.PROJECTILE_SPAWNED: {
+				this.projectiles.push(event.data.get("projectile"));
+				break;
 			}
 			default: {
 				throw new Error(`Unhandled event with type ${event.type} caught in ${this.constructor.name}`);
@@ -818,8 +840,12 @@ export default class HW2Scene extends Scene {
 																					lightScale : 1.0});
 			}
 
-			mine.setAIActive(true, {movementPattern: mineInfo.movementPattern, monsterType: mineInfo.monsterType, weakToLight: mineInfo.weakToLight, electricLight: electricLight,
-									player: this.player, narrowLight: this.narrowLight, wideLight: this.wideLight});
+			mine.setAIActive(true, {movementPattern: mineInfo.movementPattern, monsterType: mineInfo.monsterType, 
+									weakToLight: mineInfo.weakToLight, electricLight: electricLight, stoppingX: mineInfo.stoppingX,
+									player: this.player, narrowLight: this.narrowLight, wideLight: this.wideLight,
+									projectileBehavior: mineInfo.projectileBehavior, projectileSpeed: mineInfo.projectileSpeed, projectileFrequency: mineInfo.projectileFrequency, projectileLaserLength: mineInfo.projectileLaserLength,
+									});
+
 			this.curMonsterIndex++; 
 			// Start the mine spawn timer - spawn a mine every half a second I think
 			//this.mineSpawnTimer.start(100);
@@ -933,6 +959,7 @@ export default class HW2Scene extends Scene {
 			let viewportSize = this.viewport.getHalfSize().scaled(2);
 			if(node.collisionShape.x < viewportSize.x - paddedViewportSize.x || node.collisionShape.y < viewportSize.y - paddedViewportSize.y)
 				node.visible = false;
+				//Todo set light for node to false if it has one by sending out an event
 
 		}
 	}
@@ -1162,13 +1189,30 @@ export default class HW2Scene extends Scene {
 	public handleShootCollisions(laser: Graphic, firePosition : Vec2, angle: number, mines: Array<Sprite>){
 		//TODO switch to circles and implement circle segment intersection?
 		//TODO Use two lines for the edges of the laser instead of center (will need some trig)
+		//TODO Stop the laser from going through invincible enemies
 		let collisions = 0;
+		console.log(this.projectiles);
 		if (laser.visible) {
 			for (let mine of mines) {
-				let hitInfo = mine.collisionShape.getBoundingRect().intersectSegment(firePosition, new Vec2(1200, Math.tan(angle)*1200 * -1));
-				if (hitInfo != null) {
-					this.emitter.fireEvent(HW2Events.LASER_MINE_COLLISION, { mineId: mine.id, laserId: laser.id, hit: hitInfo});
-					collisions += 1;
+				if(mine.visible)
+				{
+					let hitInfo = mine.collisionShape.getBoundingRect().intersectSegment(firePosition, new Vec2(1200, Math.tan(angle)*1200 * -1));
+					if (hitInfo != null) {
+						this.emitter.fireEvent(HW2Events.LASER_MINE_COLLISION, { mineId: mine.id, laserId: laser.id, hit: hitInfo});
+						collisions += 1;
+					}
+				}
+			}
+
+			for(let projectile of this.projectiles)
+			{
+				if(projectile.visible)
+				{
+					let hitInfo = projectile.collisionShape.getBoundingRect().intersectSegment(firePosition, new Vec2(1200, Math.tan(angle)*1200 * -1));
+					if (hitInfo != null) {
+						this.emitter.fireEvent(HW2Events.LASER_PROJECTILE_COLLISION, { projectileId: projectile.id, laserId: laser.id, hit: hitInfo});
+						collisions += 1;
+					}
 				}
 			}
 		}
