@@ -14,6 +14,7 @@ export default class GameOver extends Scene {
     private bubblesPopped: number;
     private minesDestroyed: number;
     private timePassed: number;
+    private curLevel : number;
 
     private bubbleTier: number;
     private mineTier: number;
@@ -29,6 +30,7 @@ export default class GameOver extends Scene {
     ];
 
     public initScene(options: Record<string, any>){
+        this.curLevel = options.current_Level;
         this.bubblesPopped = options.bubblesPopped;
         this.minesDestroyed = options.minesDestroyed;
         this.timePassed = Math.round(options.timePassed);
@@ -111,7 +113,7 @@ export default class GameOver extends Scene {
 
     public updateScene(){
         if(Input.isMouseJustPressed()){
-            this.sceneManager.changeToScene(MainMenu);
+            this.sceneManager.changeToScene(MainMenu,{"levels": this.curLevel});
         }
     }
 }
