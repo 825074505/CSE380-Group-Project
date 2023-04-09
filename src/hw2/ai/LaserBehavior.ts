@@ -75,6 +75,8 @@ export default class LaserBehavior implements AI {
         this.owner.size.y = MathUtils.changeRange(this.currentCharge, this.minCharge, this.maxCharge, this.minSize.y, this.maxSize.y);
         // Set the collision shape of the laser - it will be different each time the laser is fired
         this.owner.collisionShape = new AABB(this.owner.position.clone(), this.owner.size.clone().div(new Vec2(2, 2)));
+        //if(this.src.x != 0)
+        //    this.emitter.fireEvent(HW2Events.FIRING_LASER, {laser: this.owner, src: this.src, angle: this.owner.rotation});
     }
     /**
      * @see AI.update 
@@ -84,9 +86,9 @@ export default class LaserBehavior implements AI {
         if (this.owner.visible) {
 
             // Update the owner's position and size based on where the laser should start
-            this.owner.position.x = (this.dst.x + this.src.x) / 2
-            this.owner.position.y = this.src.y;
-            this.owner.size.x = this.dst.x - this.src.x;
+            //this.owner.position.x = (this.dst.x + this.src.x) / 2
+            //this.owner.position.y = this.src.y;
+            //this.owner.size.x = this.dst.x - this.src.x;
     
             // Set alpha of the laser
             this.owner.alpha = MathUtils.changeRange(this.currentCharge, this.minCharge, this.maxCharge, 0, 1);
@@ -96,9 +98,6 @@ export default class LaserBehavior implements AI {
             this.owner.color.b = MathUtils.changeRange(this.maxCharge - this.currentCharge, this.minCharge, this.maxCharge, 0, 255);
 
             // If this is the first time the laser is fired - send the firing event.
-            if (this.currentCharge === this.maxCharge) {
-                this.emitter.fireEvent(HW2Events.FIRING_LASER, {laser: this.owner, angle: this.owner.rotation});
-            }
 
             // Update the value of the charge on the laser
             this.currentCharge = MathUtils.clamp(this.currentCharge - 1, this.minCharge, this.maxCharge);

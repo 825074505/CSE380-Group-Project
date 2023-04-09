@@ -37,21 +37,6 @@ vec2 closestPointOnLine(vec2 start, vec2 end, vec2 uv)
 }
 
 void main() {
-  //vec4 color = texture2D(u_texture, v_texCoord);
-  //float length = distance(gl_FragCoord.xy, vLightPosition);
-  //float distanceFalloff = clamp(1.0 - length/(canvasSize.x) * 2.0 + (dst)/(canvasSize.x), 0.0, 1.0);
-  //distanceFalloff *= distanceFalloff;
-
-
-  //float scaledDst = dst * lightScale;
-  //float distanceFalloff = clamp(1.0 - (length * lightScale) / (canvasSize.x) * 2.0 + scaledDst / (canvasSize.x), 0.0, 1.0);
-  //distanceFalloff *= distanceFalloff;
-
-  //float refDst = dst / lightScale;
-  //float referenceFalloff = clamp(1.0 - length / (canvasSize.x) * 2.0 + refDst / (canvasSize.x), 0.0, 1.0);
-  //float distanceFalloff = pow(referenceFalloff, lightScale);
-  //distanceFalloff *= distanceFalloff;
-
   vec4 color = texture2D(u_texture, v_texCoord);
   float length = (lineEndPosition == vec2(-1.0, -1.0)) ? distance(gl_FragCoord.xy, vLightPosition) : dfLine(vLightPosition, lineEndPosition, gl_FragCoord.xy);
   float distanceFalloff = clamp(1.0 - length / (canvasSize.x * lightScale) * 2.0 + (dst * lightScale) / (canvasSize.x), 0.0, 1.0);

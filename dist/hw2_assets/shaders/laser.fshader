@@ -4,6 +4,8 @@ varying vec4 v_Position;
 
 uniform float u_Alpha;
 
+uniform vec2 canvasSize;
+
 /**
  * Macros that define constants used in the fragment shader program. 
  */
@@ -43,11 +45,20 @@ float sinwave_laser(vec4 position);
  */
 float linear_laser(vec4 position);
 
+//This function is from https://www.shadertoy.com/view/4sc3Wn by Flyguy
+//Distance to a line segment,
+float dfLine(vec2 start, vec2 end, vec2 uv)
+{
+	vec2 line = end - start;
+	float frac = dot(uv - start,line) / dot(line,line);
+	return distance(start + line * clamp(frac, 0.0, 1.0), uv);
+}
+
 // TODO Need to somehow pass in the color from the laser shader type
 uniform vec4 u_FragColor;
 void main(){
     gl_FragColor = u_FragColor;
-	gl_FragColor.a = sinwave_laser(v_Position) * u_Alpha;
+	gl_FragColor.a = linear_laser(v_Position) * u_Alpha;
 }
 
 

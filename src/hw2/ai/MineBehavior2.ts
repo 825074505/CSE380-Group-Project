@@ -82,6 +82,10 @@ export default class MineBehavior2 implements AI {
     private projectileFrequency: number = 3; //seconds
     private projectileLaserLength: number = 1;
     private projectileTimer: number = 0;
+    private projectileSplitX: number;
+    private projectileInvincible: boolean;
+
+    private splitOnDeath: boolean;
 
     private weakToLight: boolean = false;
     private stoppingX: number = -500;
@@ -127,6 +131,8 @@ export default class MineBehavior2 implements AI {
         this.narrowLight = options.narrowLight;
         this.wideLight = options.wideLight;
         this.electricLight = options.electricLight;
+        this.projectileInvincible = options.projectileInvincible;
+        this.splitOnDeath = options.splitOnDeath;
 
         if(this.electricLight != null)
         {
@@ -158,6 +164,7 @@ export default class MineBehavior2 implements AI {
         if(this.projectileBehavior == projectileBehaviors.laser)
             this.projectileFrequency += this.projectileLaserLength;
             
+        this.projectileSplitX = options.projectileSplitX;
             
 
 
@@ -396,35 +403,10 @@ export default class MineBehavior2 implements AI {
     }
 
     protected spawnProjectile(): void {
-        //TODO give this access to sprites and set sprite to weak or invincible depending
-        let projectile = this.owner.getScene().add.animatedSprite("MINE", HW2Layers.PRIMARY);
-			
-		// Make our mine inactive by default
-		projectile.visible = true;
-
-		// Assign them mine ai
-		projectile.addAI(ProjectileBehavior, {});
-
-		projectile.scale.set(0.1, 0.1);
-
-		// Give them a collision shape
-		let collider = new AABB(Vec2.ZERO, projectile.sizeWithZoom);
-		projectile.setCollisionShape(collider);
-
-        this.emitter.fireEvent(HW2Events.PROJECTILE_SPAWNED, {projectile: projectile});
-
-        let light = this.owner.getScene().add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: this.owner.position.clone(), 
-																					angle : 0,
-																					intensity : 0.3,
-																					distance : 1000,
-																					tintColor : Color.RED,
-																					angleRange : new Vec2(360, 360),
-																					opacity : 0.5,
-																					lightScale : 0.1});
-
-        projectile.setAIActive(true, {behavior: this.projectileBehavior, src: this.owner, dst: this.player.position, player: this.player,
+        console.log("mon",this.projectileSplitX);
+        this.emitter.fireEvent(HW2Events.SPAWN_PROJECTILE, {projectileInfo: {behavior: this.projectileBehavior, src: this.owner, player: this.player,
                                         projectileSpeed: this.projectileSpeed, projectileFrequency: this.projectileFrequency, projectileLaserLength: this.projectileLaserLength,
-                                        light: light});
+                                        splitX: this.projectileSplitX, invincible: this.projectileInvincible}});
 
 
     }

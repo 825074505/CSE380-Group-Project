@@ -12,14 +12,23 @@ import AABB from "../../Wolfie2D/DataTypes/Shapes/AABB";
 
 import { HW2Events } from "../HW2Events";
 import { MineAnimations } from "./MineBehavior";
+import { GraphicType } from "../../Wolfie2D/Nodes/Graphics/GraphicTypes";
+import { HW2Layers } from "../scenes/HW2Scene";
+import Color from "../../Wolfie2D/Utils/Color";
 
 export enum projectileBehaviors {
     none,
     left,
     atCurrentPos,
     atFuturePos,
+    upAndDown,
     random,
     laser,
+}
+
+export enum projectileSplits {
+    none,
+
 }
 
 /**
@@ -43,6 +52,7 @@ export default class ProjectileBehavior implements AI {
     private laserTimer: number = 0;
     private invincible: boolean;
     private light: Light;
+    private splitX: number;
 
     public initializeAI(owner: AnimatedSprite, options: Record<string, any>): void {
         this.owner = owner;
@@ -64,15 +74,37 @@ export default class ProjectileBehavior implements AI {
         this.src = options.src;
         if(options.dst != null)
             this.dst = options.dst.clone();
+        else if(options.player != null)
+            this.dst = options.player.position.clone();
         this.projectileSpeed = options.projectileSpeed;
         this.projectileLaserLength = options.projectileLaserLength;
         this.player = options.player;
-        this.light = options.light;
+        this.splitX = options.splitX;
+        this.invincible = options.invincible;
+        //console.log(options);
 
         if(this.src != null)
         {
             this.owner.position = this.src.position.clone();
             this.srcpos = this.src.position.clone();
+        }
+
+        if(this.behavior != null)
+        {
+            if(options.light != null)
+            {
+                this.light = options.light;
+            }else
+            {
+                this.light = this.owner.getScene().add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: this.owner.position.clone(), 
+																					angle : 0,
+																					intensity : 0.3,
+																					distance : 1000,
+																					tintColor : Color.RED,
+																					angleRange : new Vec2(360, 360),
+																					opacity : 0.5,
+																					lightScale : 0.1}) as Light;
+            }
         }
 
         //TODO HARDCODED SPEED
@@ -96,6 +128,11 @@ export default class ProjectileBehavior implements AI {
             //HARDCODED WORLDSIZE
             this.dst = new Vec2(this.player.position.x, RandUtils.randInt(0, 900));
         }
+        if(this.behavior == projectileBehaviors.left)
+        {
+            this.dst = new Vec2(this.owner.position.x - 100, this.owner.position.y);
+        }
+
 
         this.owner.animation.playIfNotAlready(MineAnimations.IDLE, true);
 
@@ -117,6 +154,8 @@ export default class ProjectileBehavior implements AI {
                 let id = event.data.get("projectileId");
                 if (id === this.owner.id && !this.invincible) {
                     this.owner.visible = false;
+                    if(this.light != null)
+                        this.light.visible = false;
                 }
                 break;
             }
@@ -138,12 +177,13 @@ export default class ProjectileBehavior implements AI {
             {
                 case projectileBehaviors.left:
                     //this.owner.position.add(Vec2.LEFT.scale(this.projectileSpeed * deltaT));
-                    this.owner.position.add(Vec2.LEFT.scale(this.projectileSpeed * deltaT));
-                    break;
+                    //this.owner.position.add(Vec2.LEFT.scale(this.projectileSpeed * deltaT));
+                    //break;
 
                 case projectileBehaviors.atCurrentPos:
                 case projectileBehaviors.atFuturePos:
                 case projectileBehaviors.random:
+                case projectileBehaviors.upAndDown:
                     this.owner.position.add(this.srcpos.clone().sub(this.dst).normalize().scale(-1 * this.projectileSpeed * deltaT)); //this could be done at init
                     break;
 
@@ -177,15 +217,28 @@ export default class ProjectileBehavior implements AI {
                     this.light.visible = false;
             }
 
-            if(this.owner.position.x < -50)
+            //WEIRD BUG FIX, hitbox not being updated for some reason
+            this.owner.position = this.owner.position;
+
+            if(this.owner.position.x < -50 || this.owner.position.x < this.splitX)
             {
+                //delay this one update
                 this.owner.visible = false;
                 if(this.light != null)
                     this.light.visible = false;
-            }
 
-            //WEIRD BUG FIX, hitbox not being updated for some reason when 
-            this.owner.position = this.owner.position;
+                if(this.owner.position.x < this.splitX)
+                {
+                    let curAngle = Vec2.LEFT.angleToCCW(this.srcpos.clone().sub(this.dst));
+                    for(let x of [-1, -0.5, 0.5, 1])
+                    {
+                        let newdst = Vec2.ZERO.setToAngle(curAngle+x, 1).add(this.owner.position);
+                        this.emitter.fireEvent(HW2Events.SPAWN_PROJECTILE, {projectileInfo: {behavior: projectileBehaviors.atCurrentPos, src: this.owner, dst: newdst, player: this.player,
+                                        projectileSpeed: this.projectileSpeed}});
+
+                    }
+                }
+            }
 
             // Update position of the bubble - I'm scaling the Vec2.UP and Vec2.LEFT vectors to move the bubble up and to the left
             //this.owner.position.add(Vec2.UP.scale(this.currentYSpeed * deltaT)).add(Vec2.LEFT.scale(this.currentXSpeed* deltaT));

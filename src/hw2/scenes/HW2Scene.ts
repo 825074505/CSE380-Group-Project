@@ -38,7 +38,7 @@ import Light from "../../Wolfie2D/Nodes/Graphics/Light";
 import Input from "../../Wolfie2D/Input/Input";
 import GameLoop from "../../Wolfie2D/Loop/GameLoop";
 
-import {projectileBehaviors} from "../ai/ProjectileBehavior";
+import ProjectileBehavior, {projectileBehaviors} from "../ai/ProjectileBehavior";
 
 /**
  * A type for layers in the HW3Scene. It seems natural to want to use some kind of enum type to
@@ -74,6 +74,9 @@ type monsterInfo = {
 	amplitude?: number;
 	offset?: number;
 
+
+	splitOnDeath?: boolean; //Should the enemy split into projectiles on death?
+
 	phaseTime?: number; //if monsterType is phasing
 
 	monsterType?: number;
@@ -86,11 +89,11 @@ type monsterInfo = {
     projectileFrequency?: number; //seconds between firing (after firing is complete for case of laser behavior)
 	projectileLaserLength?: number; //seconds TODO change to length in pixels
 	projectileInvincible?: boolean; //default false
+	projectileSplitX?: number;  //at what x should the projectile split into other projectiles (if it does)
 }
 
 type level = {
 	monsters: Array<monsterInfo>;
-	Objs: Array<monsterInfo>;
 }
 const level1: Array<monsterInfo> = [
 	{
@@ -98,7 +101,6 @@ const level1: Array<monsterInfo> = [
 	spriteKey: "MINE",
 	spawnY: 600,
 	movementPattern: movementPatterns.moveLeft,
-	weakToLight: true,
 	},
 	{
 	spawnTime: 0.0,
@@ -110,15 +112,28 @@ const level1: Array<monsterInfo> = [
 	{
 	spawnTime: 1.0,
 	spriteKey: "MINE",
+	spawnY: 600,
+	movementPattern: movementPatterns.moveLeft,
+	},
+	{
+	spawnTime: 1.0,
+	spriteKey: "MINE",
 	spawnY: 250,
 	movementPattern: movementPatterns.moveLeft,
 	monsterType: monsterTypes.spinning,
 	stoppingX: 800,
 
-	projectileBehavior: projectileBehaviors.laser,
+	projectileBehavior: projectileBehaviors.atCurrentPos,
 	projectileSpeed: 200,
 	projectileFrequency: 3,
 	projectileLaserLength: 1,
+	projectileSplitX: 450,
+	},
+	{
+	spawnTime: 2.0,
+	spriteKey: "MINE",
+	spawnY: 600,
+	movementPattern: movementPatterns.moveLeft,
 	},
 	{
 	spawnTime: 2.0,
@@ -339,7 +354,7 @@ export default class HW2Scene extends Scene {
 		this.receiver.subscribe(HW2Events.DEAD);
 		this.receiver.subscribe(HW2Events.PLAYER_HEALTH_CHANGE);
 		this.receiver.subscribe(HW2Events.AIR_CHANGE);
-		this.receiver.subscribe(HW2Events.PROJECTILE_SPAWNED);
+		this.receiver.subscribe(HW2Events.SPAWN_PROJECTILE);
 
 		//Game events
 		this.receiver.subscribe(HW2Events.RESUME_GAME);
@@ -350,6 +365,8 @@ export default class HW2Scene extends Scene {
 		{
 			this.emitter.fireEvent(GameEventType.START_RECORDING, {recording: new BasicRecording(HW2Scene, {seed: this.seed, recording: false})});
 		}
+
+		//TODO sort levelObjs by spawn time just in case
 	}
 	/**
 	 * @see Scene.updateScene 
@@ -419,7 +436,12 @@ export default class HW2Scene extends Scene {
 	protected handleEvent(event: GameEvent){
 		switch(event.type) {
 			case HW2Events.SHOOT_LASER: {
-				this.spawnLaser(event.data.get("src"), event.data.get("angle"));
+				let laser = this.spawnLaser(event.data.get("src"), event.data.get("angle"));
+				this.minesDestroyed += this.handleShootCollisions(laser,  event.data.get("src"), event.data.get("angle"), this.mines);
+				if(this.minesDestroyed === this.levelObjs.length)
+				{
+					this.gameOverTimer.start();
+				}
 				break;
 			}
 			case HW2Events.DEAD: {
@@ -437,11 +459,7 @@ export default class HW2Scene extends Scene {
 			}
 			case HW2Events.FIRING_LASER: {
 				//this.minesDestroyed += this.handleMineLaserCollisions(event.data.get("laser"), this.mines);
-				this.minesDestroyed += this.handleShootCollisions(event.data.get("laser"),  this.player.position, event.data.get("angle"), this.mines);
-				if(this.minesDestroyed === this.levelObjs.length)
-				{
-					this.gameOverTimer.start();
-				}
+				
 				break;
 			}
 			case HW2Events.PLAYER_HEALTH_CHANGE: {
@@ -462,8 +480,9 @@ export default class HW2Scene extends Scene {
 				break;
 				
 			}
-			case HW2Events.PROJECTILE_SPAWNED: {
-				this.projectiles.push(event.data.get("projectile"));
+			case HW2Events.SPAWN_PROJECTILE: {
+				//this.projectiles.push(event.data.get("projectile"));
+				this.spawnProjectile(event);
 				break;
 			}
 			default: {
@@ -744,12 +763,15 @@ export default class HW2Scene extends Scene {
 	 * Otherwise the laser should be spawned starting at the specified position and 
 	 * go all the way to the edge of the padded viewport.
 	 */
-	protected spawnLaser(src: Vec2, angle: number): void {
+	protected spawnLaser(src: Vec2, angle: number): Graphic {
 		let laser: Graphic = this.lasers.find((laser: Graphic) => { return !laser.visible; });
 		if (laser) {
+			//this.handleShootCollisions(laser, src, angle, this.mines);
 			laser.visible = true;
 			laser.setAIActive(true, {src: src, dst: this.viewport.getHalfSize().scaled(2).add(this.worldPadding.scaled(2)), angle: angle});
+			return laser;
 		}
+		return null;
 	}
 	/**
 	 * This method handles spawning a mine from the object-pool of mines
@@ -841,9 +863,9 @@ export default class HW2Scene extends Scene {
 			}
 
 			mine.setAIActive(true, {movementPattern: mineInfo.movementPattern, monsterType: mineInfo.monsterType, 
-									weakToLight: mineInfo.weakToLight, electricLight: electricLight, stoppingX: mineInfo.stoppingX,
+									weakToLight: mineInfo.weakToLight, electricLight: electricLight, stoppingX: mineInfo.stoppingX, splitOnDeath: mineInfo.splitOnDeath,
 									player: this.player, narrowLight: this.narrowLight, wideLight: this.wideLight,
-									projectileBehavior: mineInfo.projectileBehavior, projectileSpeed: mineInfo.projectileSpeed, projectileFrequency: mineInfo.projectileFrequency, projectileLaserLength: mineInfo.projectileLaserLength,
+									projectileBehavior: mineInfo.projectileBehavior, projectileSpeed: mineInfo.projectileSpeed, projectileFrequency: mineInfo.projectileFrequency, projectileLaserLength: mineInfo.projectileLaserLength, projectileSplitX: mineInfo.projectileSplitX, projectileInvincible: mineInfo.projectileInvincible,
 									});
 
 			this.curMonsterIndex++; 
@@ -907,6 +929,35 @@ export default class HW2Scene extends Scene {
 
 		}
 	}
+
+
+	protected spawnProjectile(event: GameEvent): void {
+		//console.log("hello");
+		let p = event.data.get("projectileInfo");
+		//console.log(p);
+        //TODO give this access to sprites and set sprite to weak or invincible depending
+        let projectile = this.add.animatedSprite("MINE", HW2Layers.PRIMARY);
+			
+		// Make our mine inactive by default
+		projectile.visible = true;
+
+		// Assign them mine ai
+		projectile.addAI(ProjectileBehavior, {});
+
+		projectile.scale.set(0.1, 0.1);
+
+		// Give them a collision shape
+		let collider = new AABB(Vec2.ZERO, projectile.sizeWithZoom);
+		projectile.setCollisionShape(collider);
+
+		this.projectiles.push(projectile);
+
+        projectile.setAIActive(true, {behavior: p.behavior, src: p.src, player: p.player, dst: p.dst,
+                                        projectileSpeed: p.projectileSpeed, projectileFrequency: p.projectileFrequency, projectileLaserLength: p.projectileLaserLength,
+                                        light: p.light, splitX: p.splitX, invincible: p.invincible,});
+
+
+    }
 	/**
 	 * This function takes in a GameNode that may be out of bounds of the viewport and
 	 * "kills" it as if it was destroyed through usual collision. This is done so that
@@ -1191,27 +1242,43 @@ export default class HW2Scene extends Scene {
 		//TODO Use two lines for the edges of the laser instead of center (will need some trig)
 		//TODO Stop the laser from going through invincible enemies
 		let collisions = 0;
-		console.log(this.projectiles);
+		//console.log(this.projectiles);
 		if (laser.visible) {
+			let hitMineList = new Array();
 			for (let mine of mines) {
 				if(mine.visible)
 				{
-					let hitInfo = mine.collisionShape.getBoundingRect().intersectSegment(firePosition, new Vec2(1200, Math.tan(angle)*1200 * -1));
+					let hitInfo = mine.collisionShape.getBoundingRect().intersectSegment(firePosition, new Vec2(1200, Math.tan(angle)*laser.size.x * -1));
 					if (hitInfo != null) {
-						this.emitter.fireEvent(HW2Events.LASER_MINE_COLLISION, { mineId: mine.id, laserId: laser.id, hit: hitInfo});
+						//this.emitter.fireEvent(HW2Events.LASER_MINE_COLLISION, { mineId: mine.id, laserId: laser.id, hit: hitInfo});
+						hitMineList.push({mine: mine, hitInfo: hitInfo});
 						collisions += 1;
 					}
 				}
+			}
+			if(hitMineList.length > 0)
+			{
+				hitMineList.sort((a, b) => {
+					return firePosition.distanceTo(a.hitInfo.pos) - firePosition.distanceTo(b.hitInfo.pos);
+				});
+				let hitpos = hitMineList[0].hitInfo.pos;
+				console.log(firePosition.distanceTo(hitpos));
+				//laser.size = new Vec2(firePosition.distanceTo(hitpos), laser.size.y);
+				laser.size.x = (hitpos.x - firePosition.x);
+				laser.position.x = (firePosition.x + hitpos.x)/2;
+				console.log(laser.size);
+
+				this.emitter.fireEvent(HW2Events.LASER_MINE_COLLISION, { mineId: hitMineList[0].mine.id, laserId: laser.id, hit: hitMineList[0].hitInfo});
 			}
 
 			for(let projectile of this.projectiles)
 			{
 				if(projectile.visible)
 				{
-					let hitInfo = projectile.collisionShape.getBoundingRect().intersectSegment(firePosition, new Vec2(1200, Math.tan(angle)*1200 * -1));
+					let hitInfo = projectile.collisionShape.getBoundingRect().intersectSegment(firePosition, new Vec2(1200, Math.tan(angle)*laser.size.x * -1));
 					if (hitInfo != null) {
 						this.emitter.fireEvent(HW2Events.LASER_PROJECTILE_COLLISION, { projectileId: projectile.id, laserId: laser.id, hit: hitInfo});
-						collisions += 1;
+						//collisions += 1;
 					}
 				}
 			}
