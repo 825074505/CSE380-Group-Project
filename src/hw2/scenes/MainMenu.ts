@@ -48,7 +48,8 @@ export default class MainMenu extends Scene {
 
 
     public initScene(options: Record<string, any>): void {
-        this.levels_Unlocked = options.levels ? options.levels : 1
+        //this.levels_Unlocked = options.levels ? options.levels : 1
+        this.levels_Unlocked = 6;
         this.current_Level = 1
         
     }
@@ -93,7 +94,7 @@ export default class MainMenu extends Scene {
         controls.onClickEventId = MainMenuEvent.CONTROLS;
 
         // Add event button
-        const about = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y + 100), text: "Back Story"});
+        const about = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y + 100), text: "Backstory"});
         about.size.set(200, 50);
         about.borderWidth = 2;
         about.borderColor = Color.WHITE;
@@ -118,12 +119,14 @@ export default class MainMenu extends Scene {
         bestScores.onClickEventId = MainMenuEvent.BEST_SCORES;
 
         // Add exit button
+        /*
         const exit = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y + 400), text: "Exit"});
         exit.size.set(200, 50);
         exit.borderWidth = 2;
         exit.borderColor = Color.WHITE;
         exit.backgroundColor = Color.TRANSPARENT;
         exit.onClickEventId = MainMenuEvent.EXIT;
+        */
 
         const header = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y - 250), text: "Controls"});
         header.textColor = Color.WHITE;
@@ -132,12 +135,12 @@ export default class MainMenu extends Scene {
         ws.textColor = Color.WHITE;
         const ss = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y), text: "-Press D to pitch down"});
         ss.textColor = Color.WHITE;
-        const ls = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y + 50), text: "-Press L to shoot bullets"});
-        ls.textColor = Color.WHITE;
         const js = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y + 100), text: "-Press J to Toggle Headlights"});
         js.textColor = Color.WHITE
-        const ks = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y + 150), text: "-Held K to Narrow Headlights"});
+        const ks = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y + 150), text: "-Hold K to Narrow Headlights"});
         ks.textColor = Color.WHITE;
+        const ls = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y + 50), text: "-Press L to shoot"});
+        ls.textColor = Color.WHITE;
 
         const back = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y + 250), text: "Back"});
         back.size.set(200, 50);
@@ -146,7 +149,7 @@ export default class MainMenu extends Scene {
         back.backgroundColor = Color.TRANSPARENT;
         back.onClickEventId = MainMenuEvent.MENU;
 
-        const aboutHeader = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 350), text: "BackStory"});
+        const aboutHeader = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 350), text: "Backstory"});
         aboutHeader.textColor = Color.WHITE;
 
         const text1 = "In the midst of a fierce dogfight, pilot John Summers narrowly ";
@@ -283,7 +286,7 @@ export default class MainMenu extends Scene {
         switch(event.type) {
             case MainMenuEvent.PLAY_GAME: {
                 this.seed = RandUtils.randomSeed();
-                this.sceneManager.changeToScene(Homework1_Scene, {seed: this.seed, recording: true});
+                this.sceneManager.changeToScene(Homework1_Scene, {level: 1, seed: this.seed, recording: true});
                 break;
             }
             case MainMenuEvent.CONTROLS: {
@@ -324,12 +327,14 @@ export default class MainMenu extends Scene {
             case MainMenuEvent.LEVEL_PRESSED: {
                 if(this.levels_Unlocked >= event.data.get("level")){
                     // Switch To Game Level Scene correspond to level selected
-                    this.current_Level = event.data.get("level")
-                    this.mainMenu.setHidden(false);
-                    this.controls.setHidden(true);
-                    this.about.setHidden(true);
-                    this.levelSelect.setHidden(true);
-                    this.bestScores.setHidden(true);
+                    this.current_Level = event.data.get("level");
+                    //this.mainMenu.setHidden(false);
+                    //this.controls.setHidden(true);
+                    //this.about.setHidden(true);
+                    //this.levelSelect.setHidden(true);
+                    //this.bestScores.setHidden(true);
+                    this.seed = RandUtils.randomSeed();
+                    this.sceneManager.changeToScene(Homework1_Scene, {level: this.current_Level, seed: this.seed, recording: true});
                 }
                 break;
 

@@ -40,6 +40,9 @@ import GameLoop from "../../Wolfie2D/Loop/GameLoop";
 
 import ProjectileBehavior, {projectileBehaviors} from "../ai/ProjectileBehavior";
 
+import {level, levels} from "../levels/levelList";
+import {monsterInfo} from "../levels/monsterInfo";
+
 /**
  * A type for layers in the HW3Scene. It seems natural to want to use some kind of enum type to
  * represent the different layers in the HW3Scene, however, it is generally bad practice to use
@@ -56,125 +59,6 @@ export const HW2Layers = {
 	PAUSE: "PAUSE"
 } as const;
 
-type movementPatternInfo = {
-	movmentPattern: number;
-	period?: number;
-	amplitude?: number;
-	offset?: number;
-}
-
-type monsterInfo = {
-	spawnTime: number;  //Amount of seconds after level has started that the enemy should spawn
-	spriteKey: string;
-	spawnY: number;
-	stoppingX?: number; //x position to stop moving left at
-
-	movementPattern: number; //Info about movement, conisdered making this its own type but it makes it more verbose
-	period?: number;
-	amplitude?: number;
-	offset?: number;
-
-
-	splitOnDeath?: boolean; //Should the enemy split into projectiles on death?
-
-	phaseTime?: number; //if monsterType is phasing
-
-	monsterType?: number;
-
-	weakToLight?: boolean;
-	//speed
-	//projectile
-	projectileBehavior?: number;
-    projectileSpeed?: number;
-    projectileFrequency?: number; //seconds between firing (after firing is complete for case of laser behavior)
-	projectileLaserLength?: number; //seconds TODO change to length in pixels
-	projectileInvincible?: boolean; //default false
-	projectileSplitX?: number;  //at what x should the projectile split into other projectiles (if it does)
-}
-
-type level = {
-	monsters: Array<monsterInfo>;
-}
-const level1: Array<monsterInfo> = [
-	{
-	spawnTime: 0.0,
-	spriteKey: "MINE",
-	spawnY: 600,
-	movementPattern: movementPatterns.moveLeft,
-	},
-	{
-	spawnTime: 0.0,
-	spriteKey: "ELECTRICITY",
-	spawnY: 800,
-	movementPattern: movementPatterns.moveLeft,
-	monsterType: monsterTypes.electricField,
-	},
-	{
-	spawnTime: 1.0,
-	spriteKey: "MINE",
-	spawnY: 600,
-	movementPattern: movementPatterns.moveLeft,
-	},
-	{
-	spawnTime: 1.0,
-	spriteKey: "MINE",
-	spawnY: 250,
-	movementPattern: movementPatterns.moveLeft,
-	monsterType: monsterTypes.spinning,
-	stoppingX: 800,
-
-	projectileBehavior: projectileBehaviors.atCurrentPos,
-	projectileSpeed: 200,
-	projectileFrequency: 3,
-	projectileLaserLength: 1,
-	projectileSplitX: 450,
-	},
-	{
-	spawnTime: 2.0,
-	spriteKey: "MINE",
-	spawnY: 600,
-	movementPattern: movementPatterns.moveLeft,
-	},
-	{
-	spawnTime: 2.0,
-	spriteKey: "MINE",
-	spawnY: 450,
-	movementPattern: movementPatterns.trackPlayer,
-	monsterType: monsterTypes.weakToDark,
-	},
-	{
-	spawnTime: 4.0,
-	spriteKey: "MINE",
-	spawnY: 450,
-	movementPattern: movementPatterns.sineWave,
-	monsterType: monsterTypes.weakFromTop,
-	},
-	{
-	spawnTime: 4.0,
-	spriteKey: "MINE",
-	spawnY: 100,
-	movementPattern: movementPatterns.moveLeft,
-	monsterType: monsterTypes.stalactite,
-	},
-	{
-	spawnTime: 6.0,
-	spriteKey: "MINE",
-	spawnY: 450,
-	movementPattern: movementPatterns.triangleWave,
-	},
-	{
-	spawnTime: 8.0,
-	spriteKey: "MINE",
-	spawnY: 450,
-	movementPattern: movementPatterns.runAway,
-	},
-	{
-	spawnTime: 10.0,
-	spriteKey: "MINE",
-	spawnY: 450,
-	movementPattern: movementPatterns.phasing,
-	},
-]
 
 /**
  * This is the main scene for our game. 
@@ -198,6 +82,8 @@ export default class HW2Scene extends Scene {
 	//PAUSE Screen Pop Up Layer
 	private pause : Layer;
 	private paused: boolean;
+
+	private currentLevel: number;
 
 	
 
@@ -269,10 +155,14 @@ export default class HW2Scene extends Scene {
 	 */
 	public override initScene(options: Record<string, any>): void {
 		this.paused = false;
+		this.currentLevel = options.level;
+		console.log("init, ", this.currentLevel);
 		console.log("SEED:" + options.seed);
 		this.seed = options.seed === undefined ? RandUtils.randomSeed() : options.seed;
 		RandUtils.seed = this.seed;
         this.recording = options.recording === undefined ? false : options.recording; 
+
+
 	}
 	/**
 	 * @see Scene.loadScene()
@@ -281,7 +171,7 @@ export default class HW2Scene extends Scene {
 		// Load in the submarine
 		this.load.spritesheet(HW2Scene.PLAYER_KEY, HW2Scene.PLAYER_PATH);
 		// Load in the background image
-		this.load.image(HW2Scene.BACKGROUND_KEY, HW2Scene.BACKGROUND_PATH);
+		this.load.image(HW2Scene.BACKGROUND_KEY, levels[this.currentLevel - 1].BACKGROUND_PATH);
 		// Load in the naval mine
 		this.load.spritesheet(HW2Scene.MINE_KEY, HW2Scene.MINE_PATH);
 
@@ -304,36 +194,14 @@ export default class HW2Scene extends Scene {
 	 */
 	public override startScene(){
 
-		// Add Pause Screen
-		const center = this.viewport.getCenter();
-
-		this.pause = this.addUILayer(HW2Layers.PAUSE);
-		this.pause.setHidden(true);
-		const pauseScreen = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.PAUSE, {position: new Vec2(center.x, center.y - 100), text: "Game Paused"});
-        pauseScreen.fontSize = 20
-		pauseScreen.textColor = Color.BLACK
-
-		const resume = this.add.uiElement(UIElementType.BUTTON, HW2Layers.PAUSE, {position: new Vec2(center.x - 100, center.y - 200), text: "Resume"});
-        resume.size.set(200, 50);
-        resume.borderWidth = 2;
-        resume.borderColor = Color.WHITE;
-        resume.backgroundColor = Color.TRANSPARENT;
-        resume.onClickEventId = HW2Events.RESUME_GAME;
-
-		const back = this.add.uiElement(UIElementType.BUTTON, HW2Layers.PAUSE, {position: new Vec2(center.x + 100, center.y - 200), text: "Back to Main"});
-        back.size.set(200, 50);
-        back.borderWidth = 2;
-        back.borderColor = Color.WHITE;
-        back.backgroundColor = Color.TRANSPARENT;
-        back.onClickEventId = HW2Events.BACK_TO_MAIN;
-
 		this.worldPadding = new Vec2(64, 64);
 
 		// Create a background layer
 		this.addLayer(HW2Layers.BACKGROUND, 0);
 		this.initBackground();
 
-		this.levelObjs = level1;
+		this.levelObjs = levels[this.currentLevel - 1].objs;
+		console.log(levels);
 
 		// Create a layer to serve as our main game - Feel free to use this for your own assets
 		// It is given a depth of 5 to be above our background
@@ -373,12 +241,31 @@ export default class HW2Scene extends Scene {
 	 */
 	public override updateScene(deltaT: number){
 
-		if(Input.isKeyPressed("escape")){
-			this.paused = true;
-			this.pause.setHidden(false)
+		if(Input.isKeyJustPressed("escape")){
+			this.paused = !this.paused;
+			this.pause.setHidden(!this.paused);
+
+			this.player.aiActive = !this.paused;
+			for(let x of this.lasers)
+			{
+				x.aiActive = !this.paused;
+			}
+
+			for(let x of this.bubbles)
+			{
+				x.aiActive = !this.paused;
+			}
+				
+			for(let x of this.mines)
+			{
+				x.aiActive = !this.paused;
+			}
+
+			for(let x of this.projectiles)
+			{
+				x.aiActive = !this.paused;
+			}
 		}
-
-
 
 
 		this.timePassed += deltaT;
@@ -632,6 +519,29 @@ export default class HW2Scene extends Scene {
 		this.airBarBg = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(225, 100), text: ""});
 		this.airBarBg.size = new Vec2(300, 25);
 		this.airBarBg.borderColor = Color.BLACK;
+
+		// Add Pause Screen
+		const center = this.viewport.getCenter();
+
+		this.pause = this.addUILayer(HW2Layers.PAUSE);
+		this.pause.setHidden(true);
+		const pauseScreen = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.PAUSE, {position: new Vec2(center.x, center.y - 100), text: "Game Paused"});
+        pauseScreen.fontSize = 20
+		pauseScreen.textColor = Color.BLACK
+
+		const resume = this.add.uiElement(UIElementType.BUTTON, HW2Layers.PAUSE, {position: new Vec2(center.x - 100, center.y - 200), text: "Resume"});
+        resume.size.set(200, 50);
+        resume.borderWidth = 2;
+        resume.borderColor = Color.WHITE;
+        resume.backgroundColor = Color.TRANSPARENT;
+        resume.onClickEventId = HW2Events.RESUME_GAME;
+
+		const back = this.add.uiElement(UIElementType.BUTTON, HW2Layers.PAUSE, {position: new Vec2(center.x + 100, center.y - 200), text: "Back to Main"});
+        back.size.set(200, 50);
+        back.borderWidth = 2;
+        back.borderColor = Color.WHITE;
+        back.backgroundColor = Color.TRANSPARENT;
+        back.onClickEventId = HW2Events.BACK_TO_MAIN;
 
 	}
 	/**
@@ -1262,11 +1172,11 @@ export default class HW2Scene extends Scene {
 					return firePosition.distanceTo(a.hitInfo.pos) - firePosition.distanceTo(b.hitInfo.pos);
 				});
 				let hitpos = hitMineList[0].hitInfo.pos;
-				console.log(firePosition.distanceTo(hitpos));
+				//console.log(firePosition.distanceTo(hitpos));
 				//laser.size = new Vec2(firePosition.distanceTo(hitpos), laser.size.y);
 				laser.size.x = (hitpos.x - firePosition.x);
 				laser.position.x = (firePosition.x + hitpos.x)/2;
-				console.log(laser.size);
+				//console.log(laser.size);
 
 				this.emitter.fireEvent(HW2Events.LASER_MINE_COLLISION, { mineId: hitMineList[0].mine.id, laserId: laser.id, hit: hitMineList[0].hitInfo});
 			}
@@ -1498,17 +1408,20 @@ export default class HW2Scene extends Scene {
      * continue the cycle.
 	 */
 	protected moveBackgrounds(deltaT: number): void {
-		let move = new Vec2(150, 0);
-		this.bg1.position.sub(move.clone().scaled(deltaT));
-		this.bg2.position.sub(move.clone().scaled(deltaT));
+		if(!this.paused)
+		{
+			let move = new Vec2(150, 0);
+			this.bg1.position.sub(move.clone().scaled(deltaT));
+			this.bg2.position.sub(move.clone().scaled(deltaT));
 
-		let edgePos = this.viewport.getCenter().clone().add(this.bg1.sizeWithZoom.clone().scale(-2, 0));
+			let edgePos = this.viewport.getCenter().clone().add(this.bg1.sizeWithZoom.clone().scale(-2, 0));
 
-		if (this.bg1.position.x <= edgePos.x){
-			this.bg1.position = this.viewport.getCenter().clone().add(this.bg1.sizeWithZoom.clone().scale(2, 0))
-		}
-		if (this.bg2.position.x <= edgePos.x){
-			this.bg2.position = this.viewport.getCenter().clone().add(this.bg2.sizeWithZoom.clone().scale(2, 0))
+			if (this.bg1.position.x <= edgePos.x){
+				this.bg1.position = this.viewport.getCenter().clone().add(this.bg1.sizeWithZoom.clone().scale(2, 0))
+			}
+			if (this.bg2.position.x <= edgePos.x){
+				this.bg2.position = this.viewport.getCenter().clone().add(this.bg2.sizeWithZoom.clone().scale(2, 0))
+			}
 		}
 	}
 

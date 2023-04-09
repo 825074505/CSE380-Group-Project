@@ -403,7 +403,7 @@ export default class MineBehavior2 implements AI {
     }
 
     protected spawnProjectile(): void {
-        console.log("mon",this.projectileSplitX);
+        //console.log("mon",this.projectileSplitX);
         this.emitter.fireEvent(HW2Events.SPAWN_PROJECTILE, {projectileInfo: {behavior: this.projectileBehavior, src: this.owner, player: this.player,
                                         projectileSpeed: this.projectileSpeed, projectileFrequency: this.projectileFrequency, projectileLaserLength: this.projectileLaserLength,
                                         splitX: this.projectileSplitX, invincible: this.projectileInvincible}});
