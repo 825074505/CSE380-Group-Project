@@ -328,7 +328,7 @@ export default class HW2Scene extends Scene {
 				break;
 			}
 			case HW2Events.CHARGE_CHANGE: {
-				this.handleChargeChange(event.data.get("curchrg"), event.data.get("maxchrg"));
+				//this.handleChargeChange(event.data.get("curchrg"), event.data.get("maxchrg"));
 				break;
 			}
 			case HW2Events.FIRING_LASER: {
@@ -387,11 +387,6 @@ export default class HW2Scene extends Scene {
 		// Set the player's position to the middle of the screen, and scale it down
 		this.player.position.set(this.viewport.getCenter().x/3, this.viewport.getCenter().y);
 		this.player.scale.set(0.4, 0.4);
-
-		//TODO give the player 3 AABBS for a hitbox so that it can track rotation
-		// Give the player a smaller hitbox
-		let playerCollider = new AABB(Vec2.ZERO, this.player.sizeWithZoom);
-		this.player.setCollisionShape(playerCollider);
 
 		this.playerP1 = this.add.graphic(GraphicType.RECT, HW2Layers.PRIMARY, {position: this.player.position.clone(), size: new Vec2(10, 10)});
 		this.playerP2 = this.add.graphic(GraphicType.RECT, HW2Layers.PRIMARY, {position: this.player.position.clone(), size: new Vec2(10, 10)});
@@ -483,6 +478,7 @@ export default class HW2Scene extends Scene {
 		this.airLabel.fontSize = 24;
 		this.airLabel.font = "Courier";
 
+		/*
 		// Charge Label
 		this.chrgLabel = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(475, 50), text: "Lasers"});
 		this.chrgLabel.size.set(300, 30);
@@ -498,6 +494,7 @@ export default class HW2Scene extends Scene {
 			this.chrgBarLabels[i].backgroundColor = Color.GREEN;
 			this.chrgBarLabels[i].borderColor = Color.BLACK;
 		}
+		*/
 
 		// HealthBar
 		this.healthBar = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(225, 50), text: ""});
@@ -1407,9 +1404,11 @@ export default class HW2Scene extends Scene {
 		}
 		*/
 		// If the bubble timer is stopped, try to spawn a bubble
+		/*
 		if (this.bubbleSpawnTimer.isStopped()) {
 			this.spawnBubble();
 		}
+		*/
 		// If the game-over timer has run, change to the game-over scene
 		if (this.gameOverTimer.hasRun() && this.gameOverTimer.isStopped()) {
 			console.log("gameOverTimerEnd");
@@ -1432,7 +1431,7 @@ export default class HW2Scene extends Scene {
 	protected moveBackgrounds(deltaT: number): void {
 		if(!this.paused)
 		{
-			let move = new Vec2(150, 0);
+			let move = new Vec2(40, 0);
 			this.bg1.position.sub(move.clone().scaled(deltaT));
 			this.bg2.position.sub(move.clone().scaled(deltaT));
 
