@@ -50,7 +50,7 @@ export default class ProjectileBehavior implements AI {
     private projectileSpeed: number;
     private projectileLaserLength: number;
     private laserTimer: number = 0;
-    private invincible: boolean;
+    private invincible: boolean = false;
     private light: Light;
     private splitX: number;
 
@@ -80,7 +80,6 @@ export default class ProjectileBehavior implements AI {
         this.projectileLaserLength = options.projectileLaserLength;
         this.player = options.player;
         this.splitX = options.splitX;
-        this.invincible = options.invincible;
         //console.log(options);
 
         if(this.src != null)
@@ -132,6 +131,9 @@ export default class ProjectileBehavior implements AI {
         {
             this.dst = new Vec2(this.owner.position.x - 100, this.owner.position.y);
         }
+
+        if(options.invincible != null)
+            this.invincible = options.invincible;
 
 
         this.owner.animation.playIfNotAlready(MineAnimations.IDLE, true);

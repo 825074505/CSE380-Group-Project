@@ -75,6 +75,12 @@ export default class LaserShaderType extends RectShaderType {
 		const u_Alpha = gl.getUniformLocation(program, "u_Alpha");
 		gl.uniform1f(u_Alpha, options.alpha);
 
+		var canvasSizeLoc = gl.getUniformLocation(program, "canvasSize");
+		gl.uniform2f(canvasSizeLoc, gl.canvas.width, gl.canvas.height);
+
+		var sizeLoc = gl.getUniformLocation(program, "u_size");
+		gl.uniform2f(sizeLoc, options.size.x, options.size.y);
+
 		// Draw the quad
 		gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 	}

@@ -242,31 +242,8 @@ export default class HW2Scene extends Scene {
 	public override updateScene(deltaT: number){
 
 		if(Input.isKeyJustPressed("escape")){
-			this.paused = !this.paused;
-			this.pause.setHidden(!this.paused);
-
-			this.player.aiActive = !this.paused;
-			for(let x of this.lasers)
-			{
-				x.aiActive = !this.paused;
-			}
-
-			for(let x of this.bubbles)
-			{
-				x.aiActive = !this.paused;
-			}
-				
-			for(let x of this.mines)
-			{
-				x.aiActive = !this.paused;
-			}
-
-			for(let x of this.projectiles)
-			{
-				x.aiActive = !this.paused;
-			}
+			this.handlePause();
 		}
-
 
 		this.timePassed += deltaT;
 		
@@ -358,8 +335,7 @@ export default class HW2Scene extends Scene {
 				break;
 			}
 			case HW2Events.RESUME_GAME:{
-				this.paused = false
-				this.pause.setHidden(true)
+				this.handlePause();
 				break;
 			}
 			case HW2Events.BACK_TO_MAIN:{
@@ -1422,6 +1398,32 @@ export default class HW2Scene extends Scene {
 			if (this.bg2.position.x <= edgePos.x){
 				this.bg2.position = this.viewport.getCenter().clone().add(this.bg2.sizeWithZoom.clone().scale(2, 0))
 			}
+		}
+	}
+
+	protected handlePause(): void {
+		this.paused = !this.paused;
+		this.pause.setHidden(!this.paused);
+
+		this.player.aiActive = !this.paused;
+		for(let x of this.lasers)
+		{
+			x.aiActive = !this.paused;
+		}
+
+		for(let x of this.bubbles)
+		{
+			x.aiActive = !this.paused;
+		}
+				
+		for(let x of this.mines)
+		{
+			x.aiActive = !this.paused;
+		}
+
+		for(let x of this.projectiles)
+		{
+			x.aiActive = !this.paused;
 		}
 	}
 

@@ -6,6 +6,8 @@ uniform float u_Alpha;
 
 uniform vec2 canvasSize;
 
+uniform vec2 u_size;
+
 /**
  * Macros that define constants used in the fragment shader program. 
  */
@@ -70,7 +72,7 @@ float sinwave_laser(vec4 position) {
 }
 
 float linear_laser(vec4 position) {
-	float dist = distance(position.y, MIDLINE);
+	float dist = distance(position.y, MIDLINE) * (u_size.x / 600.0);
 	return 1.0 - smoothstep(MIN_DISTANCE, MAX_DISTANCE, dist);
 }
 
