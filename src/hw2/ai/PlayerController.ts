@@ -5,6 +5,7 @@ import GameEvent from "../../Wolfie2D/Events/GameEvent";
 import Receiver from "../../Wolfie2D/Events/Receiver";
 import Input from "../../Wolfie2D/Input/Input";
 import AnimatedSprite from "../../Wolfie2D/Nodes/Sprites/AnimatedSprite";
+import Sprite from "../../Wolfie2D/Nodes/Sprites/Sprite";
 import Timer from "../../Wolfie2D/Timing/Timer";
 import MathUtils from "../../Wolfie2D/Utils/MathUtils";
 import Graphic from "../../Wolfie2D/Nodes/Graphic";
@@ -70,11 +71,15 @@ export default class PlayerController implements AI {
 	private wideLightTargetIntensity: number;
 	private narrowLightTargetIntensity: number;
 	private shootLight: Light;
+	private planeWings: Sprite;
+	private planeWingsMaxSize: number;
 	private renderingManager: RenderingManager;
 
 	private blinkingLightMaxBrightness: number;
 	private blinkingLightMinBrightness: number;
 	private blinkingLightBrightnessIncreasing: boolean;
+
+	private hitboxes: Array<Graphic>;
 
 	private lightPressBuffered: boolean = false;
 
@@ -131,10 +136,16 @@ export default class PlayerController implements AI {
 
 		this.p1 = options.p1;
 		this.p2 = options.p2;
+		this.p1.visible = false;
+		this.p2.visible = false;
 		this.wideLight = options.wideLight;
 		this.narrowLight = options.narrowLight;
 		this.wideLightTargetIntensity = this.wideLight.intensity;
 		this.narrowLightTargetIntensity = this.narrowLight.intensity;
+		this.planeWings = options.planeWings;
+		this.planeWingsMaxSize = this.planeWings.size.y;
+
+		this.hitboxes = options.hitboxes;
 
 		this.blinkingLight = options.blinkingLight;
 		this.shootLight = options.shootLight;
@@ -194,6 +205,35 @@ export default class PlayerController implements AI {
 		this.currentAngle = MathUtils.clamp(this.currentAngle + horizontalAxis * 0.05 * aimingMod, -1.5, 1.5);
 
 
+
+		// Move the player
+		//old
+		//let movement = Vec2.UP.scaled(forwardAxis * this.currentSpeed).add(new Vec2(horizontalAxis * this.currentSpeed, 0));
+		//new
+		let movement = Vec2.UP.scaled(Math.sin(this.currentAngle) * this.currentSpeed) //.add(new Vec2(horizontalAxis * this.currentSpeed, 0));
+		this.owner.position.add(movement.scaled(deltaT));
+
+		this.p1.position = this.owner.position.clone();
+		this.p2.position = new Vec2(this.owner.position.x + Math.cos(this.currentAngle) * 30, this.owner.position.y - Math.sin(this.currentAngle) * 30);
+
+		this.planeWings.position = this.owner.position.clone();
+		this.planeWings.rotation = this.currentAngle;
+		this.planeWings.size = new Vec2(this.planeWings.size.x, this.planeWingsMaxSize * Math.abs(Math.sin(this.currentAngle)));
+
+		this.shootLight.position = new Vec2(this.owner.position.x + Math.cos(this.currentAngle) * 50, this.owner.position.y - Math.sin(this.currentAngle) * 50);
+
+
+		this.wideLight.position = this.p2.position.clone();
+		this.wideLight.angle = this.currentAngle;
+
+		this.narrowLight.position = this.p2.position.clone();
+		this.narrowLight.angle = this.currentAngle;
+
+		this.owner.rotation = this.currentAngle;
+
+		this.blinkingLight.position = new Vec2(this.owner.position.x-20, this.owner.position.y);
+
+
 		// Handle trying to shoot a laser from the submarine
 		/*
 		if (Input.isJustPressed(HW2Controls.SHOOT) && this.currentCharge > 0) {
@@ -205,30 +245,23 @@ export default class PlayerController implements AI {
 		if (Input.isJustPressed(HW2Controls.SHOOT) && this.shootTimeOut == false && this.currentAir > this.laserEnergyCost) {
 			//this.currentCharge -= 1;
 			this.shootTimeOut = true;
-			this.emitter.fireEvent(HW2Events.SHOOT_LASER, {src: this.p2.position, angle: this.currentAngle});
+			this.emitter.fireEvent(HW2Events.SHOOT_LASER, {src: this.shootLight.position, angle: this.currentAngle});
 			//this.emitter.fireEvent(HW2Events.CHARGE_CHANGE, {curchrg: this.currentCharge, maxchrg: this.maxCharge});
 		}
-		// Move the player
-		//old
-		//let movement = Vec2.UP.scaled(forwardAxis * this.currentSpeed).add(new Vec2(horizontalAxis * this.currentSpeed, 0));
-		//new
-		let movement = Vec2.UP.scaled(Math.sin(this.currentAngle) * this.currentSpeed) //.add(new Vec2(horizontalAxis * this.currentSpeed, 0));
-		this.owner.position.add(movement.scaled(deltaT));
 
-		this.p1.position = this.owner.position.clone();
-		this.p2.position = new Vec2(this.owner.position.x + Math.cos(this.currentAngle) * 40, this.owner.position.y - Math.sin(this.currentAngle) * 40);
 
-		this.shootLight.position = this.p2.position.clone();
+		//hitbox positions
 
-		this.wideLight.position = this.p2.position.clone();
-		this.wideLight.angle = this.currentAngle;
+		//hitbox positions
+		for(let i = 0; i < this.hitboxes.length; i++)
+		{
+			let nx = this.owner.position.x - ((this.owner.size.x/3) - i*(this.owner.size.x/6)) * this.owner.scale.x * Math.cos(this.currentAngle);
+			let ny = this.owner.position.y + ((this.owner.size.x/3) - i*(this.owner.size.x/6)) * this.owner.scale.x * Math.sin(this.currentAngle);
+			
+			this.hitboxes[i].position = new Vec2(nx, ny);
+		}
 
-		this.narrowLight.position = this.p2.position.clone();
-		this.narrowLight.angle = this.currentAngle;
 
-		this.owner.rotation = this.currentAngle;
-
-		this.blinkingLight.position = new Vec2(this.owner.position.x-20, this.owner.position.y);
 
 
 		if(Input.isJustPressed(HW2Controls.WIDE_HEADLIGHT))

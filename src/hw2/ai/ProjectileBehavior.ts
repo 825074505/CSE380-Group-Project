@@ -60,6 +60,7 @@ export default class ProjectileBehavior implements AI {
         this.receiver = new Receiver();
         //this.receiver.subscribe(HW2Events.PLAYER_BUBBLE_COLLISION);
         this.receiver.subscribe(HW2Events.LASER_PROJECTILE_COLLISION);
+        this.receiver.subscribe(HW2Events.PLAYER_PROJECTILE_COLLISION);
 
         this.emitter = new Emitter();
 
@@ -161,6 +162,13 @@ export default class ProjectileBehavior implements AI {
                 }
                 break;
             }
+            case HW2Events.PLAYER_PROJECTILE_COLLISION:
+            {
+                let id = event.data.get("id");
+                if(id === this.owner.id && this.light != null)
+                    this.light.visible = false;
+                break;
+            }
             default: {
                 throw new Error("Unhandled event caught in BubbleBehavior! Event type: " + event.type);
             }
@@ -210,14 +218,7 @@ export default class ProjectileBehavior implements AI {
             if(this.light != null)
                 this.light.position = this.owner.position;
 
-            if(this.player.collisionShape.overlaps(this.owner.collisionShape))
-            {
-                this.owner.visible = false;
-                this.owner.position.copy(Vec2.ZERO);
-                this.emitter.fireEvent(HW2Events.PLAYER_PROJECTILE_COLLISION, {});
-                if(this.light != null)
-                    this.light.visible = false;
-            }
+            
 
             //WEIRD BUG FIX, hitbox not being updated for some reason
             this.owner.position = this.owner.position;

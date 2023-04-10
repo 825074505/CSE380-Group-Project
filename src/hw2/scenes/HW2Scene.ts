@@ -78,6 +78,9 @@ export default class HW2Scene extends Scene {
 	public static ELECTRICITY_KEY = "ELECTRICITY";
 	public static ELECTRICITY_PATH = "hw2_assets/spritesheets/Electricity.json";
 
+	public static PLANEWINGS_KEY: string = "PLANEWINGS";
+	public static PLANEWINGS_PATH = "hw2_assets/sprites/testplanewings.png";
+
 
 	//PAUSE Screen Pop Up Layer
 	private pause : Layer;
@@ -98,12 +101,15 @@ export default class HW2Scene extends Scene {
 
 	// Here we define member variables of our game, and object pools for adding in game objects
 	private player: AnimatedSprite;
+	private planewings: Sprite;
 	private playerP1: Graphic;
 	private playerP2: Graphic;
 	private wideLight: Graphic;
 	private narrowLight: Graphic;
 	private blinkingLight: Graphic;
 	private shootLight: Graphic;
+
+	private playerHitboxes: Array<Graphic>;
 
 
 	private levelObjs: Array<monsterInfo>;
@@ -176,6 +182,8 @@ export default class HW2Scene extends Scene {
 		this.load.spritesheet(HW2Scene.MINE_KEY, HW2Scene.MINE_PATH);
 
 		this.load.spritesheet(HW2Scene.ELECTRICITY_KEY, HW2Scene.ELECTRICITY_PATH);
+
+		this.load.image(HW2Scene.PLANEWINGS_KEY, HW2Scene.PLANEWINGS_PATH);
 		// Load in the shader for bubble.
 		this.load.shader(
 			BubbleShaderType.KEY,
@@ -254,13 +262,15 @@ export default class HW2Scene extends Scene {
 		this.handleMinePlayerCollisions();
 		this.bubblesPopped += this.handleBubblePlayerCollisions();
 
+		this.handleStalactiteMonsterCollisions();
+		this.handlePlayerProjectileCollisions();
+
 		// Handle timers
 		this.handleTimers();
 			
 		//spawns enemies if enough time has passed
 		this.progressEnemies();
 
-		this.handleStalactiteMonsterCollisions();
 
         // TODO Remove despawning of mines and bubbles here
 
@@ -370,18 +380,31 @@ export default class HW2Scene extends Scene {
 	protected initPlayer(): void {
 		// Add in the player as an animated sprite
 		// We give it the key specified in our load function and the name of the layer
+		let planeWings = this.add.sprite(HW2Scene.PLANEWINGS_KEY, HW2Layers.PRIMARY);
 		this.player = this.add.animatedSprite(HW2Scene.PLAYER_KEY, HW2Layers.PRIMARY);
+		planeWings.scale.set(0.4, 0.4);
 		
 		// Set the player's position to the middle of the screen, and scale it down
 		this.player.position.set(this.viewport.getCenter().x/3, this.viewport.getCenter().y);
 		this.player.scale.set(0.4, 0.4);
 
+		//TODO give the player 3 AABBS for a hitbox so that it can track rotation
 		// Give the player a smaller hitbox
 		let playerCollider = new AABB(Vec2.ZERO, this.player.sizeWithZoom);
 		this.player.setCollisionShape(playerCollider);
 
 		this.playerP1 = this.add.graphic(GraphicType.RECT, HW2Layers.PRIMARY, {position: this.player.position.clone(), size: new Vec2(10, 10)});
 		this.playerP2 = this.add.graphic(GraphicType.RECT, HW2Layers.PRIMARY, {position: this.player.position.clone(), size: new Vec2(10, 10)});
+		this.playerHitboxes = new Array(5);
+		for(let i = 0; i < 5; i++)
+		{
+			let hb = this.add.graphic(GraphicType.RECT, HW2Layers.PRIMARY, {position: this.player.position.clone(), size: new Vec2(86, 32)});
+			hb.scale.set(0.4, 0.4);
+			hb.visible = false;
+			this.playerHitboxes[i] = hb;
+		}
+
+
 
 
 		this.wideLight = this.add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: this.player.position.clone(), 
@@ -430,11 +453,11 @@ export default class HW2Scene extends Scene {
 
 
 		
-
+		console.log("test", this.playerHitboxes);
 
 
 		// Add a playerController to the player
-		this.player.addAI(PlayerController, {p1: this.playerP1, p2: this.playerP2, wideLight: this.wideLight, narrowLight: this.narrowLight, blinkingLight: this.blinkingLight, shootLight: this.shootLight, rm: this.sceneManager.renderingManager});
+		this.player.addAI(PlayerController, {p1: this.playerP1, p2: this.playerP2, wideLight: this.wideLight, narrowLight: this.narrowLight, blinkingLight: this.blinkingLight, shootLight: this.shootLight, planeWings: planeWings, hitboxes: this.playerHitboxes, rm: this.sceneManager.renderingManager});
 	}
 	/**
 	 * Initializes the UI for the HW3-Scene.
@@ -1054,9 +1077,12 @@ export default class HW2Scene extends Scene {
 	public handleBubblePlayerCollisions(): number {
 		let collisions = 0;
 		for (let bubble of this.bubbles) {
-			if (bubble.visible && HW2Scene.checkAABBtoCircleCollision(this.player.collisionShape as AABB, bubble.collisionShape as Circle)) {
-				this.emitter.fireEvent(HW2Events.PLAYER_BUBBLE_COLLISION, {id: bubble.id});
-				collisions += 1;
+			for(let collider of this.playerHitboxes){
+				if (bubble.visible && HW2Scene.checkAABBtoCircleCollision(collider.boundary, bubble.collisionShape as Circle)) {
+					this.emitter.fireEvent(HW2Events.PLAYER_BUBBLE_COLLISION, {id: bubble.id});
+					collisions += 1;
+					break;
+				}
 			}
 		}	
 		return collisions;
@@ -1083,9 +1109,12 @@ export default class HW2Scene extends Scene {
 		let collisions = 0;
 		for (const mineInd in this.mines) {
 			let mine = this.mines[mineInd];
-			if (mine.visible && this.player.collisionShape.overlaps(mine.collisionShape)) {
-				this.emitter.fireEvent(HW2Events.PLAYER_MINE_COLLISION, {id: mine.id, monsterType: this.levelObjs[mineInd].monsterType});
-				collisions += 1;
+			for(let collider of this.playerHitboxes){
+				if (mine.visible && collider.boundary.overlaps(mine.collisionShape)) {
+					this.emitter.fireEvent(HW2Events.PLAYER_MINE_COLLISION, {id: mine.id, monsterType: this.levelObjs[mineInd].monsterType});
+					collisions += 1;
+					break;
+				}
 			}
 		}	
 		return collisions;
@@ -1190,6 +1219,23 @@ export default class HW2Scene extends Scene {
 			}
 		}	
 		return collisions;
+	}
+
+	public handlePlayerProjectileCollisions(): void {
+		for(let proj of this.projectiles)
+		{
+			if(proj.visible)
+			{
+				for(let collider of this.playerHitboxes){
+					if(collider.boundary.overlaps(proj.collisionShape))
+					{
+						proj.visible = false;
+						proj.position.copy(Vec2.ZERO);
+						this.emitter.fireEvent(HW2Events.PLAYER_PROJECTILE_COLLISION, {id: proj.id});
+					}
+				}
+			}
+		}
 	}
 
 	/**

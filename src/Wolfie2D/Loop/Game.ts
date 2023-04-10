@@ -55,6 +55,7 @@ export default class Game {
     private sceneManager: SceneManager;
     private audioManager: AudioManager;
     private renderingManager: RenderingManager;
+    private sinceDebugCounter: number = 0;
 
     /**
      * Creates a new Game
@@ -207,10 +208,13 @@ export default class Game {
 
             this.sceneManager.render();
 
+            //TODO remove this debug counter stuff, its only for testing
             // Hacky debug mode
-            if(Input.isKeyJustPressed("g")){
+            if(Input.isKeyJustPressed("g") && this.sinceDebugCounter >= 5){
+                this.sinceDebugCounter = 0;
                 this.showDebug = !this.showDebug;
             }
+            this.sinceDebugCounter = this.sinceDebugCounter >= 5 ? 5 : this.sinceDebugCounter + 1;
 
             // Debug render
             if(this.showDebug){
