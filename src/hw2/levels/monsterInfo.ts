@@ -1,6 +1,9 @@
+import Vec2 from "../../Wolfie2D/DataTypes/Vec2";
 export type monsterInfo = {
 	spawnTime: number;  //Amount of seconds after level has started that the enemy should spawn
 	spriteKey: string;
+	spriteScale?: Vec2;
+	hitboxScale?: Vec2;
 	spawnY: number;
 	stoppingX?: number; //x position to stop moving left at
 

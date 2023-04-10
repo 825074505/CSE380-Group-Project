@@ -81,6 +81,9 @@ export default class HW2Scene extends Scene {
 	public static PLANEWINGS_KEY: string = "PLANEWINGS";
 	public static PLANEWINGS_PATH = "hw2_assets/sprites/testplanewings.png";
 
+	public static STALAGMITE_KEY: string = "STALAGMITE";
+	public static STALAGMITE_PATH = "hw2_assets/spritesheets/testStalagmite.json";
+
 
 	//PAUSE Screen Pop Up Layer
 	private pause : Layer;
@@ -184,6 +187,8 @@ export default class HW2Scene extends Scene {
 		this.load.spritesheet(HW2Scene.ELECTRICITY_KEY, HW2Scene.ELECTRICITY_PATH);
 
 		this.load.image(HW2Scene.PLANEWINGS_KEY, HW2Scene.PLANEWINGS_PATH);
+
+		this.load.spritesheet(HW2Scene.STALAGMITE_KEY, HW2Scene.STALAGMITE_PATH);
 		// Load in the shader for bubble.
 		this.load.shader(
 			BubbleShaderType.KEY,
@@ -280,7 +285,13 @@ export default class HW2Scene extends Scene {
 		this.wrapPlayer(this.player, this.viewport.getCenter(), this.viewport.getHalfSize());
 		this.lockPlayer(this.player, this.viewport.getCenter(), this.viewport.getHalfSize());
 
-
+		//hacky level end for level 1
+		if(this.currentLevel == 1 && this.curMonsterIndex == this.levelObjs.length-1)
+		{
+			let ind = this.mines.length - 1;
+			if(this.mines[ind].visible == false && this.mines[ind-1].visible == false && this.mines[ind-2].visible == false)
+				this.gameOverTimer.start();
+		}
 
 		// Handle events
 		while (this.receiver.hasNextEvent()) {
@@ -471,13 +482,15 @@ export default class HW2Scene extends Scene {
 		this.healthLabel.size.set(300, 30);
 		this.healthLabel.fontSize = 24;
 		this.healthLabel.font = "Courier";
+		this.healthLabel.textColor = Color.WHITE;
+
 
 		// Air Label
-		this.airLabel = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(50, 100), text: "Air"});
+		this.airLabel = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(50, 100), text: "PWR"});
 		this.airLabel.size.set(300, 30);
 		this.airLabel.fontSize = 24;
 		this.airLabel.font = "Courier";
-
+		this.airLabel.textColor = Color.WHITE;
 		/*
 		// Charge Label
 		this.chrgLabel = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(475, 50), text: "Lasers"});
@@ -633,10 +646,13 @@ export default class HW2Scene extends Scene {
 			// Assign them mine ai
 			this.mines[i].addAI(MineBehavior2, {movementPattern: 0});
 
-			this.mines[i].scale.set(0.3, 0.3);
+			if(this.levelObjs[i].spriteScale != null)
+				this.mines[i].scale.set(this.levelObjs[i].spriteScale.x, this.levelObjs[i].spriteScale.y);
+			else
+				this.mines[i].scale.set(0.3, 0.3);
 
 			// Give them a collision shape
-			let collider = new AABB(Vec2.ZERO, this.mines[i].sizeWithZoom);
+			let collider = this.levelObjs[i].hitboxScale == null ? new AABB(Vec2.ZERO, this.mines[i].sizeWithZoom) : new AABB(Vec2.ZERO, this.mines[i].sizeWithZoom.scale(this.levelObjs[i].hitboxScale.x, this.levelObjs[i].hitboxScale.y));
 			this.mines[i].setCollisionShape(collider);
 		}
 
@@ -1160,7 +1176,8 @@ export default class HW2Scene extends Scene {
 			for (let mine of mines) {
 				if(mine.visible)
 				{
-					let hitInfo = mine.collisionShape.getBoundingRect().intersectSegment(firePosition, new Vec2(1200, Math.tan(angle)*laser.size.x * -1));
+					//let hitInfo = mine.collisionShape.getBoundingRect().intersectSegment(firePosition, new Vec2(1200, Math.tan(angle)*laser.size.x * -1));
+					let hitInfo = mine.collisionShape.getBoundingRect().intersectSegment(firePosition, Vec2.ZERO.setToAngle(angle, 1300));
 					if (hitInfo != null) {
 						//this.emitter.fireEvent(HW2Events.LASER_MINE_COLLISION, { mineId: mine.id, laserId: laser.id, hit: hitInfo});
 						hitMineList.push({mine: mine, hitInfo: hitInfo});
