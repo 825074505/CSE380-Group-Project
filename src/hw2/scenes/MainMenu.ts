@@ -16,11 +16,13 @@ const MainMenuLayer = {
     CONTROLS: "CONTROLS",
     ABOUT: "ABOUT",
     LEVEL_SELECT: "LEVEL_SELECT",
-    BEST_SCORES: "BEST_SCORES"
+    BEST_SCORES: "BEST_SCORES",
+    SPLASH_SCREEN:"SPLASH_SCREEN"
 } as const
 
 // Events triggered in the main menu
 const MainMenuEvent = {
+    START_GAME:"START_GAME",
     PLAY_GAME: "PLAY_GAME",
 	CONTROLS: "CONTROLS",
 	ABOUT: "ABOUT",
@@ -35,6 +37,7 @@ const MainMenuEvent = {
 
 export default class MainMenu extends Scene {
     // Layers, for multiple main menu screens
+    private splashScreen: Layer;
     private mainMenu: Layer;
     private controls: Layer;
     private about: Layer;
@@ -57,10 +60,12 @@ export default class MainMenu extends Scene {
     public override startScene(){
 
         const center = this.viewport.getCenter();
+        //Splash Screen
+        this.splashScreen = this.addUILayer(MainMenuLayer.SPLASH_SCREEN);
 
         // Main menu screen
         this.mainMenu = this.addUILayer(MainMenuLayer.MAIN_MENU);
-
+        this.mainMenu.setHidden(true);
         // Controls screen
         this.controls = this.addUILayer(MainMenuLayer.CONTROLS);
         this.controls.setHidden(true);
@@ -76,7 +81,12 @@ export default class MainMenu extends Scene {
         this.bestScores.setHidden(true);
 
 
-
+        const start = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.SPLASH_SCREEN, {position: new Vec2(center.x, center.y), text: "Start Game"});
+        start.size.set(200, 50);
+        start.borderWidth = 2;
+        start.borderColor = Color.MAGENTA;
+        start.backgroundColor = Color.TRANSPARENT;
+        start.onClickEventId = MainMenuEvent.START_GAME;
         // Add play button, and give it an event to emit on press
         const play = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y - 100), text: "Arcade Mode"});
         play.size.set(200, 50);
@@ -117,6 +127,13 @@ export default class MainMenu extends Scene {
         bestScores.borderColor = Color.WHITE;
         bestScores.backgroundColor = Color.TRANSPARENT;
         bestScores.onClickEventId = MainMenuEvent.BEST_SCORES;
+
+        const exit = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y + 400), text: "Exit"});
+        exit.size.set(200, 50);
+        exit.borderWidth = 2;
+        exit.borderColor = Color.WHITE;
+        exit.backgroundColor = Color.TRANSPARENT;
+        exit.onClickEventId = MainMenuEvent.EXIT;
 
         // Add exit button
         /*
@@ -264,6 +281,7 @@ export default class MainMenu extends Scene {
         LevelBack.onClickEventId = MainMenuEvent.MENU;
 
         // Subscribe to the button events
+        this.receiver.subscribe(MainMenuEvent.START_GAME);
         this.receiver.subscribe(MainMenuEvent.PLAY_GAME);
         this.receiver.subscribe(MainMenuEvent.CONTROLS);
         this.receiver.subscribe(MainMenuEvent.ABOUT);
@@ -284,6 +302,15 @@ export default class MainMenu extends Scene {
 
     protected handleEvent(event: GameEvent): void {
         switch(event.type) {
+            case MainMenuEvent.START_GAME: {
+                this.splashScreen.setHidden(true);
+                this.controls.setHidden(true);
+                this.mainMenu.setHidden(false);
+                this.about.setHidden(true);
+                this.levelSelect.setHidden(true);
+                this.bestScores.setHidden(true);
+                break;
+            }
             case MainMenuEvent.PLAY_GAME: {
                 this.seed = RandUtils.randomSeed();
                 this.sceneManager.changeToScene(Homework1_Scene, {level: 1, seed: this.seed, recording: true});
@@ -351,6 +378,12 @@ export default class MainMenu extends Scene {
             }
             case MainMenuEvent.EXIT:{
                 // Implement the exit functionality
+                this.splashScreen.setHidden(false);
+                this.mainMenu.setHidden(true);
+                this.controls.setHidden(true);
+                this.about.setHidden(true);
+                this.levelSelect.setHidden(true);
+                this.bestScores.setHidden(true);
                 break;
             }
             default: {
