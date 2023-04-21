@@ -62,6 +62,9 @@ export default class MainMenu extends Scene {
         const center = this.viewport.getCenter();
         //Splash Screen
         this.splashScreen = this.addUILayer(MainMenuLayer.SPLASH_SCREEN);
+        //let bg = this.addLayer("background");
+        //bg.setDepth(-100);
+        //this.add.graphic("","background");
 
         // Main menu screen
         this.mainMenu = this.addUILayer(MainMenuLayer.MAIN_MENU);
@@ -81,12 +84,14 @@ export default class MainMenu extends Scene {
         this.bestScores.setHidden(true);
 
 
-        const start = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.SPLASH_SCREEN, {position: new Vec2(center.x, center.y), text: "Start Game"});
+        const start = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.SPLASH_SCREEN, {position: new Vec2(center.x, center.y), text: "Enter Game"});
         start.size.set(200, 50);
         start.borderWidth = 2;
         start.borderColor = Color.MAGENTA;
         start.backgroundColor = Color.TRANSPARENT;
         start.onClickEventId = MainMenuEvent.START_GAME;
+
+        
         // Add play button, and give it an event to emit on press
         const play = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y - 100), text: "Arcade Mode"});
         play.size.set(200, 50);
@@ -145,6 +150,9 @@ export default class MainMenu extends Scene {
         exit.onClickEventId = MainMenuEvent.EXIT;
         */
 
+        const splashHeader = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.SPLASH_SCREEN, {position: new Vec2(center.x, center.y - 200), text: "Welcome To Echoes of the Subterra"});
+        splashHeader.textColor = Color.GREEN;
+
         const header = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y - 250), text: "Controls"});
         header.textColor = Color.WHITE;
 
@@ -165,6 +173,8 @@ export default class MainMenu extends Scene {
         back.borderColor = Color.WHITE;
         back.backgroundColor = Color.TRANSPARENT;
         back.onClickEventId = MainMenuEvent.MENU;
+
+        
 
         const aboutHeader = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 350), text: "Backstory"});
         aboutHeader.textColor = Color.WHITE;
