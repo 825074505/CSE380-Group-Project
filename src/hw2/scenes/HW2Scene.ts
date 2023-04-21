@@ -73,7 +73,7 @@ export default class HW2Scene extends Scene {
     public static MINE_PATH = "hw2_assets/spritesheets/SpikyMineThing.json"
     // The key and path to the background sprite
 	public static BACKGROUND_KEY = "BACKGROUND"
-    public static BACKGROUND_PATH = "hw2_assets/sprites/WavyBlueLines.png"
+    public static BACKGROUND_PATH = "hw2_assets/sprites/blacknoise.png"
 
 	public static ELECTRICITY_KEY = "ELECTRICITY";
 	public static ELECTRICITY_PATH = "hw2_assets/spritesheets/Electricity.json";
@@ -84,6 +84,8 @@ export default class HW2Scene extends Scene {
 	public static STALAGMITE_KEY: string = "STALAGMITE";
 	public static STALAGMITE_PATH = "hw2_assets/spritesheets/testStalagmite.json";
 
+	public static TBUF_KEY: string = "TBUF";
+	public static TBUF_PATH = "hw2_assets/sprites/TBUF.png";
 
 	//PAUSE Screen Pop Up Layer
 	private pause : Layer;
@@ -189,6 +191,8 @@ export default class HW2Scene extends Scene {
 		this.load.image(HW2Scene.PLANEWINGS_KEY, HW2Scene.PLANEWINGS_PATH);
 
 		this.load.spritesheet(HW2Scene.STALAGMITE_KEY, HW2Scene.STALAGMITE_PATH);
+
+		this.load.image(HW2Scene.TBUF_KEY, HW2Scene.TBUF_PATH);
 		// Load in the shader for bubble.
 		this.load.shader(
 			BubbleShaderType.KEY,
@@ -258,14 +262,15 @@ export default class HW2Scene extends Scene {
 			this.handlePause();
 		}
 
-		this.timePassed += deltaT;
+		if(!this.paused)
+			this.timePassed += deltaT;
 		
 		// Move the backgrounds
 		this.moveBackgrounds(deltaT);
 
 		// Handles mine and bubble collisions
 		this.handleMinePlayerCollisions();
-		this.bubblesPopped += this.handleBubblePlayerCollisions();
+		//this.bubblesPopped += this.handleBubblePlayerCollisions();
 
 		this.handleStalactiteMonsterCollisions();
 		this.handlePlayerProjectileCollisions();
@@ -281,8 +286,8 @@ export default class HW2Scene extends Scene {
 
 		// Handle screen despawning of mines and bubbles
 		for (let mine of this.mines) if (mine.visible) this.handleScreenDespawn(mine);
-		for (let bubble of this.bubbles) if (bubble.visible) this.handleScreenDespawn(bubble);
-		this.wrapPlayer(this.player, this.viewport.getCenter(), this.viewport.getHalfSize());
+		//for (let bubble of this.bubbles) if (bubble.visible) this.handleScreenDespawn(bubble);
+		//this.wrapPlayer(this.player, this.viewport.getCenter(), this.viewport.getHalfSize());
 		this.lockPlayer(this.player, this.viewport.getCenter(), this.viewport.getHalfSize());
 
 		//hacky level end for level 1
@@ -427,7 +432,8 @@ export default class HW2Scene extends Scene {
 																					distance : this.viewport.getHalfSize().x * 2 * 1.33,
 																					tintColor : Color.WHITE,
 																					angleRange : new Vec2(12, 0),
-																					opacity : 1.0});
+																					opacity : 1.0
+																					});
 		this.narrowLight.visible = false;
 		let blinkingLightPos = new Vec2(this.player.position.x - 20, this.player.position.y);
 		this.blinkingLight = this.add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: blinkingLightPos, 
@@ -447,19 +453,20 @@ export default class HW2Scene extends Scene {
 																					angleRange : new Vec2(270, 0),
 																					opacity : 1.0});
 		/*
-		this.add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: this.player.position.clone(), 
+		this.add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: new Vec2(450, 450), 
 																					angle : 0,
 																					intensity : 0.6,
 																					distance : 0,
 																					tintColor : Color.BLUE,
-																					angleRange : new Vec2(30, 0),
+																					angleRange : new Vec2(360, 360),
 																					opacity : 0.5,
-																					lineEndPosition : new Vec2(700, 700)});
+																					});
 		*/
+		
 
 
 		
-		console.log("test", this.playerHitboxes);
+		//console.log("test", this.playerHitboxes);
 
 
 		// Add a playerController to the player
@@ -601,6 +608,7 @@ export default class HW2Scene extends Scene {
 	protected initObjectPools(): void {
 		
 		// Init bubble object pool
+		/*
 		this.bubbles = new Array(10);
 		for (let i = 0; i < this.bubbles.length; i++) {
 			this.bubbles[i] = this.add.graphic(GraphicType.RECT, HW2Layers.PRIMARY, {position: new Vec2(0, 0), size: new Vec2(50, 50)});
@@ -617,9 +625,8 @@ export default class HW2Scene extends Scene {
 			let collider = new Circle(Vec2.ZERO, 25);
 			this.bubbles[i].setCollisionShape(collider);
 		}
-
+		*/
 		// Init the object pool of mines
-		this.mines = new Array(this.levelObjs.length);
 		/*
 		for (let i = 0; i < this.mines.length; i++){
 			this.mines[i] = this.add.animatedSprite(HW2Scene.MINE_KEY, HW2Layers.PRIMARY);
@@ -637,6 +644,9 @@ export default class HW2Scene extends Scene {
 			this.mines[i].setCollisionShape(collider);
 		}
 		*/
+		//console.log("levelObjLenght", this.levelObjs.length, this.getRecLevelObjLength(this.levelObjs));
+		this.expandLevelObjs();
+		this.mines = new Array(this.levelObjs.length);
 		for (let i = 0; i < this.mines.length; i++){
 			this.mines[i] = this.add.animatedSprite(this.levelObjs[i].spriteKey, HW2Layers.PRIMARY);
 			
@@ -649,6 +659,10 @@ export default class HW2Scene extends Scene {
 			if(this.levelObjs[i].spriteScale != null)
 				this.mines[i].scale.set(this.levelObjs[i].spriteScale.x, this.levelObjs[i].spriteScale.y);
 			else
+				this.mines[i].scale.set(6.0, 6.0);
+
+			//temp elec fix
+			if(this.levelObjs[i].monsterType == monsterTypes.electricField)
 				this.mines[i].scale.set(0.3, 0.3);
 
 			// Give them a collision shape
@@ -667,6 +681,43 @@ export default class HW2Scene extends Scene {
 			this.lasers[i].visible = false;
 			this.lasers[i].addAI(LaserBehavior, {src: Vec2.ZERO, dst: Vec2.ZERO});
 		}
+	}
+
+	//Recurisvely expands the level object list
+	protected expandLevelObjs(): void
+	{
+		let newObjList = new Array(this.getRecLevelObjLength(this.levelObjs));
+		this.recAddObjs(newObjList, this.levelObjs);
+		this.levelObjs = newObjList.sort((a, b) => a.spawnTime - b.spawnTime);
+	}
+
+	protected getRecLevelObjLength(monsterList : Array<monsterInfo>): number
+	{
+		let length = 0;
+		//console.log(monsterList);
+		for(const mon of monsterList)
+		{
+			length += mon.objs == null ? 1 : this.getRecLevelObjLength(mon.objs);
+		}
+		return length;
+	}
+
+	protected recAddObjs(newMonsterList : Array<monsterInfo>, currentMonsterList : Array<monsterInfo>, index: number = 0, spawnTimeStart: number = 0, spawnYOffset: number = 0): number
+	{
+		for(const mon of currentMonsterList)
+		{
+			if(mon.objs == null)
+			{
+				mon.spawnTime += spawnTimeStart;
+				mon.spawnY += spawnYOffset;
+				newMonsterList[index] = mon;
+				index++;
+			}else
+			{
+				index = this.recAddObjs(newMonsterList, mon.objs, index, mon.spawnTime, mon.spawnY);
+			}
+		}
+		return index;
 	}
 
 	/** Methods for spawing/despawning objects */
@@ -866,7 +917,7 @@ export default class HW2Scene extends Scene {
 		// Assign them mine ai
 		projectile.addAI(ProjectileBehavior, {});
 
-		projectile.scale.set(0.1, 0.1);
+		projectile.scale.set(3.0, 3.0);
 
 		// Give them a collision shape
 		let collider = new AABB(Vec2.ZERO, projectile.sizeWithZoom);
@@ -930,7 +981,7 @@ export default class HW2Scene extends Scene {
 		{
 			let paddedViewportSize = this.viewport.getHalfSize().scaled(2).add(this.worldPadding);
 			let viewportSize = this.viewport.getHalfSize().scaled(2);
-			if(node.collisionShape.x < viewportSize.x - paddedViewportSize.x || node.collisionShape.y < viewportSize.y - paddedViewportSize.y)
+			if(node.collisionShape.x < viewportSize.x - paddedViewportSize.x)
 				node.visible = false;
 				//Todo set light for node to false if it has one by sending out an event
 
@@ -1173,8 +1224,9 @@ export default class HW2Scene extends Scene {
 		//console.log(this.projectiles);
 		if (laser.visible) {
 			let hitMineList = new Array();
-			for (let mine of mines) {
-				if(mine.visible)
+			for (const index in mines) {
+				let mine = mines[index];
+				if(mine.visible && this.levelObjs[index].monsterType != monsterTypes.electricField)
 				{
 					//let hitInfo = mine.collisionShape.getBoundingRect().intersectSegment(firePosition, new Vec2(1200, Math.tan(angle)*laser.size.x * -1));
 					let hitInfo = mine.collisionShape.getBoundingRect().intersectSegment(firePosition, Vec2.ZERO.setToAngle(angle, 1300));
@@ -1404,12 +1456,12 @@ export default class HW2Scene extends Scene {
 	 */
 	protected lockPlayer(player: CanvasNode, viewportCenter: Vec2, viewportHalfSize: Vec2): void {
 		// TODO prevent the player from moving off the left/right side of the screen
-		if(player.position.x < viewportCenter.x - viewportHalfSize.x)
+		if(player.position.y < viewportCenter.y - viewportHalfSize.y)
 		{
-			player.position.x = viewportCenter.x - viewportHalfSize.x;
-		}else if (player.position.x > viewportCenter.x + viewportHalfSize.x)
+			player.position.y = viewportCenter.y - viewportHalfSize.y;
+		}else if (player.position.y > viewportCenter.x + viewportHalfSize.y)
 		{
-			player.position.x = viewportCenter.x + viewportHalfSize.x;
+			player.position.y = viewportCenter.y + viewportHalfSize.y;
 		}
 	}
 
@@ -1469,11 +1521,6 @@ export default class HW2Scene extends Scene {
 
 		this.player.aiActive = !this.paused;
 		for(let x of this.lasers)
-		{
-			x.aiActive = !this.paused;
-		}
-
-		for(let x of this.bubbles)
 		{
 			x.aiActive = !this.paused;
 		}

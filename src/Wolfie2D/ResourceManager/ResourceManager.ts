@@ -751,7 +751,11 @@ export default class ResourceManager {
         this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
 
         // Set the texture parameters
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+        //this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+
+
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
 
@@ -765,7 +769,8 @@ export default class ResourceManager {
         this.gl_NextTextureID += 1;
         // if overflow occurs, reset to 0
         // TODO: This is a temporary solution - we should be able to have more than 8 textures.
-        if(this.gl_NextTextureID > 8){
+        if(this.gl_NextTextureID > 29){
+            console.log("TEXTURE OVERFLOW");
             this.gl_NextTextureID = 0;
         }
     }
@@ -773,18 +778,7 @@ export default class ResourceManager {
     private getTextureID(id: number): number {
         // Start with 9 cases - this can be expanded if needed, but for the best performance,
         // Textures should be stitched into an atlas
-        switch(id){
-            case 0: return this.gl.TEXTURE0;
-            case 1: return this.gl.TEXTURE1;
-            case 2: return this.gl.TEXTURE2;
-            case 3: return this.gl.TEXTURE3;
-            case 4: return this.gl.TEXTURE4;
-            case 5: return this.gl.TEXTURE5;
-            case 6: return this.gl.TEXTURE6;
-            case 7: return this.gl.TEXTURE7;
-            case 8: return this.gl.TEXTURE8;
-            default: return this.gl.TEXTURE9;
-        }
+        return this.gl.TEXTURE0 + id;
     }
 
     public createBuffer(key: string): void {

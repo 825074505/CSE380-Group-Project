@@ -35,9 +35,18 @@ export default class WebGLRenderer extends RenderingManager {
 	protected gbufferTexture: WebGLTexture;
 	protected testTexture: WebGLTexture;
 
+	protected dbuffer: WebGLFramebuffer;
+	protected dbufferTexture: WebGLTexture;
+
+	protected hbuffer: WebGLFramebuffer;
+	protected hbufferTexture: WebGLTexture;
+
+	protected dbuffersprite: Sprite; 
+
 
 	initializeCanvas(canvas: HTMLCanvasElement, width: number, height: number): WebGLRenderingContext {
 		this.lightingEnabled = true;
+		this.downsamplingEnabled = true;
 		console.log(this.lightingEnabled);
 
 		canvas.width = width;
@@ -51,7 +60,7 @@ export default class WebGLRenderer extends RenderingManager {
         this.gl = canvas.getContext("webgl", { alpha: false });
 
 		console.log(this.gl.getParameter(this.gl.SHADING_LANGUAGE_VERSION));
-		//console.log(this.gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+		console.log("Max Texture Units", this.gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS);
 
 		this.gl.viewport(0, 0, canvas.width, canvas.height);
 
@@ -91,7 +100,7 @@ export default class WebGLRenderer extends RenderingManager {
 
 		// Create a texture to store color information
 		const colorTexture = gl.createTexture();
-		gl.activeTexture(gl.TEXTURE7);
+		gl.activeTexture(gl.TEXTURE0 + 31);
 		gl.bindTexture(gl.TEXTURE_2D, colorTexture);
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.canvas.width, gl.canvas.width, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -110,6 +119,35 @@ export default class WebGLRenderer extends RenderingManager {
 
 		this.gbufferTexture = colorTexture;
 
+
+		//dbuffer
+
+		// Create a framebuffer
+		this.dbuffer = gl.createFramebuffer();
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.dbuffer);
+
+		// Create a texture to store color information
+		const colorTexture2 = gl.createTexture();
+		gl.activeTexture(gl.TEXTURE0 + 30);
+		gl.bindTexture(gl.TEXTURE_2D, colorTexture2);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 900, 900, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTexture2, 0);
+
+
+		if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+		  console.error('Framebuffer is not complete.');
+		}else
+		{
+			console.log('Framebuffer is complete!');
+		}
+
+		this.dbufferTexture = colorTexture2;
+
+
 		//Reset Active Texture
 		gl.activeTexture(gl.TEXTURE0);
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
@@ -123,24 +161,19 @@ export default class WebGLRenderer extends RenderingManager {
 	}
 
 	render(visibleSet: CanvasNode[], tilemaps: Tilemap[], uiLayers: Map<UILayer>, lights: CanvasNode[] = null): void {
+		/*
+		visibleSet.sort((a, b) => {
+			if(a.getLayer().getDepth() === b.getLayer().getDepth()){
+				return (a.boundary.bottom) - (b.boundary.bottom);
+			} else {
+				return a.getLayer().getDepth() - b.getLayer().getDepth();
+			}
+		});
+		*/
+	
 		const gl = this.gl;
-		if(this.lightingEnabled)
-		{
-			/*
-			visibleSet.sort((a, b) => {
-				if(a.getLayer().getDepth() === b.getLayer().getDepth()){
-					return (a.boundary.bottom) - (b.boundary.bottom);
-				} else {
-					return a.getLayer().getDepth() - b.getLayer().getDepth();
-				}
-			});
-			*/
-			// Bind the framebuffer
-			gl.bindFramebuffer(gl.FRAMEBUFFER, this.gbuffer);
-
-			// Clear the framebuffer 
-			this.clear(Color.BLACK);	
-		}
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.gbuffer);
+		this.clear(Color.BLACK);	
 		//Render
 		for(let node of visibleSet){
 			this.renderNode(node);
@@ -148,19 +181,27 @@ export default class WebGLRenderer extends RenderingManager {
 
 		if(this.lightingEnabled)
 		{
-			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, this.dbuffer);
 			this.clear(Color.BLACK);
 			let shader = RegistryManager.shaders.get(ShaderRegistry.LIGHT_SHADER);
 			//TODO Render for each light
-			//console.log(lights);
 			for(let light of lights)
 			{
 				let options: Record<string, any> = shader.getOptions(light);
 				options.texture = this.gbufferTexture;
-				options.worldSize = this.worldSize;
+				options.worldSize = new Vec2(900, 900);
 				shader.render(this.gl, options);
 			}
 		}
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			
+		let options: Record<string, any> = {
+			textureNum: 31,
+			texture: this.lightingEnabled ? this.dbufferTexture : this.gbufferTexture,
+		}
+		let shader = this.downsamplingEnabled ? RegistryManager.shaders.get(ShaderRegistry.DOWNSAMPLE_SHADER) : RegistryManager.shaders.get(ShaderRegistry.COPY_SHADER);
+		shader.render(this.gl, options);
 
 		uiLayers.forEach(key => {
 			if(!uiLayers.get(key).isHidden())

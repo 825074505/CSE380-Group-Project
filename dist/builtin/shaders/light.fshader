@@ -38,7 +38,8 @@ vec2 closestPointOnLine(vec2 start, vec2 end, vec2 uv)
 
 void main() {
   vec4 color = texture2D(u_texture, v_texCoord);
-  float length = (lineEndPosition == vec2(-1.0, -1.0)) ? distance(gl_FragCoord.xy, vLightPosition) : dfLine(vLightPosition, lineEndPosition, gl_FragCoord.xy);
+  //float length = (lineEndPosition == vec2(-1.0, -1.0)) ? distance(gl_FragCoord.xy, vLightPosition) : dfLine(vLightPosition, lineEndPosition, gl_FragCoord.xy);
+  float length = distance(gl_FragCoord.xy, vLightPosition);
   float distanceFalloff = clamp(1.0 - length / (canvasSize.x * lightScale) * 2.0 + (dst * lightScale) / (canvasSize.x), 0.0, 1.0);
   distanceFalloff *= distanceFalloff;
 
@@ -47,7 +48,7 @@ void main() {
   vec2 rotatedReference = rotate2D(vec2(0.99, 0.0), lightAngle);
   float angle = acos(dot(direction, rotatedReference));
   float angularFalloff = clamp(smoothstep(radians(angleRange.x), radians(angleRange.y), angle), 0.0, 1.0);
-  angularFalloff = (lineEndPosition == vec2(-1.0, -1.0)) ? angularFalloff : 1.0;
+  //angularFalloff = (lineEndPosition == vec2(-1.0, -1.0)) ? angularFalloff : 1.0;
 
   float finalA = angularFalloff * distanceFalloff * intensity;
   vec3 finalColor = color.rgb;

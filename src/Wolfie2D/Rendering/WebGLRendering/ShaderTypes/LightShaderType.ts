@@ -4,7 +4,7 @@ import Graphic from "../../../Nodes/Graphic";
 import Light from "../../../Nodes/Graphics/Light";
 import ResourceManager from "../../../ResourceManager/ResourceManager";
 import QuadShaderType from "./QuadShaderType";
-
+import MathUtils from "../../../Utils/MathUtils";
 /** */
 export default class LightShaderType extends QuadShaderType {
 
@@ -24,39 +24,58 @@ export default class LightShaderType extends QuadShaderType {
 
 		gl.useProgram(program);
 		// Create a quad
-		const quadBuffer = gl.createBuffer();
+		const quadBuffer = this.resourceManager.getBuffer(this.bufferObjectKey);;
 		gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+		
+		/*
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-		-1, -1,
+		-0.75, -0.75,
 		1, -1,
 		-1, 1,
-		1, 1
+		0.75, 0.75
 		]), gl.STATIC_DRAW);
+		*/
+		const halfSize = (options.distance + 0.50 * 900) * options.scale;
+		
+		const maxX = MathUtils.clamp((options.position.x + halfSize - (900 / 2))/450, -1, 1);
+		const minX = MathUtils.clamp((options.position.x - halfSize - (900 / 2))/450, -1, 1);
+		const maxY = MathUtils.clamp((900 - options.position.y + halfSize - (900 / 2))/450, -1, 1);
+		const minY = MathUtils.clamp((900 - options.position.y - halfSize - (900 / 2))/450, -1, 1);
 
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+		minX, minY,
+		maxX, minY,
+		minX, maxY,
+		maxX, maxY,
+		]), gl.STATIC_DRAW);
+		
+		
 		// Set up the attributes and uniforms
 		const positionLocation = gl.getAttribLocation(program, 'a_position');
 		const textureLocation = gl.getUniformLocation(program, 'u_texture');
 
 		// Set up the viewport and clear the default framebuffer
-		gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+		gl.viewport(0, 0, options.worldSize.x, options.worldSize.x);
 		//gl.clearColor(0, 0, 0, 1);
 		//gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 		// Use the shader program, bind the quad, and set the texture
-		gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+		//gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
 		gl.enableVertexAttribArray(positionLocation);
 		gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
-		gl.activeTexture(gl.TEXTURE7);
+		gl.activeTexture(gl.TEXTURE0 + 30);
 
 		
 		gl.bindTexture(gl.TEXTURE_2D, options.texture);
-		gl.uniform1i(textureLocation, 7);
+		gl.uniform1i(textureLocation, 30);
 
 		const lightPositionLocation = gl.getUniformLocation(program, "lightPosition");
-		gl.uniform2f(lightPositionLocation, options.position.x, gl.canvas.height - options.position.y);
+		gl.uniform2f(lightPositionLocation, options.position.x, options.worldSize.x - options.position.y);
 
 		var canvasSizeLoc = gl.getUniformLocation(program, "canvasSize");
-		gl.uniform2f(canvasSizeLoc, gl.canvas.width, gl.canvas.height);
+		gl.uniform2f(canvasSizeLoc, options.worldSize.x, options.worldSize.x);
+
+
 
 		const lightAngleLocation = gl.getUniformLocation(program, "lightAngle");
 		gl.uniform1f(lightAngleLocation, options.angle);
@@ -90,7 +109,7 @@ export default class LightShaderType extends QuadShaderType {
 		if(options.lineEndPosition.x == -1)
 			gl.uniform2f(lineEndPositionLocation, options.lineEndPosition.x, options.lineEndPosition.y);
 		else
-			gl.uniform2f(lineEndPositionLocation, options.lineEndPosition.x, gl.canvas.height - options.lineEndPosition.y);
+			gl.uniform2f(lineEndPositionLocation, options.lineEndPosition.x, options.worldSize.x - options.lineEndPosition.y);
 
 		// Draw the quad
 		gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);

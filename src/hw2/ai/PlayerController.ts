@@ -61,7 +61,7 @@ export default class PlayerController implements AI {
 	private deadSent: boolean;
 
 	private shootTimeOut: boolean = false;
-	private laserEnergyCost: number = 2.5;
+	private laserEnergyCost: number = 2.0;
 
 	private p1: Graphic;
 	private p2: Graphic;
@@ -198,6 +198,11 @@ export default class PlayerController implements AI {
 			this.renderingManager.lightingEnabled = !this.renderingManager.lightingEnabled;
 		}
 
+		if(Input.isJustPressed(HW2Controls.DISABLE_DOWNSAMPLING))
+		{
+			this.renderingManager.downsamplingEnabled = !this.renderingManager.downsamplingEnabled;
+		}
+
 		// Get the player's input direction 
 		let forwardAxis = (Input.isPressed(HW2Controls.MOVE_UP) ? 1 : 0) + (Input.isPressed(HW2Controls.MOVE_DOWN) ? -1 : 0);
 		let horizontalAxis = (Input.isPressed(HW2Controls.MOVE_LEFT) ? 1 : 0) + (Input.isPressed(HW2Controls.MOVE_RIGHT) ? -1 : 0);
@@ -325,17 +330,18 @@ export default class PlayerController implements AI {
 
 		//this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
 
+
 		if(this.narrowLight.visible)
 		{
-			this.currentAir = MathUtils.clamp(this.currentAir - 0.05, this.minAir, this.maxAir);
+			this.currentAir = MathUtils.clamp(this.currentAir - 0.02 * (deltaT * 60), this.minAir, this.maxAir);
 			this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
 		}else if(this.wideLight.visible)
 		{
-			this.currentAir = MathUtils.clamp(this.currentAir - 0.01, this.minAir, this.maxAir);
+			this.currentAir = MathUtils.clamp(this.currentAir - 0.005, this.minAir, this.maxAir);
 			this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
 		}else
 		{
-			this.currentAir = MathUtils.clamp(this.currentAir + 0.01, this.minAir, this.maxAir);
+			this.currentAir = MathUtils.clamp(this.currentAir + 0.02, this.minAir, this.maxAir);
 			this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
 		}
 

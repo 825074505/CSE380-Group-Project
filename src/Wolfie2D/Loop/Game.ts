@@ -158,6 +158,8 @@ export default class Game {
             this.resourceManager.keepShader(ShaderRegistry.RECT_SHADER);
             this.resourceManager.keepShader(ShaderRegistry.SPRITE_SHADER);
             this.resourceManager.keepShader(ShaderRegistry.LIGHT_SHADER);
+            this.resourceManager.keepShader(ShaderRegistry.COPY_SHADER);
+            this.resourceManager.keepShader(ShaderRegistry.DOWNSAMPLE_SHADER);
             this.sceneManager.changeToScene(InitialScene, {}, options);
             this.loop.start();
         });

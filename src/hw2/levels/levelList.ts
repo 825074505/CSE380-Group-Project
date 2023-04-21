@@ -14,31 +14,31 @@ export const levels: level[] = [
 	//level 1
 	{
 		objs: level1Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/WavyBlueLines.png",
+		BACKGROUND_PATH: "hw2_assets/sprites/blacknoise.png",
 	},
 	//level 2
 	{
 		objs: level2Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/WavyBlueLines.png",
+		BACKGROUND_PATH: "hw2_assets/sprites/blacknoise.png",
 	},
 	//level 3
 	{
 		objs: level3Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/WavyBlueLines.png",
+		BACKGROUND_PATH: "hw2_assets/sprites/blacknoise.png",
 	},
 	//level 4
 	{
 		objs: level4Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/WavyBlueLines.png",
+		BACKGROUND_PATH: "hw2_assets/sprites/blacknoise.png",
 	},
 	//level 5
 	{
 		objs: level5Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/WavyBlueLines.png",
+		BACKGROUND_PATH: "hw2_assets/sprites/blacknoise.png",
 	},
 	//level 6
 	{
 		objs: level6Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/WavyBlueLines.png",
+		BACKGROUND_PATH: "hw2_assets/sprites/blacknoise.png",
 	},
 ]

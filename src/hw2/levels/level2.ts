@@ -8,6 +8,30 @@ export const level2Objs: Array<monsterInfo> = [
 	spawnY: 600,
 	movementPattern: movementPatterns.moveLeft,
 	},
+
+	{
+	spawnTime: 4.0,
+	spawnY: 600,
+	objs: [
+		{
+		spawnTime: 0.0,
+		spriteKey: "MINE",
+		spawnY: 0,
+		movementPattern: movementPatterns.moveLeft,
+		},
+		{
+		spawnTime: 1.0,
+		spriteKey: "MINE",
+		spawnY: 0,
+		movementPattern: movementPatterns.moveLeft,
+		},
+		{
+		spawnTime: 2.0,
+		spriteKey: "MINE",
+		spawnY: 0,
+		movementPattern: movementPatterns.moveLeft,
+		}]
+	},
 	{
 	spawnTime: 0.0,
 	spriteKey: "ELECTRICITY",

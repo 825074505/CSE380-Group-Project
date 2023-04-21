@@ -21,7 +21,11 @@ export default class SpriteShaderType extends QuadShaderType {
 	render(gl: WebGLRenderingContext, options: Record<string, any>): void {
 		const program = this.resourceManager.getShaderProgram(this.programKey);
 		const buffer = this.resourceManager.getBuffer(this.bufferObjectKey);
-		const texture = this.resourceManager.getTexture(options.imageKey);
+		let texture;
+		if(options.imageKey != null)
+			texture = this.resourceManager.getTexture(options.imageKey);
+		else
+			texture = options.extraTexture;
 
 		gl.useProgram(program);
 
@@ -50,9 +54,18 @@ export default class SpriteShaderType extends QuadShaderType {
 		// The size of the rendering space will be a square with this maximum dimension
 		let size = new Vec2(maxDimension, maxDimension).scale(2/options.worldSize.x, 2/options.worldSize.y);
 
+		let newPositionX = options.position.x;
+		let newPositionY = options.position.y;
+		/*
+		if(options.alignToGrid)
+		{
+			newPositionX = Math.floor(options.position.x / 6) * 6;
+			newPositionY = Math.floor(options.position.y / 6) * 6;
+		}
+		*/
 		// Center our translations around (0, 0)
-		const translateX = (options.position.x - options.origin.x - options.worldSize.x/2)/maxDimension;
-		const translateY = -(options.position.y - options.origin.y - options.worldSize.y/2)/maxDimension;
+		const translateX = (newPositionX - options.origin.x - options.worldSize.x/2)/maxDimension;
+		const translateY = -(newPositionY - options.origin.y - options.worldSize.y/2)/maxDimension;
 
 		// Create our transformation matrix
 		this.translation.translate(new Float32Array([translateX, translateY]));
@@ -133,6 +146,7 @@ export default class SpriteShaderType extends QuadShaderType {
 			size: sprite.size,
 			scale: sprite.scale.toArray(),
 			imageKey: sprite.imageId,
+			alignToGrid: sprite.alignToGrid,
 			texShift,
 			texScale
 		}

@@ -15,6 +15,8 @@ export default class Sprite extends CanvasNode {
     /** Whether or not the y-axis should be inverted on render */
     invertY: boolean;
 
+    alignToGrid: boolean;
+
     constructor(imageId: string){
         super();
         this.imageId = imageId;
@@ -23,6 +25,7 @@ export default class Sprite extends CanvasNode {
         this.imageOffset = Vec2.ZERO;
         this.invertX = false;
         this.invertY = false;
+        this.alignToGrid = false;
         this.alpha = 1.0;
     }
 

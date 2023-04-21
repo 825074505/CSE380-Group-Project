@@ -5,6 +5,8 @@ import PointShaderType from "../../Rendering/WebGLRendering/ShaderTypes/PointSha
 import RectShaderType from "../../Rendering/WebGLRendering/ShaderTypes/RectShaderType";
 import LightShaderType from "../../Rendering/WebGLRendering/ShaderTypes/LightShaderType";
 import SpriteShaderType from "../../Rendering/WebGLRendering/ShaderTypes/SpriteShaderType";
+
+import CopyShaderType from "../../Rendering/WebGLRendering/ShaderTypes/CopyShaderType";
 import ResourceManager from "../../ResourceManager/ResourceManager";
 import Registry from "./Registry";
 
@@ -19,6 +21,8 @@ export default class ShaderRegistry extends Registry<ShaderType> {
 	public static SPRITE_SHADER = "sprite";
 	public static LABEL_SHADER = "label";
 	public static LIGHT_SHADER = "light";
+	public static COPY_SHADER = "copy";
+	public static DOWNSAMPLE_SHADER = "downsample";
 
 	private registryItems: Array<ShaderRegistryItem> = new Array();
 
@@ -42,6 +46,9 @@ export default class ShaderRegistry extends Registry<ShaderType> {
 		this.registerAndPreloadItem(ShaderRegistry.LABEL_SHADER, LabelShaderType, "builtin/shaders/label.vshader", "builtin/shaders/label.fshader");
 
 		this.registerAndPreloadItem(ShaderRegistry.LIGHT_SHADER, LightShaderType, "builtin/shaders/light.vshader", "builtin/shaders/light.fshader");
+
+		this.registerAndPreloadItem(ShaderRegistry.COPY_SHADER, CopyShaderType, "builtin/shaders/copy.vshader", "builtin/shaders/copy.fshader");
+		this.registerAndPreloadItem(ShaderRegistry.DOWNSAMPLE_SHADER, CopyShaderType, "builtin/shaders/copy.vshader", "builtin/shaders/downsample.fshader");
 
 		// Queue a load for any preloaded items
 		for(let item of this.registryItems){

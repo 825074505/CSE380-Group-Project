@@ -18,6 +18,7 @@ export default abstract class RenderingManager {
     /** The ResourceManager */
     protected resourceManager: ResourceManager;
     lightingEnabled: boolean;
+    downsamplingEnabled: boolean;
     /** The scene currently being rendered */
     protected scene: Scene;
 

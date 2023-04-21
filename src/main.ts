@@ -23,6 +23,7 @@ import LaserShaderType from "./hw2/shaders/LaserShaderType";
             { name: HW2Controls.NARROW_HEADLIGHT, keys: ["k"] },
             { name: HW2Controls.SHOOT, keys: ["l"] },
             { name: HW2Controls.DISABLE_LIGHTING, keys: ["b"] },
+            { name: HW2Controls.DISABLE_DOWNSAMPLING, keys: ["v"] },
         ],
         useWebGL: true,                        // Tell the game we want to use webgl
         showDebug: false                       // Whether to show debug messages. You can change this to true if you want

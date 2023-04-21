@@ -78,7 +78,7 @@ export default class CanvasNodeFactory {
 	 * @param layerName The layer on which to add the sprite
 	 * @returns A new Sprite
 	 */
-	addSprite = (key: string, layerName: string): Sprite => {
+	addSprite = (key: string, layerName: string, alignToGrid: boolean = false): Sprite => {
 		let layer = this.scene.getLayer(layerName);
 
 		let instance = new Sprite(key);
@@ -86,6 +86,7 @@ export default class CanvasNodeFactory {
 		// Add instance to scene
 		instance.setScene(this.scene);
 		instance.id = this.scene.generateId();
+		instance.alignToGrid = alignToGrid;
 
 		if(!(this.scene.isParallaxLayer(layerName) || this.scene.isUILayer(layerName))){
 			this.scene.getSceneGraph().addNode(instance);
@@ -103,7 +104,7 @@ export default class CanvasNodeFactory {
 	 * @param layerName The layer on which to add the sprite
 	 * @returns A new AnimatedSprite
 	 */
-	addAnimatedSprite = (key: string, layerName: string): AnimatedSprite => {
+	addAnimatedSprite = (key: string, layerName: string, alignToGrid: boolean = false): AnimatedSprite => {
 		let layer = this.scene.getLayer(layerName);
 		let spritesheet = this.resourceManager.getSpritesheet(key);
 		let instance = new AnimatedSprite(spritesheet);
@@ -111,6 +112,7 @@ export default class CanvasNodeFactory {
 		// Add instance fo scene
 		instance.setScene(this.scene);
 		instance.id = this.scene.generateId();
+		instance.alignToGrid = alignToGrid;
 		
 		if(!(this.scene.isParallaxLayer(layerName) || this.scene.isUILayer(layerName))){
 			this.scene.getSceneGraph().addNode(instance);
