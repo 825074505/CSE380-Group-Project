@@ -1,3 +1,4 @@
+import {level0Objs} from "./level0";
 import {level1Objs} from "./level1";
 import {level2Objs} from "./level2";
 import {level3Objs} from "./level3";
@@ -41,4 +42,9 @@ export const levels: level[] = [
 		objs: level6Objs,
 		BACKGROUND_PATH: "hw2_assets/sprites/blacknoise.png",
 	},
+	//Tutorial level
+	{
+		objs: level0Objs,
+		BACKGROUND_PATH: "hw2_assets/sprites/blacknoise.png",
+	}
 ]

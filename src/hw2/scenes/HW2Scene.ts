@@ -92,6 +92,7 @@ export default class HW2Scene extends Scene {
 	private paused: boolean;
 
 	private currentLevel: number;
+	private tutorial : boolean;
 
 	
 
@@ -167,6 +168,7 @@ export default class HW2Scene extends Scene {
 	public override initScene(options: Record<string, any>): void {
 		this.paused = false;
 		this.currentLevel = options.level;
+		this.tutorial = this.currentLevel === 0;
 		console.log("init, ", this.currentLevel);
 		console.log("SEED:" + options.seed);
 		this.seed = options.seed === undefined ? RandUtils.randomSeed() : options.seed;
@@ -182,7 +184,12 @@ export default class HW2Scene extends Scene {
 		// Load in the submarine
 		this.load.spritesheet(HW2Scene.PLAYER_KEY, HW2Scene.PLAYER_PATH);
 		// Load in the background image
-		this.load.image(HW2Scene.BACKGROUND_KEY, levels[this.currentLevel - 1].BACKGROUND_PATH);
+		if(this.tutorial){
+			this.load.image(HW2Scene.BACKGROUND_KEY, levels[6].BACKGROUND_PATH);
+		}
+		else{
+			this.load.image(HW2Scene.BACKGROUND_KEY, levels[this.currentLevel - 1].BACKGROUND_PATH);
+		}
 		// Load in the naval mine
 		this.load.spritesheet(HW2Scene.MINE_KEY, HW2Scene.MINE_PATH);
 
@@ -217,7 +224,12 @@ export default class HW2Scene extends Scene {
 		this.addLayer(HW2Layers.BACKGROUND, 0);
 		this.initBackground();
 
-		this.levelObjs = levels[this.currentLevel - 1].objs;
+		if(this.tutorial){
+			this.levelObjs = levels[6].objs;
+		}
+		else{
+			this.levelObjs = levels[this.currentLevel - 1].objs;
+		}
 		console.log(levels);
 
 		// Create a layer to serve as our main game - Feel free to use this for your own assets

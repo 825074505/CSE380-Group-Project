@@ -31,7 +31,8 @@ const MainMenuEvent = {
     LEVEL_SELECT: "LEVEL_SELECT",
     LEVEL_PRESSED: "LEVEL_PRESSED",
     BEST_SCORES: "BEST_SCORES",
-    EXIT: "EXIT"
+    EXIT: "EXIT",
+    TUTORIAL_PRESSED: "TUTORIAL_PRESSED"
 
 } as const;
 
@@ -83,6 +84,7 @@ export default class MainMenu extends Scene {
         this.bestScores = this.addUILayer(MainMenuLayer.BEST_SCORES);
         this.bestScores.setHidden(true);
 
+        
 
         const start = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.SPLASH_SCREEN, {position: new Vec2(center.x, center.y), text: "Enter Game"});
         start.size.set(200, 50);
@@ -91,6 +93,13 @@ export default class MainMenu extends Scene {
         start.backgroundColor = Color.TRANSPARENT;
         start.onClickEventId = MainMenuEvent.START_GAME;
 
+        // Add tutorial button
+        const tutorial = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y -200), text: "Tutorial"});
+        tutorial.size.set(200, 50);
+        tutorial.borderWidth = 2;
+        tutorial.borderColor = Color.WHITE;
+        tutorial.backgroundColor = Color.TRANSPARENT;
+        tutorial.onClickEventId = MainMenuEvent.TUTORIAL_PRESSED;
         
         // Add play button, and give it an event to emit on press
         const play = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y - 100), text: "Arcade Mode"});
@@ -133,6 +142,8 @@ export default class MainMenu extends Scene {
         bestScores.backgroundColor = Color.TRANSPARENT;
         bestScores.onClickEventId = MainMenuEvent.BEST_SCORES;
 
+        // Add exit button
+
         const exit = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y + 400), text: "Exit"});
         exit.size.set(200, 50);
         exit.borderWidth = 2;
@@ -140,15 +151,8 @@ export default class MainMenu extends Scene {
         exit.backgroundColor = Color.TRANSPARENT;
         exit.onClickEventId = MainMenuEvent.EXIT;
 
-        // Add exit button
-        /*
-        const exit = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y + 400), text: "Exit"});
-        exit.size.set(200, 50);
-        exit.borderWidth = 2;
-        exit.borderColor = Color.WHITE;
-        exit.backgroundColor = Color.TRANSPARENT;
-        exit.onClickEventId = MainMenuEvent.EXIT;
-        */
+        
+        
 
         const splashHeader = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.SPLASH_SCREEN, {position: new Vec2(center.x, center.y - 200), text: "Welcome To Echoes of the Subterra"});
         splashHeader.textColor = Color.GREEN;
@@ -302,6 +306,7 @@ export default class MainMenu extends Scene {
         this.receiver.subscribe(MainMenuEvent.EXIT);
 
         this.receiver.subscribe(MainMenuEvent.LEVEL_PRESSED);
+        this.receiver.subscribe(MainMenuEvent.TUTORIAL_PRESSED);
     }
 
     public override updateScene(){
@@ -373,6 +378,11 @@ export default class MainMenu extends Scene {
                     this.seed = RandUtils.randomSeed();
                     this.sceneManager.changeToScene(Homework1_Scene, {level: this.current_Level, seed: this.seed, recording: true});
                 }
+                break;
+
+            }
+            case MainMenuEvent.TUTORIAL_PRESSED: {
+                this.sceneManager.changeToScene(Homework1_Scene, {level: 0, seed: this.seed, recording: true});
                 break;
 
             }
