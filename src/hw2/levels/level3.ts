@@ -7,5 +7,13 @@ export const level3Objs: Array<monsterInfo> = [
 	spriteKey: "MINE",
 	spawnY: 250,
 	movementPattern: movementPatterns.moveLeft,
-	}
+	},
+	{
+	spawnTime: 0.0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	weakToLight: true,
+	movementPattern: movementPatterns.moveLeft,
+	stoppingX: 750,
+	},
 ]

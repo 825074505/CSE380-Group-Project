@@ -699,6 +699,7 @@ export default class HW2Scene extends Scene {
 	protected expandLevelObjs(): void
 	{
 		let newObjList = new Array(this.getRecLevelObjLength(this.levelObjs));
+		this.logArray(newObjList);
 		this.recAddObjs(newObjList, this.levelObjs);
 		this.levelObjs = newObjList.sort((a, b) => a.spawnTime - b.spawnTime);
 	}
@@ -716,20 +717,35 @@ export default class HW2Scene extends Scene {
 
 	protected recAddObjs(newMonsterList : Array<monsterInfo>, currentMonsterList : Array<monsterInfo>, index: number = 0, spawnTimeStart: number = 0, spawnYOffset: number = 0): number
 	{
+		
 		for(const mon of currentMonsterList)
 		{
 			if(mon.objs == null)
 			{
-				mon.spawnTime += spawnTimeStart;
-				mon.spawnY += spawnYOffset;
-				newMonsterList[index] = mon;
+				let newmon = JSON.parse(JSON.stringify(mon));
+				newmon.spawnTime += spawnTimeStart;
+				newmon.spawnY += spawnYOffset;
+				newMonsterList[index] = newmon;
 				index++;
 			}else
 			{
+				//console.log(newMonsterList);
+				this.logArray(newMonsterList);
 				index = this.recAddObjs(newMonsterList, mon.objs, index, mon.spawnTime, mon.spawnY);
+				this.logArray(newMonsterList);
 			}
 		}
 		return index;
+	}
+
+
+	protected logArray(monsterList : Array<monsterInfo>)
+	{
+		console.log("Array Start");
+		for(const x of monsterList)
+		{
+			console.log(x);
+		}
 	}
 
 	/** Methods for spawing/despawning objects */

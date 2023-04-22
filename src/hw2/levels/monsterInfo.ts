@@ -16,8 +16,6 @@ export type monsterInfo = {
 	offset?: number;
 
 
-	splitOnDeath?: boolean; //Should the enemy split into projectiles on death?
-
 	phaseTime?: number; //if monsterType is phasing
 
 	monsterType?: number;
@@ -31,4 +29,5 @@ export type monsterInfo = {
 	projectileLaserLength?: number; //seconds TODO change to length in pixels
 	projectileInvincible?: boolean; //default false
 	projectileSplitX?: number;  //at what x should the projectile split into other projectiles (if it does)
+	splitOnDeath?: boolean; //Should the enemy split into projectiles on death?
 }
