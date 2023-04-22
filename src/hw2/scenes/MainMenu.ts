@@ -9,6 +9,7 @@ import GameEvent from "../../Wolfie2D/Events/GameEvent";
 
 import RandUtils from "../../Wolfie2D/Utils/RandUtils";
 import { GameEventType } from "../../Wolfie2D/Events/GameEventType";
+import Input from "../../Wolfie2D/Input/Input";
 
 // Layers in the main menu
 const MainMenuLayer = {
@@ -305,6 +306,11 @@ export default class MainMenu extends Scene {
     }
 
     public override updateScene(){
+        if(Input.isKeyJustPressed("1"))
+            this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":1});
+        else if (Input.isKeyJustPressed("2"))
+            this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":2});
+
         while(this.receiver.hasNextEvent()){
             this.handleEvent(this.receiver.getNextEvent());
         }
