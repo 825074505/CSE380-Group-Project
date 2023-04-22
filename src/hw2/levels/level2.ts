@@ -1,18 +1,9 @@
 import {monsterInfo} from "./monsterInfo";
 import MineBehavior2, {movementPatterns, monsterTypes} from "../ai/MineBehavior2";
 import ProjectileBehavior, {projectileBehaviors} from "../ai/ProjectileBehavior";
-export const level2Objs: Array<monsterInfo> = [
-	{
-	spawnTime: 0.0,
-	spriteKey: "MINE",
-	spawnY: 600,
-	movementPattern: movementPatterns.moveLeft,
-	},
 
-	{
-	spawnTime: 4.0,
-	spawnY: 600,
-	objs: [
+
+const threeGuysInARow: Array<monsterInfo> = [
 		{
 		spawnTime: 0.0,
 		spriteKey: "MINE",
@@ -31,6 +22,19 @@ export const level2Objs: Array<monsterInfo> = [
 		spawnY: 0,
 		movementPattern: movementPatterns.moveLeft,
 		}]
+
+
+export const level2Objs: Array<monsterInfo> = [
+
+	{
+	spawnTime: 0.0,
+	spawnY: 300,
+	objs: threeGuysInARow,
+	},
+	{
+	spawnTime: 4.0,
+	spawnY: 600,
+	objs: threeGuysInARow,
 	},
 	{
 	spawnTime: 0.0,
@@ -39,12 +43,7 @@ export const level2Objs: Array<monsterInfo> = [
 	movementPattern: movementPatterns.moveLeft,
 	monsterType: monsterTypes.electricField,
 	},
-	{
-	spawnTime: 1.0,
-	spriteKey: "MINE",
-	spawnY: 600,
-	movementPattern: movementPatterns.moveLeft,
-	},
+
 	{
 	spawnTime: 1.0,
 	spriteKey: "MINE",
@@ -58,12 +57,6 @@ export const level2Objs: Array<monsterInfo> = [
 	projectileFrequency: 3,
 	projectileLaserLength: 1,
 	projectileSplitX: 450,
-	},
-	{
-	spawnTime: 2.0,
-	spriteKey: "MINE",
-	spawnY: 600,
-	movementPattern: movementPatterns.moveLeft,
 	},
 	{
 	spawnTime: 2.0,
