@@ -5,9 +5,12 @@ export type monsterInfo = {
 							   //Useful for making preset patterns to reuse.
 
 	spriteKey?: string; //REQUIRED IF NOT OBJECT LIST
-	spriteScale?: Vec2;
-	hitboxScale?: Vec2;
+
+	spriteScale?: number;
+	hitboxScaleX?: number;
+	hitboxScaleY?: number;
 	spawnY: number;
+	
 	stoppingX?: number; //x position to stop moving left at
 
 	movementPattern?: number; //Info about movement, conisdered making this its own type but it makes it more verbose

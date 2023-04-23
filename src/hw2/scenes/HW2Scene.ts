@@ -43,6 +43,8 @@ import ProjectileBehavior, {projectileBehaviors} from "../ai/ProjectileBehavior"
 import {level, levels} from "../levels/levelList";
 import {monsterInfo} from "../levels/monsterInfo";
 
+import AudioManager, { AudioChannelType } from "../../Wolfie2D/Sound/AudioManager";
+
 /**
  * A type for layers in the HW3Scene. It seems natural to want to use some kind of enum type to
  * represent the different layers in the HW3Scene, however, it is generally bad practice to use
@@ -757,7 +759,7 @@ export default class HW2Scene extends Scene {
 			this.mines[i].addAI(MineBehavior2, {movementPattern: 0});
 
 			if(this.levelObjs[i].spriteScale != null)
-				this.mines[i].scale.set(this.levelObjs[i].spriteScale.x, this.levelObjs[i].spriteScale.y);
+				this.mines[i].scale.set(this.levelObjs[i].spriteScale, this.levelObjs[i].spriteScale);
 			else
 				this.mines[i].scale.set(6.0, 6.0);
 
@@ -766,7 +768,7 @@ export default class HW2Scene extends Scene {
 				this.mines[i].scale.set(0.3, 0.3);
 
 			// Give them a collision shape
-			let collider = this.levelObjs[i].hitboxScale == null ? new AABB(Vec2.ZERO, this.mines[i].sizeWithZoom) : new AABB(Vec2.ZERO, this.mines[i].sizeWithZoom.scale(this.levelObjs[i].hitboxScale.x, this.levelObjs[i].hitboxScale.y));
+			let collider = this.levelObjs[i].hitboxScaleX == null ? new AABB(Vec2.ZERO, this.mines[i].sizeWithZoom) : new AABB(Vec2.ZERO, this.mines[i].sizeWithZoom.scale(this.levelObjs[i].hitboxScaleX, this.levelObjs[i].hitboxScaleY));
 			this.mines[i].setCollisionShape(collider);
 		}
 
