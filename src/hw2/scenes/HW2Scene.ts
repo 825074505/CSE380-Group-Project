@@ -106,6 +106,7 @@ export default class HW2Scene extends Scene {
 	
 	private tutorialText : Label;
 	private tutorialOverTimer : Timer;
+	private tutorialSectionTimer : Timer;
 	
     // A flag to indicate whether or not this scene is being recorded
     private recording: boolean;
@@ -240,6 +241,7 @@ export default class HW2Scene extends Scene {
 		}
 		else{
 			this.levelObjs = levels[this.currentLevel - 1].objs;
+			this.tutorialText.setText('')
 		}
 
 		// Create a layer to serve as our main game - Feel free to use this for your own assets
@@ -301,6 +303,16 @@ export default class HW2Scene extends Scene {
 			}
 			else if(this.current_tutorialSection ===2 && this.openedLight){
 				//spawn obsatacles and check if player steered through them successfully
+				if(this.tutorialSectionTimer.isStopped()){
+					if(this.completedSteer){
+						this.current_tutorialSection +=1;
+					}
+					this.progressTutorial(this.current_tutorialSection-2)
+					this.progressTutorial(this.current_tutorialSection-1)
+					this.tutorialSectionTimer.start()
+					this.completedSteer = true;
+				}
+
 
 			}
 			else if(this.current_tutorialSection===3 && this.completedSteer){
@@ -599,17 +611,6 @@ export default class HW2Scene extends Scene {
 		this.tutorialText = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 150), text: "Press j to turn on and off headlight"});
 		this.tutorialText.textColor = Color.WHITE;
 		/*
-		const lightText = "Press j to turn on and off headlight";
-        this.light = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 150), text: lightText});
-
-		const lightText2 = " <-- Using the light needs energy, energy slowly restores while light closed"
-		this.light2 = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 150), text: lightText2});
-
-		const steerText = "Press A and D to Steer the plane, try to steer through the obstacles"
-		this.steer = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 150), text: steerText});
-
-		const electricFieldText = "Electric fields restore your battery quickly"
-		this.electric = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 150), text: electricFieldText});
 
 		const shootText = "Aim at the enemy, press L to shoot!"
 		this.shoot = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 150), text: shootText});
@@ -673,6 +674,7 @@ export default class HW2Scene extends Scene {
 
 		this.gameOverTimer = new Timer(3000);
 		this.tutorialOverTimer = new Timer(3000);
+		this.tutorialSectionTimer = new Timer(10000);
 
 	}
 	/**
@@ -963,6 +965,41 @@ export default class HW2Scene extends Scene {
 			// Start the mine spawn timer - spawn a mine every half a second I think
 			//this.mineSpawnTimer.start(100);
 		}
+
+	}
+
+	protected progressTutorial(sectionNum): void {
+		let mine: Sprite = this.mines[sectionNum];
+
+		mine.visible = true;
+		// Extract the size of the viewport
+		let paddedViewportSize = this.viewport.getHalfSize().scaled(2).add(this.worldPadding);
+		let viewportSize = this.viewport.getHalfSize().scaled(2);
+
+		//mine.position.copy(RandUtils.randVec(viewportSize.x, paddedViewportSize.x, paddedViewportSize.y - viewportSize.y, viewportSize.y));
+		mine.position = new Vec2((viewportSize.x + paddedViewportSize.x)/2, this.levelObjs[sectionNum].spawnY);
+		//mine.position = new Vec2(450, 450);
+		const mineInfo = this.levelObjs[sectionNum];
+
+		let electricLight = null;
+		if(mineInfo.monsterType == monsterTypes.electricField)
+		{
+			electricLight = this.add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: new Vec2(0, 0), 
+																				angle : 0,
+																				intensity : 0.5,
+																				distance : 10,
+																				tintColor : Color.BLUE,
+																				angleRange : new Vec2(360, 360),
+																				opacity : 0.5,
+																				lightScale : 1.0});
+		}
+
+		mine.setAIActive(true, {movementPattern: mineInfo.movementPattern, monsterType: mineInfo.monsterType, 
+								weakToLight: mineInfo.weakToLight, electricLight: electricLight, stoppingX: mineInfo.stoppingX, splitOnDeath: mineInfo.splitOnDeath,
+								player: this.player, narrowLight: this.narrowLight, wideLight: this.wideLight,
+								projectileBehavior: mineInfo.projectileBehavior, projectileSpeed: mineInfo.projectileSpeed, projectileFrequency: mineInfo.projectileFrequency, projectileLaserLength: mineInfo.projectileLaserLength, projectileSplitX: mineInfo.projectileSplitX, projectileInvincible: mineInfo.projectileInvincible,
+								});
+
 
 	}
     /**
@@ -1293,6 +1330,9 @@ export default class HW2Scene extends Scene {
 			let mine = this.mines[mineInd];
 			for(let collider of this.playerHitboxes){
 				if (mine.visible && collider.boundary.overlaps(mine.collisionShape)) {
+					if(this.tutorial){
+						this.completedSteer = false;
+					}
 					this.emitter.fireEvent(HW2Events.PLAYER_MINE_COLLISION, {id: mine.id, monsterType: this.levelObjs[mineInd].monsterType});
 					collisions += 1;
 					break;
@@ -1667,11 +1707,11 @@ export default class HW2Scene extends Scene {
 			return
 		}
 		if(this.completedSteer && this.current_tutorialSection===3){
-
+			this.tutorialText.setText("Electric fields restore your battery quickly.")
 			return
 		}
 		if(this.usedElectricField && this.current_tutorialSection===4){
-
+			
 			return
 		}
 		if(this.shotEnemy && this.current_tutorialSection===5){

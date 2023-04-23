@@ -4,14 +4,29 @@ import ProjectileBehavior, {projectileBehaviors} from "../ai/ProjectileBehavior"
 import Vec2 from "../../Wolfie2D/DataTypes/Vec2";
 export const level0Objs: Array<monsterInfo> = [
 	{
-	spawnTime: 0.0,
-	spriteKey: "STALAGMITE",
-	spriteScale: new Vec2(1.0, 1.0),
-	hitboxScale: new Vec2(0.1, 1.0),
-	spawnY: 644,
-	movementPattern: movementPatterns.moveLeft,
-	monsterType: monsterTypes.stalagmite,
+		spawnTime: 0.0,
+		spriteKey: "STALAGMITE",
+	
+		spriteScale: 1.0,
+		hitboxScaleX: 0.1,
+		hitboxScaleY: 1.0,
+	
+		spawnY: 644,
+		movementPattern: movementPatterns.moveLeft,
+		monsterType: monsterTypes.stalagmite,
 	},
+	{
+		spawnTime: 0.0,
+		spriteKey: "STALAGMITE",
+	
+		spriteScale: 1.0,
+		hitboxScaleX: 0.1,
+		hitboxScaleY: 1.0,
+	
+		spawnY: 0,
+		movementPattern: movementPatterns.moveLeft,
+		monsterType: monsterTypes.stalagmite,
+		},
 	{
 	spawnTime: 4.0,
 	spriteKey: "ELECTRICITY",
