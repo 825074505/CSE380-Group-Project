@@ -94,6 +94,7 @@ export default class HW2Scene extends Scene {
 	private paused: boolean;
 
 	private currentLevel: number;
+	
 	//Tutorial level stuff
 	private tutorial : boolean;
 	private current_tutorialSection : number = 0;
@@ -105,6 +106,7 @@ export default class HW2Scene extends Scene {
 	private narrowedLight : boolean = false;
 	
 	private tutorialText : Label;
+	private tutorialText2 : Label;
 	private tutorialOverTimer : Timer;
 	private tutorialSectionTimer : Timer;
 	
@@ -242,6 +244,7 @@ export default class HW2Scene extends Scene {
 		else{
 			this.levelObjs = levels[this.currentLevel - 1].objs;
 			this.tutorialText.setText('')
+			this.tutorialText.setText('')
 		}
 
 		// Create a layer to serve as our main game - Feel free to use this for your own assets
@@ -306,18 +309,30 @@ export default class HW2Scene extends Scene {
 				if(this.tutorialSectionTimer.isStopped()){
 					if(this.completedSteer){
 						this.current_tutorialSection +=1;
+						
 					}
-					this.progressTutorial(this.current_tutorialSection-2)
-					this.progressTutorial(this.current_tutorialSection-1)
-					this.tutorialSectionTimer.start()
-					this.completedSteer = true;
+					else{
+						this.progressTutorial(this.current_tutorialSection-2)
+						this.progressTutorial(this.current_tutorialSection-1)
+						this.tutorialSectionTimer.start()
+						this.completedSteer = true;
+					}
 				}
 
 
 			}
 			else if(this.current_tutorialSection===3 && this.completedSteer){
 				//spawn an electric field and check if a player has used it
+				if(this.tutorialSectionTimer.isStopped()){
+					if(this.usedElectricField){
+						this.current_tutorialSection += 1;
+					}
+					else{
+						this.progressTutorial(this.current_tutorialSection-1)
+						this.tutorialSectionTimer.start()
+					}
 
+				}
 			}
 			else if(this.current_tutorialSection===4 && this.usedElectricField){
 				//spawn a normal enemy and check if a player has shot it
@@ -610,10 +625,9 @@ export default class HW2Scene extends Scene {
 
 		this.tutorialText = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 150), text: "Press j to turn on and off headlight"});
 		this.tutorialText.textColor = Color.WHITE;
+		this.tutorialText2 = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 200), text: ""});
+		this.tutorialText2.textColor = Color.WHITE;
 		/*
-
-		const shootText = "Aim at the enemy, press L to shoot!"
-		this.shoot = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 150), text: shootText});
 
 		const narrowText = "Hold K to narrow the headlights, it can be used to aim more accurately and weaken certain enemies."
 		this.narrow = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 150), text: narrowText});
@@ -1330,8 +1344,11 @@ export default class HW2Scene extends Scene {
 			let mine = this.mines[mineInd];
 			for(let collider of this.playerHitboxes){
 				if (mine.visible && collider.boundary.overlaps(mine.collisionShape)) {
-					if(this.tutorial){
+					if(this.tutorial && this.levelObjs[mineInd].monsterType === monsterTypes.stalagmite){
 						this.completedSteer = false;
+					}
+					else if(this.tutorial && this.levelObjs[mineInd].monsterType === monsterTypes.electricField){
+						this.usedElectricField = true;
 					}
 					this.emitter.fireEvent(HW2Events.PLAYER_MINE_COLLISION, {id: mine.id, monsterType: this.levelObjs[mineInd].monsterType});
 					collisions += 1;
@@ -1711,11 +1728,12 @@ export default class HW2Scene extends Scene {
 			return
 		}
 		if(this.usedElectricField && this.current_tutorialSection===4){
-			
+			this.tutorialText.setText("Aim at the enemy, press L to shoot!")	
 			return
 		}
 		if(this.shotEnemy && this.current_tutorialSection===5){
-
+			this.tutorialText.setText("Hold K to narrow the headlights.")
+			this.tutorialText2.setText("it can be used to aim more accurately and weaken certain enemies.")
 			return
 		}
 		if(this.narrowedLight && this.current_tutorialSection===6){
