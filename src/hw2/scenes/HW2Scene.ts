@@ -92,10 +92,19 @@ export default class HW2Scene extends Scene {
 	private paused: boolean;
 
 	private currentLevel: number;
+	//Tutorial level stuff
 	private tutorial : boolean;
-
+	private current_tutorialSection : number = 0;
+	private openedLight : boolean = false;
+	private closedLight : boolean = false;
+	private completedSteer : boolean = false;
+	private usedElectricField : boolean = false;
+	private shotEnemy : boolean = false;
+	private narrowedLight : boolean = false;
 	
-
+	private tutorialText : Label;
+	private tutorialOverTimer : Timer;
+	
     // A flag to indicate whether or not this scene is being recorded
     private recording: boolean;
     // The seed that should be set before the game starts
@@ -230,7 +239,6 @@ export default class HW2Scene extends Scene {
 		else{
 			this.levelObjs = levels[this.currentLevel - 1].objs;
 		}
-		console.log(levels);
 
 		// Create a layer to serve as our main game - Feel free to use this for your own assets
 		// It is given a depth of 5 to be above our background
@@ -276,6 +284,42 @@ export default class HW2Scene extends Scene {
 
 		if(!this.paused)
 			this.timePassed += deltaT;
+
+		if(this.tutorial){
+			this.handleTutorialText();
+			if(Input.isKeyJustPressed("j")){
+				if(this.current_tutorialSection === 0){
+					this.current_tutorialSection += 1;
+					this.closedLight = true;
+				}
+				else if(this.current_tutorialSection ===1){
+					this.current_tutorialSection += 1;
+					this.openedLight = true;
+				}
+			}
+			else if(this.current_tutorialSection ===2 && this.openedLight){
+				//spawn obsatacles and check if player steered through them successfully
+
+			}
+			else if(this.current_tutorialSection===3 && this.completedSteer){
+				//spawn an electric field and check if a player has used it
+
+			}
+			else if(this.current_tutorialSection===4 && this.usedElectricField){
+				//spawn a normal enemy and check if a player has shot it
+
+			} 
+			else if(this.current_tutorialSection===5 && this.shotEnemy){
+				//spawn a special enemy that is weak to light and check if a player has killed it
+
+			}
+			else if(this.current_tutorialSection===6 && this.narrowedLight){
+				//initiate a timer that makes player go back to main menu after 3 second
+				if(!this.tutorialOverTimer.hasRun()){
+					this.tutorialOverTimer.start()
+				}
+			}
+		}
 		
 		// Move the backgrounds
 		this.moveBackgrounds(deltaT);
@@ -291,7 +335,7 @@ export default class HW2Scene extends Scene {
 		this.handleTimers();
 			
 		//spawns enemies if enough time has passed
-		this.progressEnemies();
+		if(!this.tutorial) {this.progressEnemies();}
 
 
         // TODO Remove despawning of mines and bubbles here
@@ -548,6 +592,49 @@ export default class HW2Scene extends Scene {
 		this.airBarBg.size = new Vec2(300, 25);
 		this.airBarBg.borderColor = Color.BLACK;
 
+		//Tutorial Level Texts
+
+		this.tutorialText = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 150), text: "Press j to turn on and off headlight"});
+		this.tutorialText.textColor = Color.WHITE;
+		/*
+		const lightText = "Press j to turn on and off headlight";
+        this.light = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 150), text: lightText});
+
+		const lightText2 = " <-- Using the light needs energy, energy slowly restores while light closed"
+		this.light2 = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 150), text: lightText2});
+
+		const steerText = "Press A and D to Steer the plane, try to steer through the obstacles"
+		this.steer = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 150), text: steerText});
+
+		const electricFieldText = "Electric fields restore your battery quickly"
+		this.electric = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 150), text: electricFieldText});
+
+		const shootText = "Aim at the enemy, press L to shoot!"
+		this.shoot = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 150), text: shootText});
+
+		const narrowText = "Hold K to narrow the headlights, it can be used to aim more accurately and weaken certain enemies."
+		this.narrow = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 150), text: narrowText});
+
+		const completeTutorialText = "Congratulation, you have completed the tutorial!"
+		this.completeTutorial = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 150), text: completeTutorialText});
+
+		this.light.textColor = Color.WHITE;
+		this.light2.textColor = Color.WHITE;
+		this.steer.textColor = Color.WHITE;
+		this.electric.textColor = Color.WHITE;
+		this.shoot.textColor = Color.WHITE;
+		this.narrow.textColor = Color.WHITE;
+		this.completeTutorial.textColor = Color.WHITE;
+
+		this.light.visible = false;
+		this.light2.visible = false;
+		this.steer.visible = false;
+		this.electric.visible = false;
+		this.shoot.visible = false;
+		this.narrow.visible = false
+		this.completeTutorial.visible = false;
+		*/
+
 		// Add Pause Screen
 		const center = this.viewport.getCenter();
 
@@ -583,6 +670,7 @@ export default class HW2Scene extends Scene {
 		this.bubbleSpawnTimer.start();
 
 		this.gameOverTimer = new Timer(3000);
+		this.tutorialOverTimer = new Timer(3000);
 
 	}
 	/**
@@ -1518,6 +1606,9 @@ export default class HW2Scene extends Scene {
 				}, {});
 			}
 		}
+		if(this.tutorialOverTimer.hasRun() && this.tutorialOverTimer.isStopped()){
+			this.sceneManager.changeToScene(MainMenu)
+		}
 	}
 
 	/**
@@ -1561,6 +1652,33 @@ export default class HW2Scene extends Scene {
 		for(let x of this.projectiles)
 		{
 			x.aiActive = !this.paused;
+		}
+	}
+
+	protected handleTutorialText(): void {
+		if(this.closedLight && this.current_tutorialSection===1){
+			this.tutorialText.setText("↑↑↑ Using the light needs energy(restores when closed)")
+			return
+		}
+		if(this.openedLight && this.current_tutorialSection===2){
+			this.tutorialText.setText("Press A and D to Steer the plane, try to steer through the obstacles.")
+			return
+		}
+		if(this.completedSteer && this.current_tutorialSection===3){
+
+			return
+		}
+		if(this.usedElectricField && this.current_tutorialSection===4){
+
+			return
+		}
+		if(this.shotEnemy && this.current_tutorialSection===5){
+
+			return
+		}
+		if(this.narrowedLight && this.current_tutorialSection===6){
+			this.tutorialText.setText("Congratulation, you have completed the tutorial!")
+			return
 		}
 	}
 
