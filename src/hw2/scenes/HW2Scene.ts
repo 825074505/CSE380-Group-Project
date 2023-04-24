@@ -94,7 +94,7 @@ export default class HW2Scene extends Scene {
 	private paused: boolean;
 
 	private currentLevel: number;
-	
+
 	//Tutorial level stuff
 	private tutorial : boolean;
 	private current_tutorialSection : number = 0;
@@ -244,7 +244,7 @@ export default class HW2Scene extends Scene {
 		else{
 			this.levelObjs = levels[this.currentLevel - 1].objs;
 			this.tutorialText.setText('')
-			this.tutorialText.setText('')
+			this.tutorialText2.setText('')
 		}
 
 		// Create a layer to serve as our main game - Feel free to use this for your own assets
@@ -318,8 +318,6 @@ export default class HW2Scene extends Scene {
 						this.completedSteer = true;
 					}
 				}
-
-
 			}
 			else if(this.current_tutorialSection===3 && this.completedSteer){
 				//spawn an electric field and check if a player has used it
