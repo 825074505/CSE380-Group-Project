@@ -1,6 +1,6 @@
 {
-  "name": "testStalagmite",
-  "spriteSheetImage": "stalagmite2.png",
+  "name": "stalactite",
+  "spriteSheetImage": "stalactite.png",
   "spriteWidth": 95,
   "spriteHeight": 150,
   "leftBuffer": 0,

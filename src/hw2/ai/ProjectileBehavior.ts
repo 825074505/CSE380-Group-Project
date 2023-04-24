@@ -15,6 +15,9 @@ import { MineAnimations } from "./MineBehavior";
 import { GraphicType } from "../../Wolfie2D/Nodes/Graphics/GraphicTypes";
 import { HW2Layers } from "../scenes/HW2Scene";
 import Color from "../../Wolfie2D/Utils/Color";
+import {AudioKeys} from "../scenes/HW2Scene";
+import { GameEventType } from "../../Wolfie2D/Events/GameEventType";
+import {projectileInfo} from "../levels/monsterInfo";
 
 export enum projectileBehaviors {
     none,
@@ -24,11 +27,8 @@ export enum projectileBehaviors {
     upAndDown,
     random,
     laser,
-}
-
-export enum projectileSplits {
-    none,
-
+    atAngle,
+    justWait, //Doesn't spawn a projectile, just waits
 }
 
 /**
@@ -47,12 +47,14 @@ export default class ProjectileBehavior implements AI {
     private srcpos : Vec2;
     private dst: Vec2;
     private player: AnimatedSprite;
-    private projectileSpeed: number;
-    private projectileLaserLength: number;
+    private speed: number;
+    private laserLength: number;
     private laserTimer: number = 0;
     private invincible: boolean = false;
     private light: Light;
     private splitX: number;
+    private angle: number;
+    private splitAngles: Array<number>;
 
     public initializeAI(owner: AnimatedSprite, options: Record<string, any>): void {
         this.owner = owner;
@@ -71,70 +73,84 @@ export default class ProjectileBehavior implements AI {
     }
 
     public activate(options: Record<string, any>): void {
-        this.behavior = options.behavior;
+        console.log(options);
         this.src = options.src;
-        if(options.dst != null)
-            this.dst = options.dst.clone();
-        else if(options.player != null)
-            this.dst = options.player.position.clone();
-        this.projectileSpeed = options.projectileSpeed;
-        this.projectileLaserLength = options.projectileLaserLength;
-        this.player = options.player;
-        this.splitX = options.splitX;
-        //console.log(options);
-
-        if(this.src != null)
+        const info = options.info;
+        if(info != null)
         {
-            this.owner.position = this.src.position.clone();
-            this.srcpos = this.src.position.clone();
-        }
+            this.behavior = info.behavior;
+            if(info.dst != null)
+                this.dst = info.dst.clone();
+            else if(options.player != null)
+                this.dst = options.player.position.clone();
+            this.speed = info.speed;
+            this.laserLength = info.laserLength;
+            this.player = options.player;
+            this.splitX = info.splitX;
+            this.angle = info.angle;
+            this.splitAngles = info.splitAngles;
 
-        if(this.behavior != null)
-        {
-            if(options.light != null)
+            //console.log(info);
+
+            if(this.src != null)
             {
-                this.light = options.light;
-            }else
+                this.owner.position = this.src.position.clone();
+                this.srcpos = this.src.position.clone();
+            }
+
+            if(this.behavior != null)
             {
-                this.light = this.owner.getScene().add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: this.owner.position.clone(), 
-																					angle : 0,
-																					intensity : 0.3,
-																					distance : 1000,
-																					tintColor : Color.RED,
-																					angleRange : new Vec2(360, 360),
-																					opacity : 0.5,
-																					lightScale : 0.1}) as Light;
+                if(info.light != null)
+                {
+                    this.light = info.light;
+                }else
+                {
+                    this.light = this.owner.getScene().add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: this.owner.position.clone(), 
+																				    angle : 0,
+																				    intensity : 0.3,
+																				    distance : 1000,
+																				    tintColor : this.splitX != null ? Color.YELLOW : Color.RED,
+																				    angleRange : new Vec2(360, 360),
+																				    opacity : 0.5,
+																				    lightScale : 0.1}) as Light;
+                }
             }
-        }
 
-        //TODO HARDCODED SPEED
-        if(this.behavior == projectileBehaviors.atFuturePos)
-        {
-            let delta = this.dst.clone().sub(this.srcpos);
-            let vr = -1 * Math.sin(this.player.rotation) * 300;
+            //TODO HARDCODED SPEED
+            if(this.behavior == projectileBehaviors.atFuturePos)
+            {
+                let delta = this.dst.clone().sub(this.srcpos);
+                let vr = -1 * Math.sin(this.player.rotation) * 300;
 
-            // Calculate the time a bullet will collide
-            // if it's possible to hit the target.
-            let deltaTime = this.AimAhead(delta, new Vec2(0, vr), this.projectileSpeed);
+                // Calculate the time a bullet will collide
+                // if it's possible to hit the target.
+                let deltaTime = this.AimAhead(delta, new Vec2(0, vr), this.speed);
 
-            // If the time is negative, then we didn't get a solution.
-            if(deltaTime > 0){
-                // Aim at the point where the target will be at the time of the collision.
-                this.dst.add(new Vec2(0, vr*deltaTime));
+                // If the time is negative, then we didn't get a solution.
+                if(deltaTime > 0){
+                    // Aim at the point where the target will be at the time of the collision.
+                    this.dst.add(new Vec2(0, vr*deltaTime));
+                }
             }
-        }
-        if(this.behavior == projectileBehaviors.random)
-        {
-            //HARDCODED WORLDSIZE
-            this.dst = new Vec2(this.player.position.x, RandUtils.randInt(0, 900));
-        }
-        if(this.behavior == projectileBehaviors.left)
-        {
-            this.dst = new Vec2(this.owner.position.x - 100, this.owner.position.y);
-        }
+            if(this.behavior == projectileBehaviors.random)
+            {
+                //HARDCODED WORLDSIZE
+                this.dst = new Vec2(this.player.position.x, RandUtils.randInt(0, 900));
+            }
+            if(this.behavior == projectileBehaviors.left)
+            {
+                this.dst = new Vec2(this.owner.position.x - 100, this.owner.position.y);
+            }
 
-        if(options.invincible != null)
-            this.invincible = options.invincible;
+            if(this.behavior == projectileBehaviors.atAngle)
+            {
+                console.log(info.angle);
+                this.dst = Vec2.ZERO.setToAngle(this.angle, 1000).add(this.owner.position);
+            }
+
+            if(info.invincible != null)
+                this.invincible = options.invincible;
+        }
 
 
         this.owner.animation.playIfNotAlready(MineAnimations.IDLE, true);
@@ -193,22 +209,22 @@ export default class ProjectileBehavior implements AI {
                 case projectileBehaviors.atCurrentPos:
                 case projectileBehaviors.atFuturePos:
                 case projectileBehaviors.random:
-                case projectileBehaviors.upAndDown:
-                    this.owner.position.add(this.srcpos.clone().sub(this.dst).normalize().scale(-1 * this.projectileSpeed * deltaT)); //this could be done at init
+                case projectileBehaviors.atAngle:
+                    this.owner.position.add(this.srcpos.clone().sub(this.dst).normalize().scale(-1 * this.speed * deltaT)); //this could be done at init
                     break;
 
                 case projectileBehaviors.laser:
-                    if(this.laserTimer < this.projectileLaserLength)
+                    if(this.laserTimer < this.laserLength)
                     {
                         this.laserTimer += deltaT;
-                        this.owner.position.add(Vec2.LEFT.scale(this.projectileSpeed * deltaT / 2));
+                        this.owner.position.add(Vec2.LEFT.scale(this.speed * deltaT / 2));
                         this.owner.position.set(this.owner.position.x, this.src.position.y);
-                        this.owner.size.add(new Vec2(this.projectileSpeed * deltaT / this.owner.scale.x, 0));
+                        this.owner.size.add(new Vec2(this.speed * deltaT / this.owner.scale.x, 0));
                         let test = this.owner.collisionShape as AABB;
                         test.sweep(Vec2.ZERO, this.owner.position, this.owner.sizeWithZoom);
                     }else
                     {
-                        this.owner.position.add(Vec2.LEFT.scale(this.projectileSpeed * deltaT));
+                        this.owner.position.add(Vec2.LEFT.scale(this.speed * deltaT));
                     }
                     break;
                 
@@ -232,12 +248,13 @@ export default class ProjectileBehavior implements AI {
 
                 if(this.owner.position.x < this.splitX)
                 {
+                    this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.PROJECTILESPLIT_AUDIO_KEY, loop: false, holdReference: false});
                     let curAngle = Vec2.LEFT.angleToCCW(this.srcpos.clone().sub(this.dst));
-                    for(let x of [-1, -0.5, 0.5, 1])
+                    for(let x of this.splitAngles)
                     {
-                        let newdst = Vec2.ZERO.setToAngle(curAngle+x, 1).add(this.owner.position);
-                        this.emitter.fireEvent(HW2Events.SPAWN_PROJECTILE, {projectileInfo: {behavior: projectileBehaviors.atCurrentPos, src: this.owner, dst: newdst, player: this.player,
-                                        projectileSpeed: this.projectileSpeed}});
+                        //let newdst = Vec2.ZERO.setToAngle(curAngle+x, 1).add(this.owner.position);
+                        this.emitter.fireEvent(HW2Events.SPAWN_PROJECTILE, {src: this.owner, projectileInfo: {behavior: projectileBehaviors.atAngle, angle: curAngle+x,
+                                        speed: this.speed}});
 
                     }
                 }

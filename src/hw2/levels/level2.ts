@@ -25,7 +25,13 @@ const threeGuysInARow: Array<monsterInfo> = [
 
 
 export const level2Objs: Array<monsterInfo> = [
-
+	{
+	spawnTime: 0.0,
+	spriteKey: "ELECTRICITY",
+	spawnY: 800,
+	movementPattern: movementPatterns.moveLeft,
+	monsterType: monsterTypes.electricField,
+	},
 	{
 	spawnTime: 0.0,
 	spawnY: 300,
@@ -36,13 +42,6 @@ export const level2Objs: Array<monsterInfo> = [
 	spawnY: 600,
 	objs: threeGuysInARow,
 	},
-	{
-	spawnTime: 0.0,
-	spriteKey: "ELECTRICITY",
-	spawnY: 800,
-	movementPattern: movementPatterns.moveLeft,
-	monsterType: monsterTypes.electricField,
-	},
 
 	{
 	spawnTime: 1.0,
@@ -52,11 +51,18 @@ export const level2Objs: Array<monsterInfo> = [
 	monsterType: monsterTypes.spinning,
 	stoppingX: 800,
 
+	/*
 	projectileBehavior: projectileBehaviors.atCurrentPos,
 	projectileSpeed: 200,
 	projectileFrequency: 3,
 	projectileLaserLength: 1,
 	projectileSplitX: 450,
+	*/
+	projectiles: [{behavior: projectileBehaviors.atCurrentPos,
+			speed: 200,
+			splitX: 450,
+			splitAngles: [-1, -0.5, 0.5, 1],
+			waitTime: 3.0,}],
 	},
 	{
 	spawnTime: 2.0,
@@ -74,8 +80,8 @@ export const level2Objs: Array<monsterInfo> = [
 	},
 	{
 	spawnTime: 4.0,
-	spriteKey: "MINE",
-	spawnY: 100,
+	spriteKey: "STALACTITETOP",
+	spawnY: 96,
 	movementPattern: movementPatterns.moveLeft,
 	monsterType: monsterTypes.stalactite,
 	},
