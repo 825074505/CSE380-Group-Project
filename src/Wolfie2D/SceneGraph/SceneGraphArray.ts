@@ -96,7 +96,7 @@ export default class SceneGraphArray extends SceneGraph {
         let lights = new Array<CanvasNode>();
 
         for(let node of this.nodeList){
-            if(!node.getLayer().isHidden() && node.visible && node.constructor.name === "Light" && this.viewport.includes(node)){
+            if(!node.getLayer().isHidden() && node.visible && node.constructor.name === "Light"){
                 lights.push(node);
             }
         }

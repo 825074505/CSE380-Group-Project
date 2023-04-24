@@ -1,8 +1,8 @@
 {
 	"name": "electricity",
 	"spriteSheetImage": "Electricity.png",
-	"spriteWidth": 512,
-	"spriteHeight": 512,
+	"spriteWidth": 24,
+	"spriteHeight": 24,
 	"leftBuffer": 0,
 	"rightBuffer": 0,
 	"topBuffer": 0,
