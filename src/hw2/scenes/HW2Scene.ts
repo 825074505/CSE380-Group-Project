@@ -74,8 +74,13 @@ export const SpritesheetKeys = {
 	STALAGMITE_KEY: "STALAGMITE",
 	STALAGMITE_PATH: "hw2_assets/spritesheets/testStalagmite.json",
 
+	STALACTITE_KEY: "STALACTITE",
+	STALACTITE_PATH: "hw2_assets/spritesheets/stalactite.json",
+
 	STALACTITETOP_KEY: "STALACTITETOP",
 	STALACTITETOP_PATH: "hw2_assets/spritesheets/stalactiteTop.json",
+
+
 }
 
 export const SpriteKeys = {
@@ -1029,13 +1034,6 @@ export default class HW2Scene extends Scene {
 																					opacity : 0.5,
 																					lightScale : 1.0});
 			}
-			/*
-			mine.setAIActive(true, {movementPattern: mineInfo.movementPattern, monsterType: mineInfo.monsterType, 
-									weakToLight: mineInfo.weakToLight, electricLight: electricLight, stoppingX: mineInfo.stoppingX, splitOnDeath: mineInfo.splitOnDeath,
-									player: this.player, narrowLight: this.narrowLight, wideLight: this.wideLight,
-									projectileBehavior: mineInfo.projectileBehavior, projectileSpeed: mineInfo.projectileSpeed, projectileFrequency: mineInfo.projectileFrequency, projectileLaserLength: mineInfo.projectileLaserLength, projectileSplitX: mineInfo.projectileSplitX, projectileInvincible: mineInfo.projectileInvincible,
-									});
-			*/
 			mine.setAIActive(true, {monInfo: mineInfo, electricLight: electricLight, player: this.player, narrowLight: this.narrowLight, wideLight: this.wideLight});
 
 			this.curMonsterIndex++; 
@@ -1061,6 +1059,7 @@ export default class HW2Scene extends Scene {
 		let electricLight = null;
 		if(mineInfo.monsterType == monsterTypes.electricField)
 		{
+			mine.position = new Vec2((viewportSize.x + mine.sizeWithZoom.x/2) + 500, this.levelObjs[this.curMonsterIndex].spawnY);
 			electricLight = this.add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: new Vec2(0, 0), 
 																				angle : 0,
 																				intensity : 0.5,
@@ -1070,12 +1069,12 @@ export default class HW2Scene extends Scene {
 																				opacity : 0.5,
 																				lightScale : 1.0});
 		}
+		mine.setAIActive(true, {monInfo: mineInfo, electricLight: electricLight, player: this.player, narrowLight: this.narrowLight, wideLight: this.wideLight});
 
-		mine.setAIActive(true, {movementPattern: mineInfo.movementPattern, monsterType: mineInfo.monsterType, 
-								weakToLight: mineInfo.weakToLight, electricLight: electricLight, stoppingX: mineInfo.stoppingX, splitOnDeath: mineInfo.splitOnDeath,
-								player: this.player, narrowLight: this.narrowLight, wideLight: this.wideLight,
-								projectileBehavior: mineInfo.projectileBehavior, projectileSpeed: mineInfo.projectileSpeed, projectileFrequency: mineInfo.projectileFrequency, projectileLaserLength: mineInfo.projectileLaserLength, projectileSplitX: mineInfo.projectileSplitX, projectileInvincible: mineInfo.projectileInvincible,
-								});
+		this.curMonsterIndex++; 
+
+		//sounds
+		this.spawnMonsterSound(mineInfo.monsterType);
 
 
 	}
