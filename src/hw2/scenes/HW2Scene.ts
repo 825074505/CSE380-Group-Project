@@ -443,6 +443,9 @@ export default class HW2Scene extends Scene {
 		if(!this.tutorial) {this.progressEnemies();}
 
 
+		this.handleTimeSkip();
+
+
         // TODO Remove despawning of mines and bubbles here
 
 		// Handle screen despawning of mines and bubbles
@@ -1810,6 +1813,42 @@ export default class HW2Scene extends Scene {
 			this.gameOverTimer.start();
 	}
 
+	protected handleTimeSkip(): void {
+		let time = -1;
+		if(Input.isKeyPressed("q"))
+		{
+			if(Input.isKeyJustPressed("1"))
+				time = 10;
+			if(Input.isKeyJustPressed("2"))
+				time = 20;
+			if(Input.isKeyJustPressed("3"))
+				time = 30;
+			if(Input.isKeyJustPressed("4"))
+				time = 40;
+			if(Input.isKeyJustPressed("5"))
+				time = 50;
+			if(Input.isKeyJustPressed("6"))
+				time = 60;
+			if(Input.isKeyJustPressed("7"))
+				time = 70;
+			if(Input.isKeyJustPressed("8"))
+				time = 80;
+			if(Input.isKeyJustPressed("9"))
+				time = 90;
+			if(Input.isKeyJustPressed("0"))
+				time = 0;
+		}
+		
+		if(time != -1)
+		{
+			for(let x of this.mines) x.visible = false;
+			for(let x of this.projectiles) x.visible = false;
+			this.timePassed = time;
+			this.curMonsterIndex = 0;
+			for(;this.levelObjs[this.curMonsterIndex].spawnTime < time; this.curMonsterIndex++);
+		}
+	}
+
 	protected handleTutorialText(): void {
 		if(this.closedLight && this.current_tutorialSection===1){
 			this.tutorialText.setText("↑↑↑ Using the light needs energy(restores when closed)")
@@ -1839,3 +1878,4 @@ export default class HW2Scene extends Scene {
 	}
 
 }
+
