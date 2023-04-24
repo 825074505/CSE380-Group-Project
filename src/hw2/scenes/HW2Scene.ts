@@ -319,15 +319,6 @@ export default class HW2Scene extends Scene {
 		this.addLayer(HW2Layers.BACKGROUND, 0);
 		this.initBackground();
 
-		if(this.tutorial){
-			this.levelObjs = levels[6].objs;
-		}
-		else{
-			this.levelObjs = levels[this.currentLevel - 1].objs;
-			this.tutorialText.setText('')
-			this.tutorialText2.setText('')
-		}
-
 		// Create a layer to serve as our main game - Feel free to use this for your own assets
 		// It is given a depth of 5 to be above our background
 		this.addLayer(HW2Layers.PRIMARY, 5);
@@ -337,9 +328,19 @@ export default class HW2Scene extends Scene {
 		this.initTimers();
 		// Initialize the UI
 		this.initUI();
+		this.projectiles = new Array();
+
+		if(this.tutorial){
+			this.levelObjs = levels[6].objs;
+		}
+		else{
+			this.levelObjs = levels[this.currentLevel - 1].objs;
+			this.tutorialText.setText('')
+			this.tutorialText2.setText('')
+		}
+
 		// Initialize object pools
 		this.initObjectPools();
-		this.projectiles = new Array();
 
 		// Subscribe to player events
 		this.receiver.subscribe(HW2Events.CHARGE_CHANGE);
