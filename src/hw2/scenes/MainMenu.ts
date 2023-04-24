@@ -215,7 +215,6 @@ export default class MainMenu extends Scene {
         const line13 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 300), text: text13});
         const line14 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 350), text: text14});
 
-        
 
         line1.textColor = Color.WHITE;
         line2.textColor = Color.WHITE;
