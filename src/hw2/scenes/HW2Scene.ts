@@ -89,7 +89,7 @@ export const SpriteKeys = {
 
 
 	TBUF_KEY: "TBUF",
-	TBUF_PATH: "hw2_assets/sprites/TBUF.png",
+	TBUF_PATH: "hw2_assets/sprites/tbuf.png",
 }
 
 export const AudioKeys = {
