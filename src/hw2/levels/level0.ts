@@ -27,6 +27,7 @@ export const level0Objs: Array<monsterInfo> = [
 	spawnY: 450,
 	movementPattern: movementPatterns.moveLeft,
 	monsterType: monsterTypes.default,
+	stoppingX: 600,
 	},	
 	{
 	spawnTime: 0.0,
@@ -34,6 +35,7 @@ export const level0Objs: Array<monsterInfo> = [
 	spawnY: 450,
 	weakToLight: true,
 	movementPattern: movementPatterns.moveLeft,
-	monsterType: monsterTypes.weakToLight
+	monsterType: monsterTypes.weakToLight,
+	stoppingX: 600,
 	},
 ]

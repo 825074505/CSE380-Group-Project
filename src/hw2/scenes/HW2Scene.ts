@@ -180,6 +180,8 @@ export default class HW2Scene extends Scene {
 	private shotEnemy : boolean = false;
 	private weakToLightDead : boolean = false;
 	private narrowedLight : boolean = false;
+	private spawnedEnemy1 : boolean = false;
+	private spawnedEnemy2 : boolean = false;
 	
 	private tutorialText : Label;
 	private tutorialText2 : Label;
@@ -428,29 +430,25 @@ export default class HW2Scene extends Scene {
 			}
 			else if(this.current_tutorialSection===4 && this.usedElectricField){
 				//spawn a normal enemy and check if a player has shot it
-				if(this.tutorialSectionTimer.isStopped()){
-					if(this.shotEnemy){
+				if(this.shotEnemy){
 						this.current_tutorialSection += 1;
-					}
-					else{
-						this.progressTutorial(this.current_tutorialSection-2);
-						this.tutorialSectionTimer.start();
-					}
+				}
+				else if(!this.spawnedEnemy1){
+					this.spawnedEnemy1 = true;
+					this.progressTutorial(this.current_tutorialSection-2);
 				}
 
 			} 
 			else if(this.current_tutorialSection===5 && this.shotEnemy){
 				//spawn a special enemy that is weak to light and check if a player has killed it
-				if(this.tutorialSectionTimer.isStopped()){
-					if(this.weakToLightDead){
-						this.current_tutorialSection += 1;
-					}
-					else{
+				if(this.weakToLightDead){
+					this.current_tutorialSection += 1;
+				}
+				else if (!this.spawnedEnemy2){
 						
-						this.progressTutorial(this.current_tutorialSection-2);
-						this.tutorialSectionTimer.start();
-					}
-				}				
+					this.progressTutorial(this.current_tutorialSection-2);
+					this.spawnedEnemy2 = true;
+				}		
 
 			}
 			else if(this.current_tutorialSection===6 && this.weakToLightDead){
@@ -1805,6 +1803,7 @@ export default class HW2Scene extends Scene {
 		if(this.tutorialOverTimer.hasRun() && this.tutorialOverTimer.isStopped()){
 			this.player.ai.destroy();
 			this.sceneManager.changeToScene(MainMenu)
+			this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: HW2Scene.SONG_KEY});
 		}
 	}
 
