@@ -91,6 +91,8 @@ export default class PlayerController implements AI {
 	private infiniteHealth: boolean = false;
 	private infiniteBattery: boolean = false;
 
+	private propSound:string = "";
+
 	/**
 	 * This method initializes all variables inside of this AI class.
      * 
@@ -221,6 +223,20 @@ export default class PlayerController implements AI {
 			this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
 		}
 
+		//propellerSounds
+		if(Input.isKeyJustPressed("a") || Input.isKeyJustPressed("d")  && this.propSound != AudioKeys.PROPELLERUP_AUDIO_KEY)
+		{
+			this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: this.propSound});
+			this.propSound = AudioKeys.PROPELLERUP_AUDIO_KEY;
+			this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: this.propSound, loop: true, holdReference: true});
+		}else if(!Input.isKeyPressed("a") && !Input.isKeyPressed("d") && this.propSound != AudioKeys.PROPELLER_AUDIO_KEY)
+		{
+			this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: this.propSound});
+			this.propSound = AudioKeys.PROPELLER_AUDIO_KEY;
+			this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: this.propSound, loop: true, holdReference: true});
+		}
+
+		
 		// Get the player's input direction 
 		let forwardAxis = (Input.isPressed(HW2Controls.MOVE_UP) ? 1 : 0) + (Input.isPressed(HW2Controls.MOVE_DOWN) ? -1 : 0);
 		let horizontalAxis = (Input.isPressed(HW2Controls.MOVE_LEFT) ? 1 : 0) + (Input.isPressed(HW2Controls.MOVE_RIGHT) ? -1 : 0);
@@ -454,6 +470,7 @@ export default class PlayerController implements AI {
 	 * @see {AI.destroy}
 	 */
 	public destroy(): void {
+		this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: this.propSound});
 		this.receiver.destroy()
 	}
 

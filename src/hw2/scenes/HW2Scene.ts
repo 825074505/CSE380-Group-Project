@@ -146,6 +146,15 @@ export const AudioKeys = {
 
 	RECHARGING_AUDIO_KEY: "RECHARGING",
     RECHARGING_AUDIO_PATH: "hw2_assets/sounds/recharging.wav",
+
+	PROPELLER_AUDIO_KEY: "PROPELLER",
+    PROPELLER_AUDIO_PATH: "hw2_assets/sounds/propeller2.wav",
+
+	PROPELLERUP_AUDIO_KEY: "PROPELLERUP",
+    PROPELLERUP_AUDIO_PATH: "hw2_assets/sounds/propellerup3.wav",
+
+	PROPELLERDOWN_AUDIO_KEY: "PROPELLERDOWN",
+    PROPELLERDOWN_AUDIO_PATH: "hw2_assets/sounds/propellerdown2.wav",
 }
 
 
@@ -186,6 +195,8 @@ export default class HW2Scene extends Scene {
 	// The key and path to the background sprite
 	public static BACKGROUND_KEY = "BACKGROUND"
     public static BACKGROUND_PATH = "hw2_assets/sprites/blacknoise.png"
+
+	public static SONG_KEY = "SONG"
 
 	// Sprites for the background images
 	private bg1: Sprite;
@@ -241,6 +252,8 @@ export default class HW2Scene extends Scene {
 
 	private curMonsterIndex: number = 0;
 
+	private currentSong: string;
+
 	// The padding of the world
 	private worldPadding: Vec2;
 
@@ -264,12 +277,9 @@ export default class HW2Scene extends Scene {
 	 */
 	public override loadScene(){
 		// Load in the background image
-		if(this.tutorial){
-			this.load.image(HW2Scene.BACKGROUND_KEY, levels[6].BACKGROUND_PATH);
-		}
-		else{
-			this.load.image(HW2Scene.BACKGROUND_KEY, levels[this.currentLevel - 1].BACKGROUND_PATH);
-		}
+		this.load.image(HW2Scene.BACKGROUND_KEY, levels[this.currentLevel].BACKGROUND_PATH);
+
+		this.load.audio(HW2Scene.SONG_KEY, levels[this.currentLevel].SONG_PATH);
 
 		let sskeys = Object.keys(SpritesheetKeys);
 
@@ -330,11 +340,8 @@ export default class HW2Scene extends Scene {
 		this.initUI();
 		this.projectiles = new Array();
 
-		if(this.tutorial){
-			this.levelObjs = levels[6].objs;
-		}
-		else{
-			this.levelObjs = levels[this.currentLevel - 1].objs;
+		this.levelObjs = levels[this.currentLevel].objs;
+		if(!this.tutorial){
 			this.tutorialText.setText('')
 			this.tutorialText2.setText('')
 		}
@@ -355,6 +362,9 @@ export default class HW2Scene extends Scene {
 		this.receiver.subscribe(HW2Events.BACK_TO_MAIN);
 		// Subscribe to laser events
 		this.receiver.subscribe(HW2Events.FIRING_LASER);
+
+		this.emitter.fireEvent(GameEventType.PLAY_MUSIC, {key: HW2Scene.SONG_KEY, loop: true, holdReference: true});
+
 
 		//TODO sort levelObjs by spawn time just in case
 	}
@@ -1739,16 +1749,16 @@ export default class HW2Scene extends Scene {
 		// If the game-over timer has run, change to the game-over scene
 		if (this.gameOverTimer.hasRun() && this.gameOverTimer.isStopped()) {
 			console.log("gameOverTimerEnd");
-			if(this.recording)
-			{
-				this.sceneManager.changeToScene(GameOver, {
-					bubblesPopped: this.bubblesPopped, 
-					minesDestroyed: this.minesDestroyed,
-					timePassed: this.timePassed
-				}, {});
-			}
+			this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: HW2Scene.SONG_KEY});
+			this.player.ai.destroy();
+			this.sceneManager.changeToScene(GameOver, {
+				bubblesPopped: this.bubblesPopped, 
+				minesDestroyed: this.minesDestroyed,
+				timePassed: this.timePassed
+			}, {});
 		}
 		if(this.tutorialOverTimer.hasRun() && this.tutorialOverTimer.isStopped()){
+			this.player.ai.destroy();
 			this.sceneManager.changeToScene(MainMenu)
 		}
 	}
