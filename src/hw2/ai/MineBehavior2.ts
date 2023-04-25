@@ -87,6 +87,7 @@ export default class MineBehavior2 implements AI {
 
     private splitOnDeath: boolean;
 
+
     private weakToLight: boolean = false;
     private stoppingX: number = -500;
 
@@ -465,6 +466,7 @@ export default class MineBehavior2 implements AI {
         if (id === this.owner.id) {
             this.owner.position.copy(Vec2.ZERO);
             this.owner.visible = false;
+            this.emitter.fireEvent(HW2Events.SHOT_WEAKTOLIGHT);
         }
     }
 

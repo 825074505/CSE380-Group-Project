@@ -87,7 +87,7 @@ export default class HW2Scene extends Scene {
 	public static STALAGMITE_PATH = "hw2_assets/spritesheets/testStalagmite.json";
 
 	public static TBUF_KEY: string = "TBUF";
-	public static TBUF_PATH = "hw2_assets/sprites/TBUF.png";
+	public static TBUF_PATH = "hw2_assets/sprites/tbuf.png";
 
 	//PAUSE Screen Pop Up Layer
 	private pause : Layer;
@@ -103,11 +103,13 @@ export default class HW2Scene extends Scene {
 	private completedSteer : boolean = false;
 	private usedElectricField : boolean = false;
 	private shotEnemy : boolean = false;
+	private weakToLightDead : boolean = false;
 	private narrowedLight : boolean = false;
 	
 	private tutorialText : Label;
 	private tutorialText2 : Label;
 	private tutorialOverTimer : Timer;
+	private overTimerHasRun: boolean = false;
 	private tutorialSectionTimer : Timer;
 	
     // A flag to indicate whether or not this scene is being recorded
@@ -271,6 +273,8 @@ export default class HW2Scene extends Scene {
 		//Game events
 		this.receiver.subscribe(HW2Events.RESUME_GAME);
 		this.receiver.subscribe(HW2Events.BACK_TO_MAIN);
+		this.receiver.subscribe(HW2Events.SHOT_ENEMY);
+		this.receiver.subscribe(HW2Events.SHOT_WEAKTOLIGHT);
 		// Subscribe to laser events
 		this.receiver.subscribe(HW2Events.FIRING_LASER);
 		if(this.recording)
@@ -336,17 +340,45 @@ export default class HW2Scene extends Scene {
 			}
 			else if(this.current_tutorialSection===4 && this.usedElectricField){
 				//spawn a normal enemy and check if a player has shot it
+				if(this.tutorialSectionTimer.isStopped()){
+					if(this.shotEnemy){
+						this.current_tutorialSection += 1;
+					}
+					else{
+						this.progressTutorial(this.current_tutorialSection-1);
+						this.tutorialSectionTimer.start();
+					}
+				}
 
 			} 
 			else if(this.current_tutorialSection===5 && this.shotEnemy){
+				console.log(this.current_tutorialSection);
 				//spawn a special enemy that is weak to light and check if a player has killed it
+				if(this.tutorialSectionTimer.isStopped()){
+					if(this.weakToLightDead){
+						this.current_tutorialSection += 1;
+					}
+					else{
+						
+						this.progressTutorial(this.current_tutorialSection-1);
+						this.tutorialSectionTimer.start();
+					}
+				}
+				
 
 			}
-			else if(this.current_tutorialSection===6 && this.narrowedLight){
+			else if(this.current_tutorialSection===6 && this.weakToLightDead){
+				console.log(this.current_tutorialSection);
 				//initiate a timer that makes player go back to main menu after 3 second
-				if(!this.tutorialOverTimer.hasRun()){
+				if(this.overTimerHasRun == false){
 					this.tutorialOverTimer.start()
+					this.overTimerHasRun = true;
+					console.log("rerun timer")
 				}
+				else{
+					this.handleTimers();
+				}
+				
 			}
 		}
 		
@@ -457,6 +489,16 @@ export default class HW2Scene extends Scene {
 			case HW2Events.SPAWN_PROJECTILE: {
 				//this.projectiles.push(event.data.get("projectile"));
 				this.spawnProjectile(event);
+				break;
+			}
+			case HW2Events.SHOT_ENEMY:{
+				this.shotEnemy = true;
+				break;
+			}
+			case HW2Events.SHOT_WEAKTOLIGHT:{
+				if(this.current_tutorialSection === 5){
+					this.weakToLightDead = true;
+				}
 				break;
 			}
 			default: {
@@ -1409,6 +1451,9 @@ export default class HW2Scene extends Scene {
 						//this.emitter.fireEvent(HW2Events.LASER_MINE_COLLISION, { mineId: mine.id, laserId: laser.id, hit: hitInfo});
 						hitMineList.push({mine: mine, hitInfo: hitInfo});
 						collisions += 1;
+						if(this.tutorial && this.levelObjs[index].monsterType == monsterTypes.default && this.shotEnemy == false){
+							this.shotEnemy = true;
+						}
 					}
 				}
 			}
@@ -1736,8 +1781,9 @@ export default class HW2Scene extends Scene {
 			this.tutorialText2.setText("it can be used to aim more accurately and weaken certain enemies.")
 			return
 		}
-		if(this.narrowedLight && this.current_tutorialSection===6){
+		if(this.weakToLightDead && this.current_tutorialSection===6){
 			this.tutorialText.setText("Congratulation, you have completed the tutorial!")
+			this.tutorialText2.setText("")
 			return
 		}
 	}

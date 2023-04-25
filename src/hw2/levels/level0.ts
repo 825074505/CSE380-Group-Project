@@ -35,9 +35,18 @@ export const level0Objs: Array<monsterInfo> = [
 	monsterType: monsterTypes.electricField,
 	},
 	{
-	spawnTime: 12.0,
+	spawnTime: 4.0,
 	spriteKey: "MINE",
 	spawnY: 450,
 	movementPattern: movementPatterns.moveLeft,
+	monsterType: monsterTypes.default,
 	},	
+	{
+	spawnTime: 4.0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	weakToLight: true,
+	movementPattern: movementPatterns.moveLeft,
+	monsterType: monsterTypes.weakToLight
+	},
 ]
