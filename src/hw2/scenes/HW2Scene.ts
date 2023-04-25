@@ -164,22 +164,6 @@ export const AudioKeys = {
  */
 export default class HW2Scene extends Scene {
 
-<<<<<<< HEAD
-	public static ELECTRICITY_KEY = "ELECTRICITY";
-	public static ELECTRICITY_PATH = "hw2_assets/spritesheets/Electricity.json";
-
-	public static PLANEWINGS_KEY: string = "PLANEWINGS";
-	public static PLANEWINGS_PATH = "hw2_assets/sprites/testplanewings.png";
-
-	public static STALAGMITE_KEY: string = "STALAGMITE";
-	public static STALAGMITE_PATH = "hw2_assets/spritesheets/testStalagmite.json";
-
-	public static TBUF_KEY: string = "TBUF";
-	public static TBUF_PATH = "hw2_assets/sprites/tbuf.png";
-=======
-	//sounds
->>>>>>> 4495291d82a37dd574f510f65794964b56adc3c8
-
 	//PAUSE Screen Pop Up Layer
 	private pause : Layer;
 	private paused: boolean;
