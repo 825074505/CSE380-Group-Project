@@ -89,7 +89,7 @@ export const SpriteKeys = {
 
 
 	TBUF_KEY: "TBUF",
-	TBUF_PATH: "hw2_assets/sprites/TBUF.png",
+	TBUF_PATH: "hw2_assets/sprites/tbuf.png",
 }
 
 export const AudioKeys = {
@@ -387,6 +387,7 @@ export default class HW2Scene extends Scene {
 		
 		if(this.tutorial){
 			this.handleTutorialText();
+			console.log(this.current_tutorialSection)
 			if(Input.isKeyJustPressed("j")){
 				if(this.current_tutorialSection === 0){
 					this.current_tutorialSection += 1;
@@ -406,7 +407,6 @@ export default class HW2Scene extends Scene {
 					}
 					else{
 						this.progressTutorial(this.current_tutorialSection-2)
-						this.progressTutorial(this.current_tutorialSection-1)
 						this.tutorialSectionTimer.start()
 						this.completedSteer = true;
 					}
@@ -421,6 +421,7 @@ export default class HW2Scene extends Scene {
 					else{
 						this.progressTutorial(this.current_tutorialSection-2)
 						this.tutorialSectionTimer.start()
+
 					}
 
 				}
@@ -432,14 +433,13 @@ export default class HW2Scene extends Scene {
 						this.current_tutorialSection += 1;
 					}
 					else{
-						this.progressTutorial(this.current_tutorialSection-1);
+						this.progressTutorial(this.current_tutorialSection-2);
 						this.tutorialSectionTimer.start();
 					}
 				}
 
 			} 
 			else if(this.current_tutorialSection===5 && this.shotEnemy){
-				console.log(this.current_tutorialSection);
 				//spawn a special enemy that is weak to light and check if a player has killed it
 				if(this.tutorialSectionTimer.isStopped()){
 					if(this.weakToLightDead){
@@ -447,15 +447,13 @@ export default class HW2Scene extends Scene {
 					}
 					else{
 						
-						this.progressTutorial(this.current_tutorialSection-1);
+						this.progressTutorial(this.current_tutorialSection-2);
 						this.tutorialSectionTimer.start();
 					}
-				}
-				
+				}				
 
 			}
 			else if(this.current_tutorialSection===6 && this.weakToLightDead){
-				console.log(this.current_tutorialSection);
 				//initiate a timer that makes player go back to main menu after 3 second
 				if(this.overTimerHasRun == false){
 					this.tutorialOverTimer.start()
@@ -498,7 +496,7 @@ export default class HW2Scene extends Scene {
 		this.lockPlayer(this.player, this.viewport.getCenter(), this.viewport.getHalfSize());
 
 		//hacky level end for level 1
-		this.checkLevelEnd();
+		if(!this.tutorial){this.checkLevelEnd();}
 
 		// Handle events
 		while (this.receiver.hasNextEvent()) {
@@ -807,7 +805,7 @@ export default class HW2Scene extends Scene {
 
 		this.gameOverTimer = new Timer(3000);
 		this.tutorialOverTimer = new Timer(3000);
-		this.tutorialSectionTimer = new Timer(10000);
+		this.tutorialSectionTimer = new Timer(13000);
 
 	}
 	/**
@@ -1867,6 +1865,7 @@ export default class HW2Scene extends Scene {
 
 		//The level is over
 		if(this.gameOverTimer.isStopped())
+			console.log('game over')
 			this.gameOverTimer.start();
 	}
 
