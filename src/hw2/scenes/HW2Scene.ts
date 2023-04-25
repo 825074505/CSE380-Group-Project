@@ -225,6 +225,7 @@ export default class HW2Scene extends Scene {
 	private bubbles: Array<Graphic>;
 
 	private projectiles: Array<AnimatedSprite>;
+	private lights: Array<Light>;
 
 	// Laser/Charge labels
 	private chrgLabel: Label;
@@ -339,6 +340,7 @@ export default class HW2Scene extends Scene {
 		// Initialize the UI
 		this.initUI();
 		this.projectiles = new Array();
+		this.lights = new Array();
 
 		this.levelObjs = levels[this.currentLevel].objs;
 		if(!this.tutorial){
@@ -382,6 +384,7 @@ export default class HW2Scene extends Scene {
 		if(!this.paused)
 			this.timePassed += deltaT;
 
+		
 		if(this.tutorial){
 			this.handleTutorialText();
 			if(Input.isKeyJustPressed("j")){
@@ -416,7 +419,7 @@ export default class HW2Scene extends Scene {
 						this.current_tutorialSection += 1;
 					}
 					else{
-						this.progressTutorial(this.current_tutorialSection-1)
+						this.progressTutorial(this.current_tutorialSection-2)
 						this.tutorialSectionTimer.start()
 					}
 
@@ -1085,6 +1088,7 @@ export default class HW2Scene extends Scene {
 																					angleRange : new Vec2(360, 360),
 																					opacity : 0.5,
 																					lightScale : 1.0});
+				this.lights.push(electricLight);
 			}
 			mine.setAIActive(true, {monInfo: mineInfo, electricLight: electricLight, player: this.player, narrowLight: this.narrowLight, wideLight: this.wideLight});
 
@@ -1894,12 +1898,17 @@ export default class HW2Scene extends Scene {
 		
 		if(time != -1)
 		{
-			for(let x of this.mines) x.visible = false;
-			for(let x of this.projectiles) x.visible = false;
-			this.timePassed = time;
-			this.curMonsterIndex = 0;
-			for(;this.levelObjs[this.curMonsterIndex].spawnTime < time; this.curMonsterIndex++);
+			this.setTime(time);
 		}
+	}
+
+	protected setTime(time: number): void {
+		for(let x of this.mines) x.visible = false;
+		//for(let x of this.projectiles) x.visible = false;
+		for(let x of this.lights) x.visible = false;
+		this.timePassed = time;
+		this.curMonsterIndex = 0;
+		for(;this.levelObjs[this.curMonsterIndex].spawnTime < time; this.curMonsterIndex++);
 	}
 
 	protected handleTutorialText(): void {
