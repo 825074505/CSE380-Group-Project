@@ -385,18 +385,19 @@ export default class PlayerController implements AI {
 
 		if(!this.infiniteBattery)
 		{
+			const oldAir = this.currentAir;
 			if(this.narrowLight.visible)
 			{
 				this.currentAir = MathUtils.clamp(this.currentAir - 0.02 * (deltaT * 60), this.minAir, this.maxAir);
-				this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
+				this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir, oldair: oldAir});
 			}else if(this.wideLight.visible)
 			{
 				this.currentAir = MathUtils.clamp(this.currentAir - 0.005, this.minAir, this.maxAir);
-				this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
+				this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir, oldair: oldAir});
 			}else
 			{
 				this.currentAir = MathUtils.clamp(this.currentAir + 0.02, this.minAir, this.maxAir);
-				this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
+				this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir, oldair: oldAir});
 			}
 		}
 
@@ -481,7 +482,7 @@ export default class PlayerController implements AI {
 	protected handleShootLaserEvent(event: GameEvent): void {
 		if(!this.infiniteBattery)
 			this.currentAir -= this.laserEnergyCost;
-		this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
+		this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir, oldair:this.currentAir + this.laserEnergyCost});
 		this.shootLight.intensity = 0.8;
 		this.wideLight.visible = false;
 		this.narrowLight.visible = false;

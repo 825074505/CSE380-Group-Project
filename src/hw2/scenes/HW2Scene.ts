@@ -262,6 +262,12 @@ export default class HW2Scene extends Scene {
 
 	private halfViewSize: Vec2; 
 
+	private arcadeMode: boolean = false;
+
+	private energyUsed: number = 0;
+	private hitsTaken: number = 0;
+	private dead: boolean = false;
+
 	/** Scene lifecycle methods */
 
 	/**
@@ -271,6 +277,12 @@ export default class HW2Scene extends Scene {
 		this.paused = false;
 		this.currentLevel = options.level;
 		this.tutorial = this.currentLevel === 0;
+		if(options.arcadeMode != null) 
+			this.arcadeMode = options.arcadeMode;
+		if(options.energyUsed != null)
+			this.energyUsed = options.energyUsed;
+		if(options.hitsTaken != null)
+			this.hitsTaken = options.hitsTaken;
 		console.log("init, ", this.currentLevel);
 
 
@@ -389,7 +401,7 @@ export default class HW2Scene extends Scene {
 		
 		if(this.tutorial){
 			this.handleTutorialText();
-			console.log(this.current_tutorialSection)
+			//console.log(this.current_tutorialSection)
 			if(Input.isKeyJustPressed("j")){
 				if(this.current_tutorialSection === 0){
 					this.current_tutorialSection += 1;
@@ -496,6 +508,8 @@ export default class HW2Scene extends Scene {
 		//hacky level end for level 1
 		if(!this.tutorial){this.checkLevelEnd();}
 
+		//console.log(this.gameOverTimer.toString());
+
 		// Handle events
 		while (this.receiver.hasNextEvent()) {
 			this.handleEvent(this.receiver.getNextEvent());
@@ -530,6 +544,7 @@ export default class HW2Scene extends Scene {
 			}
 			case HW2Events.DEAD: {
 				console.log("DEAD EVENT REACHED");
+				this.dead = true;
 				this.gameOverTimer.start();
 				break;
 			}
@@ -547,7 +562,7 @@ export default class HW2Scene extends Scene {
 				break;
 			}
 			case HW2Events.AIR_CHANGE: {
-				this.handleAirChange(event.data.get("curair"), event.data.get("maxair"));
+				this.handleAirChange(event.data.get("curair"), event.data.get("maxair"), event.data.get("oldair"));
 				break;
 			}
 			case HW2Events.RESUME_GAME:{
@@ -953,7 +968,7 @@ export default class HW2Scene extends Scene {
 			{
 				//console.log(newMonsterList);
 				//this.logArray(newMonsterList);
-				index = this.recAddObjs(newMonsterList, mon.objs, index, mon.spawnTime, mon.spawnY);
+				index = this.recAddObjs(newMonsterList, mon.objs, index, mon.spawnTime + spawnTimeStart, mon.spawnY + spawnYOffset);
 				//this.logArray(newMonsterList);
 			}
 		}
@@ -1329,6 +1344,7 @@ export default class HW2Scene extends Scene {
 		this.healthBar.position.set(this.healthBarBg.position.x - (unit / 2) * (maxHealth - currentHealth), this.healthBarBg.position.y);
 
 		this.healthBar.backgroundColor = currentHealth < maxHealth * 1/4 ? Color.RED: currentHealth < maxHealth * 3/4 ? Color.YELLOW : Color.GREEN;
+		this.hitsTaken++;
 	}
 	/**
 	 * This method handles updating the player's air-bar in the UI.
@@ -1355,12 +1371,14 @@ export default class HW2Scene extends Scene {
 	 * 
 	 * @see Label for more information about labels
 	 */
-	protected handleAirChange(currentAir: number, maxAir: number): void {
+	protected handleAirChange(currentAir: number, maxAir: number, oldair: number): void {
 		let unit = this.airBarBg.size.x / maxAir;
 		this.airBar.size.set(this.airBarBg.size.x - unit * (maxAir - currentAir), this.airBarBg.size.y);
 		this.airBar.position.set(this.airBarBg.position.x - (unit / 2) * (maxAir - currentAir), this.airBarBg.position.y);
 		//TODO FIX HARDCODED COST FOR SHOT
 		this.airBar.backgroundColor = currentAir < 2.5 ? Color.RED : Color.WHITE;
+		if(oldair != null)
+			this.energyUsed += oldair - currentAir;
 	}
 	/**
 	 * This method handles updating the charge of player's laser in the UI.
@@ -1794,16 +1812,26 @@ export default class HW2Scene extends Scene {
 			console.log("gameOverTimerEnd");
 			this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: HW2Scene.SONG_KEY});
 			this.player.ai.destroy();
-			this.sceneManager.changeToScene(GameOver, {
-				bubblesPopped: this.bubblesPopped, 
-				minesDestroyed: this.minesDestroyed,
-				timePassed: this.timePassed
-			}, {});
+			if(this.arcadeMode)
+			{
+				//TODO track player stats and send them to a screen at the end, + add to leaderboard
+				if(this.dead || this.currentLevel == levels.length - 1)
+				{
+					this.sceneManager.changeToScene(GameOver, {current_Level: this.currentLevel, arcadeMode: this.arcadeMode, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, dead:this.dead}, {});
+				}
+				else
+				{
+					this.sceneManager.changeToScene(HW2Scene, {level: this.currentLevel + 1, arcadeMode: true, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken});
+				}
+			}else
+			{
+				this.sceneManager.changeToScene(GameOver, {current_Level: this.currentLevel, arcadeMode: this.arcadeMode, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, dead:this.dead}, {});
+			}
 		}
 		if(this.tutorialOverTimer.hasRun() && this.tutorialOverTimer.isStopped()){
 			this.player.ai.destroy();
-			this.sceneManager.changeToScene(MainMenu)
 			this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: HW2Scene.SONG_KEY});
+			this.sceneManager.changeToScene(MainMenu, {screen: "mainMenu"}, {});
 		}
 	}
 
@@ -1858,14 +1886,16 @@ export default class HW2Scene extends Scene {
 
 		for(let i = this.mines.length - 1; i >= 0 && i >= this.mines.length - 5; i--)
 		{
-			if(this.mines[i].position.x > 0 && this.mines[i].visible)
+			if(this.mines[i].position.x > 0 && this.mines[i].visible && this.levelObjs[i].monsterType != monsterTypes.electricField)
 				return;
 		}
 
 		//The level is over
 		if(this.gameOverTimer.isStopped())
-			console.log('game over')
+		{
+			console.log('game over');
 			this.gameOverTimer.start();
+		}
 	}
 
 	protected handleTimeSkip(): void {
@@ -1906,7 +1936,7 @@ export default class HW2Scene extends Scene {
 		for(let x of this.lights) x.visible = false;
 		this.timePassed = time;
 		this.curMonsterIndex = 0;
-		for(;this.levelObjs[this.curMonsterIndex].spawnTime < time; this.curMonsterIndex++);
+		for(;this.curMonsterIndex < this.levelObjs.length && this.levelObjs[this.curMonsterIndex].spawnTime < time; this.curMonsterIndex++);
 	}
 
 	protected handleTutorialText(): void {

@@ -50,12 +50,16 @@ export default class MainMenu extends Scene {
     private levels_Unlocked : number;
     private current_Level : number;
 
+    private retScreen : string;
+
 
 
     public initScene(options: Record<string, any>): void {
         //this.levels_Unlocked = options.levels ? options.levels : 1
         this.levels_Unlocked = 6;
         this.current_Level = 1
+        this.retScreen = options.screen;
+       
         
     }
 
@@ -110,8 +114,16 @@ export default class MainMenu extends Scene {
         play.backgroundColor = Color.TRANSPARENT;
         play.onClickEventId = MainMenuEvent.PLAY_GAME;
 
+        // Add play recording button
+        const levelSelect = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y), text: "Level Select"});
+        levelSelect.size.set(200, 50);
+        levelSelect.borderWidth = 2;
+        levelSelect.borderColor = Color.WHITE;
+        levelSelect.backgroundColor = Color.TRANSPARENT;
+        levelSelect.onClickEventId = MainMenuEvent.LEVEL_SELECT;
+
         // Add controls button
-        const controls = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y), text: "Controls"});
+        const controls = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y + 100), text: "Controls"});
         controls.size.set(200, 50);
         controls.borderWidth = 2;
         controls.borderColor = Color.WHITE;
@@ -119,20 +131,14 @@ export default class MainMenu extends Scene {
         controls.onClickEventId = MainMenuEvent.CONTROLS;
 
         // Add event button
-        const about = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y + 100), text: "Backstory"});
+        const about = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y + 200), text: "Backstory"});
         about.size.set(200, 50);
         about.borderWidth = 2;
         about.borderColor = Color.WHITE;
         about.backgroundColor = Color.TRANSPARENT;
         about.onClickEventId = MainMenuEvent.ABOUT;
 
-        // Add play recording button
-        const levelSelect = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y + 200), text: "Level Select"});
-        levelSelect.size.set(200, 50);
-        levelSelect.borderWidth = 2;
-        levelSelect.borderColor = Color.WHITE;
-        levelSelect.backgroundColor = Color.TRANSPARENT;
-        levelSelect.onClickEventId = MainMenuEvent.LEVEL_SELECT;
+   
 
 
         // Add best score button
@@ -307,6 +313,27 @@ export default class MainMenu extends Scene {
 
         this.receiver.subscribe(MainMenuEvent.LEVEL_PRESSED);
         this.receiver.subscribe(MainMenuEvent.TUTORIAL_PRESSED);
+
+
+        //show the correct screen if returned
+        if(this.retScreen == "levelSelect")
+        {
+            this.splashScreen.setHidden(true);
+            this.mainMenu.setHidden(true);
+            this.controls.setHidden(true);
+            this.about.setHidden(true);
+            this.levelSelect.setHidden(false);
+            this.bestScores.setHidden(true);
+        }else if(this.retScreen == "mainMenu")
+        {
+            this.splashScreen.setHidden(true);
+            this.controls.setHidden(true);
+            this.mainMenu.setHidden(false);
+            this.about.setHidden(true);
+            this.levelSelect.setHidden(true);
+            this.bestScores.setHidden(true);
+    
+        }
     }
 
     public override updateScene(){
@@ -342,8 +369,7 @@ export default class MainMenu extends Scene {
                 break;
             }
             case MainMenuEvent.PLAY_GAME: {
-                this.seed = RandUtils.randomSeed();
-                this.sceneManager.changeToScene(Homework1_Scene, {level: 1, seed: this.seed, recording: true});
+                this.sceneManager.changeToScene(Homework1_Scene, {level: 1, arcadeMode: true});
                 break;
             }
             case MainMenuEvent.CONTROLS: {

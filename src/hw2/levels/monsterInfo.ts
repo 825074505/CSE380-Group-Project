@@ -38,6 +38,7 @@ export type monsterInfo = {
 	monsterType?: number;
 
 	weakToLight?: boolean;
+	timeToWeak?: number;
 	//speed
 	//projectile
 	projectiles?: Array<projectileInfo>;

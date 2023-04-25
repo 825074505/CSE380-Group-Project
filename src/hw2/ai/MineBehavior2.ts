@@ -118,6 +118,15 @@ export default class MineBehavior2 implements AI {
 
     private charging: boolean = false;
 
+    private amplitude: number = 150;
+    private period: number = 1;
+    private timeToWeak: number = 1;
+
+    private timeSinceSpawn: number = 0;
+
+    private notEnemyList: Array<number>;
+
+
     /**
      * @see {AI.initializeAI}
      */
@@ -142,11 +151,12 @@ export default class MineBehavior2 implements AI {
         this.timeSincePhased = 0;
         this.owner.animation.play(MineAnimations.IDLE, true);
         this.spawnLoc = new Vec2(this.owner.position.x, this.owner.position.y);
-
+        this.notEnemyList = [monsterTypes.stalactite, monsterTypes.stalactiteTop, monsterTypes.stalagmite, monsterTypes.electricField];
         const info = options.monInfo;
         if(info != null)
         {
-            this.movementPattern = info.movementPattern;
+            if(info.movementPattern != null)
+                this.movementPattern = info.movementPattern;
             this.player = options.player;
             this.narrowLight = options.narrowLight;
             this.wideLight = options.wideLight;
@@ -176,6 +186,17 @@ export default class MineBehavior2 implements AI {
                 //start time
                 this.projectileTimer = this.projectiles[this.projectileIndex].waitTime - 1;
             }
+
+            if(info.amplitude != null)
+            {
+                this.amplitude = info.amplitude;
+            }
+
+            if(info.timeToWeak != null)
+                this.timeToWeak = info.timeToWeak;
+
+            if(info.period != null)
+                this.period = info.period;
             
         }
             
@@ -248,12 +269,12 @@ export default class MineBehavior2 implements AI {
             //Movement
 
             //Make the enemies chase the player if they get close, commented out for testing reasons but this works
-            /*
-            if(this.owner.position.x < 200 && this.movementPattern != movementPatterns.trackPlayer)
+            
+            if(this.owner.position.x < 300 && this.movementPattern != movementPatterns.trackPlayer && !this.notEnemyList.includes(this.monsterType))
             {
                 this.movementPattern = movementPatterns.trackPlayer;
             }
-            */
+            
             //hacky wait for electric time
             /*
             if(this.monsterType == monsterTypes.electricField && this.owner.position.x < 900 && !this.appeared)
@@ -279,16 +300,14 @@ export default class MineBehavior2 implements AI {
                     this.owner.position.add(this.direction.scaled(this.speed * deltaT));
                     //add this to parameters at some point
                     //TODO add offset for sin so its random
-                    const sineRange = 150;
-                    this.owner.position = new Vec2(this.owner.position.x, this.spawnLoc.y + Math.sin(this.owner.position.x/71) * sineRange);
+                    this.owner.position = new Vec2(this.owner.position.x, this.spawnLoc.y + Math.sin(this.timeSinceSpawn / this.period) * this.amplitude);
                     break;
 
                 case movementPatterns.triangleWave:
                     this.owner.position.add(this.direction.scaled(this.speed * deltaT));
                     //add this to parameters at some point
                     //TODO add offset
-                    const triRange = 400;
-                    this.owner.position = new Vec2(this.owner.position.x, this.spawnLoc.y + MathUtils.tri(this.owner.position.x + 450/4, 450) * triRange);
+                    this.owner.position = new Vec2(this.owner.position.x, this.spawnLoc.y + MathUtils.tri(this.timeSinceSpawn, this.period) * this.amplitude);
                     break;
 
                 case movementPatterns.runAway:
@@ -316,7 +335,8 @@ export default class MineBehavior2 implements AI {
             }
             //clamp Positions TODO unhardcode canvas size
             //
-            this.owner.position = new Vec2(MathUtils.clamp(this.owner.position.x, this.stoppingX, 3000), MathUtils.clamp(this.owner.position.y, 20, 880));
+            if(this.monsterType != monsterTypes.stalagmite)
+                this.owner.position = new Vec2(MathUtils.clamp(this.owner.position.x, this.stoppingX, 3000), MathUtils.clamp(this.owner.position.y, 20, 880));
 
 
             //gonna refactor this eventually with some functions that handle state changes and reduce repeated code
@@ -328,7 +348,6 @@ export default class MineBehavior2 implements AI {
                 if(this.narrowLight.visible && this.checkLightCollision(this.narrowLight, this.owner.collisionShape))
                 {
                     if(this.lightState != lightStates.narrow){
-                        this.timeSinceLight = 0;
                         this.owner.animation.playIfNotAlready(MineAnimations.WEAKENING, true);
                         this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.ENEMYWEAKENING_AUDIO_KEY, loop: false, holdReference: true});
                         this.lightState = lightStates.narrow;
@@ -343,6 +362,7 @@ export default class MineBehavior2 implements AI {
                         this.lightState = lightStates.wide;
                         this.monsterState = monsterStates.invincible;
                     }
+                    this.timeSinceLight = MathUtils.clamp(this.timeSinceLight - deltaT/4, 0, 1000);
                 }
                 else
                 {
@@ -352,10 +372,11 @@ export default class MineBehavior2 implements AI {
                         this.lightState = lightStates.dark;
                         this.monsterState = monsterStates.invincible;
                     }
+                    this.timeSinceLight = MathUtils.clamp(this.timeSinceLight - deltaT/4, 0, 1000);
                 }
 
                 //Been in the light long enough
-                if(this.timeSinceLight > 1 && this.monsterState != monsterStates.weak)
+                if(this.timeSinceLight > this.timeToWeak && this.monsterState != monsterStates.weak)
                 {
                     this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.ENEMYWEAK_AUDIO_KEY, loop: false, holdReference: false});
                     this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.ENEMYWEAKENING_AUDIO_KEY});
@@ -396,7 +417,7 @@ export default class MineBehavior2 implements AI {
 
                     this.timeSinceLight += deltaT;
 
-                    if(this.timeSinceLight > 0.1 && this.monsterState != monsterStates.weak)
+                    if(this.timeSinceLight > 0.35 && this.monsterState != monsterStates.weak)
                     {
                         this.monsterState = monsterStates.weak;
                         this.owner.animation.playIfNotAlready(MineAnimations.IDLE, true);
@@ -427,6 +448,7 @@ export default class MineBehavior2 implements AI {
                 }
             }
 
+            this.timeSinceSpawn += deltaT;
         }
     }
 

@@ -3,104 +3,130 @@ import MineBehavior2, {movementPatterns, monsterTypes} from "../ai/MineBehavior2
 import ProjectileBehavior, {projectileBehaviors} from "../ai/ProjectileBehavior";
 
 
-const threeGuysInARow: Array<monsterInfo> = [
-		{
-		spawnTime: 0.0,
-		spriteKey: "MINE",
-		spawnY: 0,
-		movementPattern: movementPatterns.moveLeft,
-		},
-		{
-		spawnTime: 1.0,
-		spriteKey: "MINE",
-		spawnY: 0,
-		movementPattern: movementPatterns.moveLeft,
-		},
-		{
-		spawnTime: 2.0,
-		spriteKey: "MINE",
-		spawnY: 0,
-		movementPattern: movementPatterns.moveLeft,
-		}]
 
+const pincer: Array<monsterInfo> = [
+	{
+		spawnTime: 0.0,
+		spriteKey: "STALACTITE",
+		spawnY: -525,
+		hitboxScaleX: 0.03,
+		hitboxScaleY: 1.0,
+		movementPattern: movementPatterns.moveLeft,
+		monsterType: monsterTypes.stalagmite,
+	},
+	{
+		spawnTime: 0.0,
+		spriteKey: "STALAGMITE",
+		spawnY: 525,
+		hitboxScaleX: 0.03,
+		hitboxScaleY: 1.0,
+		movementPattern: movementPatterns.moveLeft,
+		monsterType: monsterTypes.stalagmite,
+	}
+]
 
 export const level2Objs: Array<monsterInfo> = [
 	{
 	spawnTime: 0.0,
-	spriteKey: "ELECTRICITY",
-	spawnY: 800,
-	movementPattern: movementPatterns.moveLeft,
-	monsterType: monsterTypes.electricField,
-	},
-	{
-	spawnTime: 0.0,
-	spawnY: 300,
-	objs: threeGuysInARow,
-	},
-	{
-	spawnTime: 4.0,
-	spawnY: 600,
-	objs: threeGuysInARow,
-	},
-
-	{
-	spawnTime: 1.0,
-	spriteKey: "MINE",
-	spawnY: 250,
-	movementPattern: movementPatterns.moveLeft,
-	monsterType: monsterTypes.spinning,
-	stoppingX: 800,
-
-	/*
-	projectileBehavior: projectileBehaviors.atCurrentPos,
-	projectileSpeed: 200,
-	projectileFrequency: 3,
-	projectileLaserLength: 1,
-	projectileSplitX: 450,
-	*/
-	projectiles: [{behavior: projectileBehaviors.atCurrentPos,
-			speed: 200,
-			splitX: 450,
-			splitAngles: [-1, -0.5, 0.5, 1],
-			waitTime: 3.0,}],
-	},
-	{
-	spawnTime: 2.0,
-	spriteKey: "MINE",
-	spawnY: 450,
-	movementPattern: movementPatterns.trackPlayer,
-	monsterType: monsterTypes.weakToDark,
-	},
-	{
-	spawnTime: 4.0,
 	spriteKey: "MINE",
 	spawnY: 450,
 	movementPattern: movementPatterns.sineWave,
-	monsterType: monsterTypes.weakFromTop,
 	},
+
 	{
-	spawnTime: 4.0,
-	spriteKey: "STALACTITETOP",
-	spawnY: 96,
-	movementPattern: movementPatterns.moveLeft,
-	monsterType: monsterTypes.stalactite,
-	},
-	{
-	spawnTime: 6.0,
+	spawnTime: 2.5,
 	spriteKey: "MINE",
-	spawnY: 450,
-	movementPattern: movementPatterns.triangleWave,
+	spawnY: 300,
+	movementPattern: movementPatterns.sineWave,
+	amplitude: -150,
 	},
+
 	{
-	spawnTime: 8.0,
+	spawnTime: 5.0,
 	spriteKey: "MINE",
-	spawnY: 450,
-	movementPattern: movementPatterns.runAway,
+	spawnY: 600,
+	movementPattern: movementPatterns.sineWave,
+	weakToLight: true,
 	},
+
+	{
+	spawnTime: 5.0,
+	spriteKey: "ELECTRICITY",
+	spawnY: 300,
+	monsterType: monsterTypes.electricField,
+	},
+
+	{
+	spawnTime: 7.0,
+	spawnY: 300,
+	objs: pincer,
+	},
+
+	{
+	spawnTime: 9.0,
+	spriteKey: "MINE",
+	spawnY: 300,
+	},
+
 	{
 	spawnTime: 10.0,
 	spriteKey: "MINE",
-	spawnY: 450,
-	movementPattern: movementPatterns.phasing,
+	spawnY: 300,
 	},
+
+	{
+	spawnTime: 11.0,
+	spriteKey: "MINE",
+	spawnY: 300,
+	},
+
+	{
+	spawnTime: 14.0,
+	spriteKey: "MINE",
+	spawnY: 700,
+	weakToLight: true,
+	},
+
+	{
+	spawnTime: 18.0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	monsterType: monsterTypes.spinning,
+	stoppingX: 600,
+	},
+
+	{
+	spawnTime: 22,
+	spriteKey: "ELECTRICITY",
+	spawnY: 600,
+	monsterType: monsterTypes.electricField,
+	},
+
+	{
+	spawnTime: 26,
+	spriteKey: "MINE",
+	spawnY: 200,
+	projectiles: [{behavior: projectileBehaviors.atCurrentPos,
+			speed: 200,
+			waitTime: 3.0,}],
+	},
+
+	{
+	spawnTime: 27,
+	spriteKey: "MINE",
+	spawnY: 700,
+	projectiles: [{behavior: projectileBehaviors.atCurrentPos,
+			speed: 200,
+			waitTime: 3.0,}],
+	},
+
+	{
+	spawnTime: 29,
+	spriteKey: "MINE",
+	spawnY: 700,
+	monsterType: monsterTypes.spinning,
+	movementPattern: movementPatterns.trackPlayer,
+	},
+
 ]
+
