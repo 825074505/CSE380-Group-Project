@@ -146,6 +146,15 @@ export const AudioKeys = {
 
 	RECHARGING_AUDIO_KEY: "RECHARGING",
     RECHARGING_AUDIO_PATH: "hw2_assets/sounds/recharging.wav",
+
+	PROPELLER_AUDIO_KEY: "PROPELLER",
+    PROPELLER_AUDIO_PATH: "hw2_assets/sounds/propeller2.wav",
+
+	PROPELLERUP_AUDIO_KEY: "PROPELLERUP",
+    PROPELLERUP_AUDIO_PATH: "hw2_assets/sounds/propellerup3.wav",
+
+	PROPELLERDOWN_AUDIO_KEY: "PROPELLERDOWN",
+    PROPELLERDOWN_AUDIO_PATH: "hw2_assets/sounds/propellerdown2.wav",
 }
 
 
@@ -154,8 +163,6 @@ export const AudioKeys = {
  * @see Scene for more information about the Scene class and Scenes in Wolfie2D
  */
 export default class HW2Scene extends Scene {
-
-	//sounds
 
 	//PAUSE Screen Pop Up Layer
 	private pause : Layer;
@@ -171,11 +178,13 @@ export default class HW2Scene extends Scene {
 	private completedSteer : boolean = false;
 	private usedElectricField : boolean = false;
 	private shotEnemy : boolean = false;
+	private weakToLightDead : boolean = false;
 	private narrowedLight : boolean = false;
 	
 	private tutorialText : Label;
 	private tutorialText2 : Label;
 	private tutorialOverTimer : Timer;
+	private overTimerHasRun: boolean = false;
 	private tutorialSectionTimer : Timer;
 	
     // A flag to indicate whether or not this scene is being recorded
@@ -186,6 +195,8 @@ export default class HW2Scene extends Scene {
 	// The key and path to the background sprite
 	public static BACKGROUND_KEY = "BACKGROUND"
     public static BACKGROUND_PATH = "hw2_assets/sprites/blacknoise.png"
+
+	public static SONG_KEY = "SONG"
 
 	// Sprites for the background images
 	private bg1: Sprite;
@@ -241,6 +252,8 @@ export default class HW2Scene extends Scene {
 
 	private curMonsterIndex: number = 0;
 
+	private currentSong: string;
+
 	// The padding of the world
 	private worldPadding: Vec2;
 
@@ -264,12 +277,9 @@ export default class HW2Scene extends Scene {
 	 */
 	public override loadScene(){
 		// Load in the background image
-		if(this.tutorial){
-			this.load.image(HW2Scene.BACKGROUND_KEY, levels[6].BACKGROUND_PATH);
-		}
-		else{
-			this.load.image(HW2Scene.BACKGROUND_KEY, levels[this.currentLevel - 1].BACKGROUND_PATH);
-		}
+		this.load.image(HW2Scene.BACKGROUND_KEY, levels[this.currentLevel].BACKGROUND_PATH);
+
+		this.load.audio(HW2Scene.SONG_KEY, levels[this.currentLevel].SONG_PATH);
 
 		let sskeys = Object.keys(SpritesheetKeys);
 
@@ -330,11 +340,8 @@ export default class HW2Scene extends Scene {
 		this.initUI();
 		this.projectiles = new Array();
 
-		if(this.tutorial){
-			this.levelObjs = levels[6].objs;
-		}
-		else{
-			this.levelObjs = levels[this.currentLevel - 1].objs;
+		this.levelObjs = levels[this.currentLevel].objs;
+		if(!this.tutorial){
 			this.tutorialText.setText('')
 			this.tutorialText2.setText('')
 		}
@@ -353,8 +360,13 @@ export default class HW2Scene extends Scene {
 		//Game events
 		this.receiver.subscribe(HW2Events.RESUME_GAME);
 		this.receiver.subscribe(HW2Events.BACK_TO_MAIN);
+		this.receiver.subscribe(HW2Events.SHOT_ENEMY);
+		this.receiver.subscribe(HW2Events.SHOT_WEAKTOLIGHT);
 		// Subscribe to laser events
 		this.receiver.subscribe(HW2Events.FIRING_LASER);
+
+		this.emitter.fireEvent(GameEventType.PLAY_MUSIC, {key: HW2Scene.SONG_KEY, loop: true, holdReference: true});
+
 
 		//TODO sort levelObjs by spawn time just in case
 	}
@@ -412,17 +424,45 @@ export default class HW2Scene extends Scene {
 			}
 			else if(this.current_tutorialSection===4 && this.usedElectricField){
 				//spawn a normal enemy and check if a player has shot it
+				if(this.tutorialSectionTimer.isStopped()){
+					if(this.shotEnemy){
+						this.current_tutorialSection += 1;
+					}
+					else{
+						this.progressTutorial(this.current_tutorialSection-1);
+						this.tutorialSectionTimer.start();
+					}
+				}
 
 			} 
 			else if(this.current_tutorialSection===5 && this.shotEnemy){
+				console.log(this.current_tutorialSection);
 				//spawn a special enemy that is weak to light and check if a player has killed it
+				if(this.tutorialSectionTimer.isStopped()){
+					if(this.weakToLightDead){
+						this.current_tutorialSection += 1;
+					}
+					else{
+						
+						this.progressTutorial(this.current_tutorialSection-1);
+						this.tutorialSectionTimer.start();
+					}
+				}
+				
 
 			}
-			else if(this.current_tutorialSection===6 && this.narrowedLight){
+			else if(this.current_tutorialSection===6 && this.weakToLightDead){
+				console.log(this.current_tutorialSection);
 				//initiate a timer that makes player go back to main menu after 3 second
-				if(!this.tutorialOverTimer.hasRun()){
+				if(this.overTimerHasRun == false){
 					this.tutorialOverTimer.start()
+					this.overTimerHasRun = true;
+					console.log("rerun timer")
 				}
+				else{
+					this.handleTimers();
+				}
+				
 			}
 		}
 		
@@ -441,6 +481,9 @@ export default class HW2Scene extends Scene {
 			
 		//spawns enemies if enough time has passed
 		if(!this.tutorial) {this.progressEnemies();}
+
+
+		this.handleTimeSkip();
 
 
         // TODO Remove despawning of mines and bubbles here
@@ -520,6 +563,16 @@ export default class HW2Scene extends Scene {
 			case HW2Events.SPAWN_PROJECTILE: {
 				//this.projectiles.push(event.data.get("projectile"));
 				this.spawnProjectile(event);
+				break;
+			}
+			case HW2Events.SHOT_ENEMY:{
+				this.shotEnemy = true;
+				break;
+			}
+			case HW2Events.SHOT_WEAKTOLIGHT:{
+				if(this.current_tutorialSection === 5){
+					this.weakToLightDead = true;
+				}
 				break;
 			}
 			default: {
@@ -1489,6 +1542,9 @@ export default class HW2Scene extends Scene {
 						//this.emitter.fireEvent(HW2Events.LASER_MINE_COLLISION, { mineId: mine.id, laserId: laser.id, hit: hitInfo});
 						hitMineList.push({mine: mine, hitInfo: hitInfo});
 						collisions += 1;
+						if(this.tutorial && this.levelObjs[index].monsterType == monsterTypes.default && this.shotEnemy == false){
+							this.shotEnemy = true;
+						}
 					}
 				}
 			}
@@ -1736,16 +1792,16 @@ export default class HW2Scene extends Scene {
 		// If the game-over timer has run, change to the game-over scene
 		if (this.gameOverTimer.hasRun() && this.gameOverTimer.isStopped()) {
 			console.log("gameOverTimerEnd");
-			if(this.recording)
-			{
-				this.sceneManager.changeToScene(GameOver, {
-					bubblesPopped: this.bubblesPopped, 
-					minesDestroyed: this.minesDestroyed,
-					timePassed: this.timePassed
-				}, {});
-			}
+			this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: HW2Scene.SONG_KEY});
+			this.player.ai.destroy();
+			this.sceneManager.changeToScene(GameOver, {
+				bubblesPopped: this.bubblesPopped, 
+				minesDestroyed: this.minesDestroyed,
+				timePassed: this.timePassed
+			}, {});
 		}
 		if(this.tutorialOverTimer.hasRun() && this.tutorialOverTimer.isStopped()){
+			this.player.ai.destroy();
 			this.sceneManager.changeToScene(MainMenu)
 		}
 	}
@@ -1810,6 +1866,42 @@ export default class HW2Scene extends Scene {
 			this.gameOverTimer.start();
 	}
 
+	protected handleTimeSkip(): void {
+		let time = -1;
+		if(Input.isKeyPressed("q"))
+		{
+			if(Input.isKeyJustPressed("1"))
+				time = 10;
+			if(Input.isKeyJustPressed("2"))
+				time = 20;
+			if(Input.isKeyJustPressed("3"))
+				time = 30;
+			if(Input.isKeyJustPressed("4"))
+				time = 40;
+			if(Input.isKeyJustPressed("5"))
+				time = 50;
+			if(Input.isKeyJustPressed("6"))
+				time = 60;
+			if(Input.isKeyJustPressed("7"))
+				time = 70;
+			if(Input.isKeyJustPressed("8"))
+				time = 80;
+			if(Input.isKeyJustPressed("9"))
+				time = 90;
+			if(Input.isKeyJustPressed("0"))
+				time = 0;
+		}
+		
+		if(time != -1)
+		{
+			for(let x of this.mines) x.visible = false;
+			for(let x of this.projectiles) x.visible = false;
+			this.timePassed = time;
+			this.curMonsterIndex = 0;
+			for(;this.levelObjs[this.curMonsterIndex].spawnTime < time; this.curMonsterIndex++);
+		}
+	}
+
 	protected handleTutorialText(): void {
 		if(this.closedLight && this.current_tutorialSection===1){
 			this.tutorialText.setText("↑↑↑ Using the light needs energy(restores when closed)")
@@ -1832,10 +1924,12 @@ export default class HW2Scene extends Scene {
 			this.tutorialText2.setText("it can be used to aim more accurately and weaken certain enemies.")
 			return
 		}
-		if(this.narrowedLight && this.current_tutorialSection===6){
+		if(this.weakToLightDead && this.current_tutorialSection===6){
 			this.tutorialText.setText("Congratulation, you have completed the tutorial!")
+			this.tutorialText2.setText("")
 			return
 		}
 	}
 
 }
+
