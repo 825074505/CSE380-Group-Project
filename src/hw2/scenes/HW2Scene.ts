@@ -28,7 +28,6 @@ import BubbleShaderType from "../shaders/BubbleShaderType";
 import LaserShaderType from "../shaders/LaserShaderType";
 
 import { GameEventType } from "../../Wolfie2D/Events/GameEventType";
-import BasicRecording from "../../Wolfie2D/Playback/BasicRecording";
 
 import { HW2Events } from "../HW2Events";
 import Layer from "../../Wolfie2D/Scene/Layer";
@@ -41,7 +40,7 @@ import GameLoop from "../../Wolfie2D/Loop/GameLoop";
 import ProjectileBehavior, {projectileBehaviors} from "../ai/ProjectileBehavior";
 
 import {level, levels} from "../levels/levelList";
-import {monsterInfo} from "../levels/monsterInfo";
+import {monsterInfo, projectileInfo} from "../levels/monsterInfo";
 
 import AudioManager, { AudioChannelType } from "../../Wolfie2D/Sound/AudioManager";
 
@@ -61,22 +60,111 @@ export const HW2Layers = {
 	PAUSE: "PAUSE"
 } as const;
 
+export const SpritesheetKeys = {
+	// The key and path to the player's spritesheet json data
+    PLAYER_KEY: "PLAYER",
+    PLAYER_PATH: "hw2_assets/spritesheets/AYellowBarrelWithWindows.json",
+    // The key and path to the mine sprite
+    MINE_KEY: "MINE",
+    MINE_PATH: "hw2_assets/spritesheets/SpikyMineThing.json",
+
+	ELECTRICITY_KEY: "ELECTRICITY",
+	ELECTRICITY_PATH: "hw2_assets/spritesheets/Electricity.json",
+
+	STALAGMITE_KEY: "STALAGMITE",
+	STALAGMITE_PATH: "hw2_assets/spritesheets/testStalagmite.json",
+
+	STALACTITE_KEY: "STALACTITE",
+	STALACTITE_PATH: "hw2_assets/spritesheets/stalactite.json",
+
+	STALACTITETOP_KEY: "STALACTITETOP",
+	STALACTITETOP_PATH: "hw2_assets/spritesheets/stalactiteTop.json",
+
+
+}
+
+export const SpriteKeys = {
+	PLANEWINGS_KEY: "PLANEWINGS",
+	PLANEWINGS_PATH: "hw2_assets/sprites/testplanewings.png",
+
+
+	TBUF_KEY: "TBUF",
+	TBUF_PATH: "hw2_assets/sprites/TBUF.png",
+}
+
+export const AudioKeys = {
+	SHOOT_AUDIO_KEY: "SHOOT",
+    SHOOT_AUDIO_PATH: "hw2_assets/sounds/shoot2.wav",
+
+	SHOOT2_AUDIO_KEY: "SHOOT2",
+    SHOOT2_AUDIO_PATH: "hw2_assets/sounds/shoot5.wav",
+
+	SHOOT3_AUDIO_KEY: "SHOOT3",
+    SHOOT3_AUDIO_PATH: "hw2_assets/sounds/shoot4.wav",
+
+	ENEMYSHOOT_AUDIO_KEY: "ENEMYSHOOT",
+	ENEMYSHOOT_AUDIO_PATH: "hw2_assets/sounds/shoot3.wav",
+
+	EXPLOSION_AUDIO_KEY: "EXPLOSION",
+    EXPLOSION_AUDIO_PATH: "hw2_assets/sounds/explosion1.wav",
+
+	HEADLIGHTON_AUDIO_KEY: "HEADLIGHTON",
+    HEADLIGHTON_AUDIO_PATH: "hw2_assets/sounds/headlightOn.wav",
+
+	HEADLIGHTOFF_AUDIO_KEY: "HEADLIGHTOFF",
+    HEADLIGHTOFF_AUDIO_PATH: "hw2_assets/sounds/headlightOff.wav",
+
+	HITENEMY_AUDIO_KEY: "HITENEMY",
+    HITENEMY_AUDIO_PATH: "hw2_assets/sounds/hitenemysound.wav",
+
+	ENEMYDEFLECTED_AUDIO_KEY: "ENEMYDEFLECTED",
+	ENEMYDEFLECTED_AUDIO_PATH: "hw2_assets/sounds/enemyDeflected.wav",
+
+	PROJECTILESPLIT_AUDIO_KEY: "PROJECTILESPLIT",
+    PROJECTILESPLIT_AUDIO_PATH: "hw2_assets/sounds/projectileSplit.wav",
+
+	ENEMYWEAK_AUDIO_KEY: "ENEMYWEAK",
+    ENEMYWEAK_AUDIO_PATH: "hw2_assets/sounds/enemyWeak1.wav",
+
+	ENEMYWEAKENING_AUDIO_KEY: "ENEMYWEAKENING",
+    ENEMYWEAKENING_AUDIO_PATH: "hw2_assets/sounds/enemyWeakening1.wav",
+
+	SPAWNENEMY_AUDIO_KEY: "SPAWNENEMY",
+    SPAWNENEMY_AUDIO_PATH: "hw2_assets/sounds/spawn2.wav",
+
+	PLAYERHIT_AUDIO_KEY: "PLAYERHIT",
+    PLAYERHIT_AUDIO_PATH: "hw2_assets/sounds/playerHit.wav",
+
+	ENEMYDEAD_AUDIO_KEY: "ENEMYDEAD",
+    ENEMYDEAD_AUDIO_PATH: "hw2_assets/sounds/enemyDead.wav",
+
+	NARROWLIGHT_AUDIO_KEY: "NARROWLIGHT",
+    NARROWLIGHT_AUDIO_PATH: "hw2_assets/sounds/narrowLight4.wav",
+
+	ELECTRICAPPEAR_AUDIO_KEY: "ELECTRICAPPEAR",
+    ELECTRICAPPEAR_AUDIO_PATH: "hw2_assets/sounds/electricSound.wav",
+
+	RECHARGING_AUDIO_KEY: "RECHARGING",
+    RECHARGING_AUDIO_PATH: "hw2_assets/sounds/recharging.wav",
+
+	PROPELLER_AUDIO_KEY: "PROPELLER",
+    PROPELLER_AUDIO_PATH: "hw2_assets/sounds/propeller2.wav",
+
+	PROPELLERUP_AUDIO_KEY: "PROPELLERUP",
+    PROPELLERUP_AUDIO_PATH: "hw2_assets/sounds/propellerup3.wav",
+
+	PROPELLERDOWN_AUDIO_KEY: "PROPELLERDOWN",
+    PROPELLERDOWN_AUDIO_PATH: "hw2_assets/sounds/propellerdown2.wav",
+}
+
 
 /**
  * This is the main scene for our game. 
  * @see Scene for more information about the Scene class and Scenes in Wolfie2D
  */
 export default class HW2Scene extends Scene {
-    // The key and path to the player's spritesheet json data
-    public static PLAYER_KEY: string = "PLAYER";
-    public static PLAYER_PATH = "hw2_assets/spritesheets/AYellowBarrelWithWindows.json"
-    // The key and path to the mine sprite
-    public static MINE_KEY = "MINE"
-    public static MINE_PATH = "hw2_assets/spritesheets/SpikyMineThing.json"
-    // The key and path to the background sprite
-	public static BACKGROUND_KEY = "BACKGROUND"
-    public static BACKGROUND_PATH = "hw2_assets/sprites/blacknoise.png"
 
+<<<<<<< HEAD
 	public static ELECTRICITY_KEY = "ELECTRICITY";
 	public static ELECTRICITY_PATH = "hw2_assets/spritesheets/Electricity.json";
 
@@ -88,13 +176,16 @@ export default class HW2Scene extends Scene {
 
 	public static TBUF_KEY: string = "TBUF";
 	public static TBUF_PATH = "hw2_assets/sprites/tbuf.png";
+=======
+	//sounds
+>>>>>>> 4495291d82a37dd574f510f65794964b56adc3c8
 
 	//PAUSE Screen Pop Up Layer
 	private pause : Layer;
 	private paused: boolean;
 
 	private currentLevel: number;
-	
+
 	//Tutorial level stuff
 	private tutorial : boolean;
 	private current_tutorialSection : number = 0;
@@ -116,6 +207,12 @@ export default class HW2Scene extends Scene {
     private recording: boolean;
     // The seed that should be set before the game starts
     private seed: string;
+
+	// The key and path to the background sprite
+	public static BACKGROUND_KEY = "BACKGROUND"
+    public static BACKGROUND_PATH = "hw2_assets/sprites/blacknoise.png"
+
+	public static SONG_KEY = "SONG"
 
 	// Sprites for the background images
 	private bg1: Sprite;
@@ -171,6 +268,8 @@ export default class HW2Scene extends Scene {
 
 	private curMonsterIndex: number = 0;
 
+	private currentSong: string;
+
 	// The padding of the world
 	private worldPadding: Vec2;
 
@@ -186,10 +285,6 @@ export default class HW2Scene extends Scene {
 		this.currentLevel = options.level;
 		this.tutorial = this.currentLevel === 0;
 		console.log("init, ", this.currentLevel);
-		console.log("SEED:" + options.seed);
-		this.seed = options.seed === undefined ? RandUtils.randomSeed() : options.seed;
-		RandUtils.seed = this.seed;
-        this.recording = options.recording === undefined ? false : options.recording; 
 
 
 	}
@@ -197,25 +292,26 @@ export default class HW2Scene extends Scene {
 	 * @see Scene.loadScene()
 	 */
 	public override loadScene(){
-		// Load in the submarine
-		this.load.spritesheet(HW2Scene.PLAYER_KEY, HW2Scene.PLAYER_PATH);
 		// Load in the background image
-		if(this.tutorial){
-			this.load.image(HW2Scene.BACKGROUND_KEY, levels[6].BACKGROUND_PATH);
+		this.load.image(HW2Scene.BACKGROUND_KEY, levels[this.currentLevel].BACKGROUND_PATH);
+
+		this.load.audio(HW2Scene.SONG_KEY, levels[this.currentLevel].SONG_PATH);
+
+		let sskeys = Object.keys(SpritesheetKeys);
+
+		for(let i = 0; i < sskeys.length; i+=2)
+		{
+			this.load.spritesheet(SpritesheetKeys[sskeys[i]], SpritesheetKeys[sskeys[i+1]]);
 		}
-		else{
-			this.load.image(HW2Scene.BACKGROUND_KEY, levels[this.currentLevel - 1].BACKGROUND_PATH);
+
+		let skeys = Object.keys(SpriteKeys);
+
+		for(let i = 0; i < skeys.length; i+=2)
+		{
+			this.load.image(SpriteKeys[skeys[i]], SpriteKeys[skeys[i+1]]);
 		}
-		// Load in the naval mine
-		this.load.spritesheet(HW2Scene.MINE_KEY, HW2Scene.MINE_PATH);
 
-		this.load.spritesheet(HW2Scene.ELECTRICITY_KEY, HW2Scene.ELECTRICITY_PATH);
 
-		this.load.image(HW2Scene.PLANEWINGS_KEY, HW2Scene.PLANEWINGS_PATH);
-
-		this.load.spritesheet(HW2Scene.STALAGMITE_KEY, HW2Scene.STALAGMITE_PATH);
-
-		this.load.image(HW2Scene.TBUF_KEY, HW2Scene.TBUF_PATH);
 		// Load in the shader for bubble.
 		this.load.shader(
 			BubbleShaderType.KEY,
@@ -228,6 +324,15 @@ export default class HW2Scene extends Scene {
 			LaserShaderType.VSHADER, 
 			LaserShaderType.FSHADER
     	);
+
+
+		//sounds
+		let akeys = Object.keys(AudioKeys);
+
+		for(let i = 0; i < akeys.length; i+=2)
+		{
+			this.load.audio(AudioKeys[akeys[i]], AudioKeys[akeys[i+1]])
+		}
 	}
 	/**
 	 * @see Scene.startScene()
@@ -240,15 +345,6 @@ export default class HW2Scene extends Scene {
 		this.addLayer(HW2Layers.BACKGROUND, 0);
 		this.initBackground();
 
-		if(this.tutorial){
-			this.levelObjs = levels[6].objs;
-		}
-		else{
-			this.levelObjs = levels[this.currentLevel - 1].objs;
-			this.tutorialText.setText('')
-			this.tutorialText.setText('')
-		}
-
 		// Create a layer to serve as our main game - Feel free to use this for your own assets
 		// It is given a depth of 5 to be above our background
 		this.addLayer(HW2Layers.PRIMARY, 5);
@@ -258,9 +354,16 @@ export default class HW2Scene extends Scene {
 		this.initTimers();
 		// Initialize the UI
 		this.initUI();
+		this.projectiles = new Array();
+
+		this.levelObjs = levels[this.currentLevel].objs;
+		if(!this.tutorial){
+			this.tutorialText.setText('')
+			this.tutorialText2.setText('')
+		}
+
 		// Initialize object pools
 		this.initObjectPools();
-		this.projectiles = new Array();
 
 		// Subscribe to player events
 		this.receiver.subscribe(HW2Events.CHARGE_CHANGE);
@@ -277,10 +380,9 @@ export default class HW2Scene extends Scene {
 		this.receiver.subscribe(HW2Events.SHOT_WEAKTOLIGHT);
 		// Subscribe to laser events
 		this.receiver.subscribe(HW2Events.FIRING_LASER);
-		if(this.recording)
-		{
-			this.emitter.fireEvent(GameEventType.START_RECORDING, {recording: new BasicRecording(HW2Scene, {seed: this.seed, recording: false})});
-		}
+
+		this.emitter.fireEvent(GameEventType.PLAY_MUSIC, {key: HW2Scene.SONG_KEY, loop: true, holdReference: true});
+
 
 		//TODO sort levelObjs by spawn time just in case
 	}
@@ -322,8 +424,6 @@ export default class HW2Scene extends Scene {
 						this.completedSteer = true;
 					}
 				}
-
-
 			}
 			else if(this.current_tutorialSection===3 && this.completedSteer){
 				//spawn an electric field and check if a player has used it
@@ -399,6 +499,9 @@ export default class HW2Scene extends Scene {
 		if(!this.tutorial) {this.progressEnemies();}
 
 
+		this.handleTimeSkip();
+
+
         // TODO Remove despawning of mines and bubbles here
 
 		// Handle screen despawning of mines and bubbles
@@ -408,12 +511,7 @@ export default class HW2Scene extends Scene {
 		this.lockPlayer(this.player, this.viewport.getCenter(), this.viewport.getHalfSize());
 
 		//hacky level end for level 1
-		if(this.currentLevel == 1 && this.curMonsterIndex == this.levelObjs.length-1)
-		{
-			let ind = this.mines.length - 1;
-			if(this.mines[ind].visible == false && this.mines[ind-1].visible == false && this.mines[ind-2].visible == false)
-				this.gameOverTimer.start();
-		}
+		this.checkLevelEnd();
 
 		// Handle events
 		while (this.receiver.hasNextEvent()) {
@@ -425,8 +523,8 @@ export default class HW2Scene extends Scene {
      */
     public override unloadScene(): void {
 		// keep all resources.
-		// this.load.keepSpritesheet(HW2Scene.PLAYER_KEY);
-        // this.load.keepImage(HW2Scene.BACKGROUND_KEY);
+		//this.load.keepSpritesheet(HW2Scene.PLAYER_KEY);
+        //this.load.keepImage(HW2Scene.BACKGROUND_KEY);
         // this.load.keepSpritesheet(HW2Scene.MINE_KEY);
 		// this.load.keepShader(BubbleShaderType.KEY);
 		// this.load.keepShader(LaserShaderType.KEY);
@@ -445,18 +543,10 @@ export default class HW2Scene extends Scene {
 			case HW2Events.SHOOT_LASER: {
 				let laser = this.spawnLaser(event.data.get("src"), event.data.get("angle"));
 				this.minesDestroyed += this.handleShootCollisions(laser,  event.data.get("src"), event.data.get("angle"), this.mines);
-				if(this.minesDestroyed === this.levelObjs.length)
-				{
-					this.gameOverTimer.start();
-				}
 				break;
 			}
 			case HW2Events.DEAD: {
 				console.log("DEAD EVENT REACHED");
-				if(this.recording)
-				{
-					this.emitter.fireEvent(GameEventType.STOP_RECORDING);
-				}
 				this.gameOverTimer.start();
 				break;
 			}
@@ -523,8 +613,8 @@ export default class HW2Scene extends Scene {
 	protected initPlayer(): void {
 		// Add in the player as an animated sprite
 		// We give it the key specified in our load function and the name of the layer
-		let planeWings = this.add.sprite(HW2Scene.PLANEWINGS_KEY, HW2Layers.PRIMARY);
-		this.player = this.add.animatedSprite(HW2Scene.PLAYER_KEY, HW2Layers.PRIMARY);
+		let planeWings = this.add.sprite(SpriteKeys.PLANEWINGS_KEY, HW2Layers.PRIMARY);
+		this.player = this.add.animatedSprite(SpritesheetKeys.PLAYER_KEY, HW2Layers.PRIMARY);
 		planeWings.scale.set(0.4, 0.4);
 		
 		// Set the player's position to the middle of the screen, and scale it down
@@ -804,7 +894,10 @@ export default class HW2Scene extends Scene {
 			this.mines[i].setCollisionShape(collider);
 		}
 		*/
-		//console.log("levelObjLenght", this.levelObjs.length, this.getRecLevelObjLength(this.levelObjs));
+
+		console.log(this.levelObjs[0]);
+		let x = JSON.parse(JSON.stringify(this.levelObjs[0]));
+		console.log(x);
 		this.expandLevelObjs();
 		this.mines = new Array(this.levelObjs.length);
 		for (let i = 0; i < this.mines.length; i++){
@@ -821,10 +914,6 @@ export default class HW2Scene extends Scene {
 			else
 				this.mines[i].scale.set(6.0, 6.0);
 
-			//temp elec fix
-			if(this.levelObjs[i].monsterType == monsterTypes.electricField)
-				this.mines[i].scale.set(0.3, 0.3);
-
 			// Give them a collision shape
 			let collider = this.levelObjs[i].hitboxScaleX == null ? new AABB(Vec2.ZERO, this.mines[i].sizeWithZoom) : new AABB(Vec2.ZERO, this.mines[i].sizeWithZoom.scale(this.levelObjs[i].hitboxScaleX, this.levelObjs[i].hitboxScaleY));
 			this.mines[i].setCollisionShape(collider);
@@ -837,7 +926,7 @@ export default class HW2Scene extends Scene {
 		for (let i = 0; i < this.lasers.length; i++) {
 			this.lasers[i] = this.add.graphic(GraphicType.RECT, HW2Layers.PRIMARY, {position: Vec2.ZERO, size: Vec2.ZERO})
 			this.lasers[i].useCustomShader(LaserShaderType.KEY);
-			this.lasers[i].color = Color.RED;
+			this.lasers[i].color = Color.WHITE;
 			this.lasers[i].visible = false;
 			this.lasers[i].addAI(LaserBehavior, {src: Vec2.ZERO, dst: Vec2.ZERO});
 		}
@@ -847,9 +936,11 @@ export default class HW2Scene extends Scene {
 	protected expandLevelObjs(): void
 	{
 		let newObjList = new Array(this.getRecLevelObjLength(this.levelObjs));
-		this.logArray(newObjList);
+		//this.logArray(newObjList);
 		this.recAddObjs(newObjList, this.levelObjs);
+		for(const mon of newObjList) if (mon.monsterType == monsterTypes.electricField) mon.spawnTime -= 5;
 		this.levelObjs = newObjList.sort((a, b) => a.spawnTime - b.spawnTime);
+		console.log(this.levelObjs);
 	}
 
 	protected getRecLevelObjLength(monsterList : Array<monsterInfo>): number
@@ -878,9 +969,9 @@ export default class HW2Scene extends Scene {
 			}else
 			{
 				//console.log(newMonsterList);
-				this.logArray(newMonsterList);
+				//this.logArray(newMonsterList);
 				index = this.recAddObjs(newMonsterList, mon.objs, index, mon.spawnTime, mon.spawnY);
-				this.logArray(newMonsterList);
+				//this.logArray(newMonsterList);
 			}
 		}
 		return index;
@@ -994,13 +1085,14 @@ export default class HW2Scene extends Scene {
 			let viewportSize = this.viewport.getHalfSize().scaled(2);
 
 			//mine.position.copy(RandUtils.randVec(viewportSize.x, paddedViewportSize.x, paddedViewportSize.y - viewportSize.y, viewportSize.y));
-			mine.position = new Vec2((viewportSize.x + paddedViewportSize.x)/2, this.levelObjs[this.curMonsterIndex].spawnY);
+			mine.position = new Vec2((viewportSize.x + mine.sizeWithZoom.x/2), this.levelObjs[this.curMonsterIndex].spawnY);
 			//mine.position = new Vec2(450, 450);
 			const mineInfo = this.levelObjs[this.curMonsterIndex];
 
 			let electricLight = null;
 			if(mineInfo.monsterType == monsterTypes.electricField)
 			{
+				mine.position = new Vec2((viewportSize.x + mine.sizeWithZoom.x/2) + 500, this.levelObjs[this.curMonsterIndex].spawnY);
 				electricLight = this.add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: new Vec2(0, 0), 
 																					angle : 0,
 																					intensity : 0.5,
@@ -1010,18 +1102,13 @@ export default class HW2Scene extends Scene {
 																					opacity : 0.5,
 																					lightScale : 1.0});
 			}
-
-			mine.setAIActive(true, {movementPattern: mineInfo.movementPattern, monsterType: mineInfo.monsterType, 
-									weakToLight: mineInfo.weakToLight, electricLight: electricLight, stoppingX: mineInfo.stoppingX, splitOnDeath: mineInfo.splitOnDeath,
-									player: this.player, narrowLight: this.narrowLight, wideLight: this.wideLight,
-									projectileBehavior: mineInfo.projectileBehavior, projectileSpeed: mineInfo.projectileSpeed, projectileFrequency: mineInfo.projectileFrequency, projectileLaserLength: mineInfo.projectileLaserLength, projectileSplitX: mineInfo.projectileSplitX, projectileInvincible: mineInfo.projectileInvincible,
-									});
+			mine.setAIActive(true, {monInfo: mineInfo, electricLight: electricLight, player: this.player, narrowLight: this.narrowLight, wideLight: this.wideLight});
 
 			this.curMonsterIndex++; 
-			// Start the mine spawn timer - spawn a mine every half a second I think
-			//this.mineSpawnTimer.start(100);
-		}
 
+			//sounds
+			this.spawnMonsterSound(mineInfo.monsterType)
+		}
 	}
 
 	protected progressTutorial(sectionNum): void {
@@ -1040,6 +1127,7 @@ export default class HW2Scene extends Scene {
 		let electricLight = null;
 		if(mineInfo.monsterType == monsterTypes.electricField)
 		{
+			mine.position = new Vec2((viewportSize.x + mine.sizeWithZoom.x/2) + 500, this.levelObjs[this.curMonsterIndex].spawnY);
 			electricLight = this.add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: new Vec2(0, 0), 
 																				angle : 0,
 																				intensity : 0.5,
@@ -1049,14 +1137,29 @@ export default class HW2Scene extends Scene {
 																				opacity : 0.5,
 																				lightScale : 1.0});
 		}
+		mine.setAIActive(true, {monInfo: mineInfo, electricLight: electricLight, player: this.player, narrowLight: this.narrowLight, wideLight: this.wideLight});
 
-		mine.setAIActive(true, {movementPattern: mineInfo.movementPattern, monsterType: mineInfo.monsterType, 
-								weakToLight: mineInfo.weakToLight, electricLight: electricLight, stoppingX: mineInfo.stoppingX, splitOnDeath: mineInfo.splitOnDeath,
-								player: this.player, narrowLight: this.narrowLight, wideLight: this.wideLight,
-								projectileBehavior: mineInfo.projectileBehavior, projectileSpeed: mineInfo.projectileSpeed, projectileFrequency: mineInfo.projectileFrequency, projectileLaserLength: mineInfo.projectileLaserLength, projectileSplitX: mineInfo.projectileSplitX, projectileInvincible: mineInfo.projectileInvincible,
-								});
+		this.curMonsterIndex++; 
+
+		//sounds
+		this.spawnMonsterSound(mineInfo.monsterType);
 
 
+	}
+	protected spawnMonsterSound(monsterType: number)
+	{
+		switch(monsterType)
+			{
+				case monsterTypes.electricField:
+					break;
+				case monsterTypes.stalactite:
+					break;
+				case monsterTypes.stalagmite:
+					break;
+				default:
+					this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.SPAWNENEMY_AUDIO_KEY, loop: false, holdReference: false});
+					
+			}
 	}
     /**
 	 * This method handles spawning a bubble from the object-pool of bubbles
@@ -1118,6 +1221,7 @@ export default class HW2Scene extends Scene {
 	protected spawnProjectile(event: GameEvent): void {
 		//console.log("hello");
 		let p = event.data.get("projectileInfo");
+		let src = event.data.get("src");
 		//console.log(p);
         //TODO give this access to sprites and set sprite to weak or invincible depending
         let projectile = this.add.animatedSprite("MINE", HW2Layers.PRIMARY);
@@ -1135,10 +1239,13 @@ export default class HW2Scene extends Scene {
 		projectile.setCollisionShape(collider);
 
 		this.projectiles.push(projectile);
-
+		/*
         projectile.setAIActive(true, {behavior: p.behavior, src: p.src, player: p.player, dst: p.dst,
                                         projectileSpeed: p.projectileSpeed, projectileFrequency: p.projectileFrequency, projectileLaserLength: p.projectileLaserLength,
                                         light: p.light, splitX: p.splitX, invincible: p.invincible,});
+		*/
+
+		projectile.setAIActive(true, {src: src, player: this.player, info: p});
 
 
     }
@@ -1187,12 +1294,12 @@ export default class HW2Scene extends Scene {
 	 */
 	public handleScreenDespawn(node: CanvasNode): void {
 
-        // TODO - despawn the game nodes when they move out of the padded viewport
+		//this kinda sucks
 		if(node.visible)
 		{
-			let paddedViewportSize = this.viewport.getHalfSize().scaled(2).add(this.worldPadding);
-			let viewportSize = this.viewport.getHalfSize().scaled(2);
-			if(node.collisionShape.x < viewportSize.x - paddedViewportSize.x)
+			if(node.position.x + node.sizeWithZoom.x < -700)
+				node.visible = false;
+			else if(node.constructor.name === "Light" && node.position.x < 500)
 				node.visible = false;
 				//Todo set light for node to false if it has one by sending out an event
 
@@ -1476,7 +1583,7 @@ export default class HW2Scene extends Scene {
 			{
 				if(projectile.visible)
 				{
-					let hitInfo = projectile.collisionShape.getBoundingRect().intersectSegment(firePosition, new Vec2(1200, Math.tan(angle)*laser.size.x * -1));
+					let hitInfo = projectile.collisionShape.getBoundingRect().intersectSegment(firePosition, Vec2.ZERO.setToAngle(angle, laser.size.x));
 					if (hitInfo != null) {
 						this.emitter.fireEvent(HW2Events.LASER_PROJECTILE_COLLISION, { projectileId: projectile.id, laserId: laser.id, hit: hitInfo});
 						//collisions += 1;
@@ -1701,16 +1808,16 @@ export default class HW2Scene extends Scene {
 		// If the game-over timer has run, change to the game-over scene
 		if (this.gameOverTimer.hasRun() && this.gameOverTimer.isStopped()) {
 			console.log("gameOverTimerEnd");
-			if(this.recording)
-			{
-				this.sceneManager.changeToScene(GameOver, {
-					bubblesPopped: this.bubblesPopped, 
-					minesDestroyed: this.minesDestroyed,
-					timePassed: this.timePassed
-				}, {});
-			}
+			this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: HW2Scene.SONG_KEY});
+			this.player.ai.destroy();
+			this.sceneManager.changeToScene(GameOver, {
+				bubblesPopped: this.bubblesPopped, 
+				minesDestroyed: this.minesDestroyed,
+				timePassed: this.timePassed
+			}, {});
 		}
 		if(this.tutorialOverTimer.hasRun() && this.tutorialOverTimer.isStopped()){
+			this.player.ai.destroy();
 			this.sceneManager.changeToScene(MainMenu)
 		}
 	}
@@ -1759,6 +1866,58 @@ export default class HW2Scene extends Scene {
 		}
 	}
 
+	protected checkLevelEnd(): void {
+		if(this.curMonsterIndex != this.mines.length)
+			return;
+
+
+		for(let i = this.mines.length - 1; i >= 0 && i >= this.mines.length - 5; i--)
+		{
+			if(this.mines[i].position.x > 0 && this.mines[i].visible)
+				return;
+		}
+
+		//The level is over
+		if(this.gameOverTimer.isStopped())
+			this.gameOverTimer.start();
+	}
+
+	protected handleTimeSkip(): void {
+		let time = -1;
+		if(Input.isKeyPressed("q"))
+		{
+			if(Input.isKeyJustPressed("1"))
+				time = 10;
+			if(Input.isKeyJustPressed("2"))
+				time = 20;
+			if(Input.isKeyJustPressed("3"))
+				time = 30;
+			if(Input.isKeyJustPressed("4"))
+				time = 40;
+			if(Input.isKeyJustPressed("5"))
+				time = 50;
+			if(Input.isKeyJustPressed("6"))
+				time = 60;
+			if(Input.isKeyJustPressed("7"))
+				time = 70;
+			if(Input.isKeyJustPressed("8"))
+				time = 80;
+			if(Input.isKeyJustPressed("9"))
+				time = 90;
+			if(Input.isKeyJustPressed("0"))
+				time = 0;
+		}
+		
+		if(time != -1)
+		{
+			for(let x of this.mines) x.visible = false;
+			for(let x of this.projectiles) x.visible = false;
+			this.timePassed = time;
+			this.curMonsterIndex = 0;
+			for(;this.levelObjs[this.curMonsterIndex].spawnTime < time; this.curMonsterIndex++);
+		}
+	}
+
 	protected handleTutorialText(): void {
 		if(this.closedLight && this.current_tutorialSection===1){
 			this.tutorialText.setText("↑↑↑ Using the light needs energy(restores when closed)")
@@ -1789,3 +1948,4 @@ export default class HW2Scene extends Scene {
 	}
 
 }
+

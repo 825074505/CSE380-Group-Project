@@ -11,6 +11,9 @@ import MathUtils from "../../Wolfie2D/Utils/MathUtils";
 import Graphic from "../../Wolfie2D/Nodes/Graphic";
 import Light from "../../Wolfie2D/Nodes/Graphics/Light";
 import RenderingManager from "../../Wolfie2D/Rendering/RenderingManager";
+import { GameEventType } from "../../Wolfie2D/Events/GameEventType";
+
+import {AudioKeys} from "../scenes/HW2Scene"
 
 import {monsterTypes} from "./MineBehavior2";
 
@@ -82,6 +85,13 @@ export default class PlayerController implements AI {
 	private hitboxes: Array<Graphic>;
 
 	private lightPressBuffered: boolean = false;
+
+	private charging: boolean = false;
+
+	private infiniteHealth: boolean = false;
+	private infiniteBattery: boolean = false;
+
+	private propSound:string = "";
 
 	/**
 	 * This method initializes all variables inside of this AI class.
@@ -193,16 +203,40 @@ export default class PlayerController implements AI {
             return;
         }
 
-		if(Input.isJustPressed(HW2Controls.DISABLE_LIGHTING))
-		{
+		if(Input.isKeyPressed("q") && Input.isJustPressed(HW2Controls.DISABLE_LIGHTING))
 			this.renderingManager.lightingEnabled = !this.renderingManager.lightingEnabled;
-		}
 
-		if(Input.isJustPressed(HW2Controls.DISABLE_DOWNSAMPLING))
-		{
+		if(Input.isKeyPressed("q") && Input.isJustPressed(HW2Controls.DISABLE_DOWNSAMPLING))
 			this.renderingManager.downsamplingEnabled = !this.renderingManager.downsamplingEnabled;
+
+		if(Input.isKeyPressed("q") && Input.isKeyJustPressed("i"))
+		{
+			this.infiniteHealth = !this.infiniteHealth;
+			this.currentHealth = this.maxHealth;
+			this.emitter.fireEvent(HW2Events.PLAYER_HEALTH_CHANGE, {curhealth: this.currentHealth, maxhealth: this.maxHealth});
 		}
 
+		if(Input.isKeyPressed("q") && Input.isKeyJustPressed("o"))
+		{
+			this.infiniteBattery = !this.infiniteBattery;
+			this.currentAir = this.maxAir;
+			this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
+		}
+
+		//propellerSounds
+		if(Input.isKeyJustPressed("a") || Input.isKeyJustPressed("d")  && this.propSound != AudioKeys.PROPELLERUP_AUDIO_KEY)
+		{
+			this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: this.propSound});
+			this.propSound = AudioKeys.PROPELLERUP_AUDIO_KEY;
+			this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: this.propSound, loop: true, holdReference: true});
+		}else if(!Input.isKeyPressed("a") && !Input.isKeyPressed("d") && this.propSound != AudioKeys.PROPELLER_AUDIO_KEY)
+		{
+			this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: this.propSound});
+			this.propSound = AudioKeys.PROPELLER_AUDIO_KEY;
+			this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: this.propSound, loop: true, holdReference: true});
+		}
+
+		
 		// Get the player's input direction 
 		let forwardAxis = (Input.isPressed(HW2Controls.MOVE_UP) ? 1 : 0) + (Input.isPressed(HW2Controls.MOVE_DOWN) ? -1 : 0);
 		let horizontalAxis = (Input.isPressed(HW2Controls.MOVE_LEFT) ? 1 : 0) + (Input.isPressed(HW2Controls.MOVE_RIGHT) ? -1 : 0);
@@ -251,6 +285,11 @@ export default class PlayerController implements AI {
 			//this.currentCharge -= 1;
 			this.shootTimeOut = true;
 			this.emitter.fireEvent(HW2Events.SHOOT_LASER, {src: this.shootLight.position, angle: this.currentAngle});
+			this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.SHOOT_AUDIO_KEY, loop: false, holdReference: false});
+			this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.SHOOT2_AUDIO_KEY, loop: false, holdReference: false});
+			this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.SHOOT3_AUDIO_KEY, loop: false, holdReference: false});
+			if(this.wideLight.visible)
+				this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.HEADLIGHTOFF_AUDIO_KEY, loop: false, holdReference: false});
 			//this.emitter.fireEvent(HW2Events.CHARGE_CHANGE, {curchrg: this.currentCharge, maxchrg: this.maxCharge});
 		}
 
@@ -269,13 +308,19 @@ export default class PlayerController implements AI {
 
 
 
-		if(Input.isJustPressed(HW2Controls.WIDE_HEADLIGHT))
+		if(Input.isJustPressed(HW2Controls.WIDE_HEADLIGHT) && !this.narrowLight.visible)
 		{
 			if(this.shootTimeOut == false)
 			{
 				this.wideLight.visible = !this.wideLight.visible;
 				this.wideLightTargetIntensity = 0.3;
 				this.narrowLight.visible = false;
+				if(this.wideLight.visible)
+				{
+					this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.HEADLIGHTON_AUDIO_KEY, loop: false, holdReference: false});
+				}
+				else
+					this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.HEADLIGHTOFF_AUDIO_KEY, loop: false, holdReference: false});
 			}else
 			{
 				this.lightPressBuffered = !this.lightPressBuffered;
@@ -288,13 +333,19 @@ export default class PlayerController implements AI {
 			this.wideLightTargetIntensity = 0.3;
 			this.narrowLight.visible = false;
 			this.lightPressBuffered = false;
+			this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.HEADLIGHTON_AUDIO_KEY, loop: false, holdReference: false});
 		}
 
 		if(Input.isPressed(HW2Controls.NARROW_HEADLIGHT) && this.shootTimeOut == false)
 		{
+			if(!this.narrowLight.visible)
+			{
+				this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.NARROWLIGHT_AUDIO_KEY, loop: false, holdReference: true});
+			}
 			this.wideLightTargetIntensity = 0.1;
 			this.wideLight.visible = true;
 			this.narrowLight.visible = true;
+			//TODO SOUND
 		}
 
 		//check if narrow headlight key was released
@@ -302,6 +353,8 @@ export default class PlayerController implements AI {
 		{
 			this.narrowLight.visible = false;
 			this.wideLightTargetIntensity = 0.3;
+			//this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.NARROWLIGHT_AUDIO_KEY});
+			this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.HEADLIGHTON_AUDIO_KEY, loop: false, holdReference: false});
 		}
 
 		//scale light intensity when air is low
@@ -330,19 +383,21 @@ export default class PlayerController implements AI {
 
 		//this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
 
-
-		if(this.narrowLight.visible)
+		if(!this.infiniteBattery)
 		{
-			this.currentAir = MathUtils.clamp(this.currentAir - 0.02 * (deltaT * 60), this.minAir, this.maxAir);
-			this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
-		}else if(this.wideLight.visible)
-		{
-			this.currentAir = MathUtils.clamp(this.currentAir - 0.005, this.minAir, this.maxAir);
-			this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
-		}else
-		{
-			this.currentAir = MathUtils.clamp(this.currentAir + 0.02, this.minAir, this.maxAir);
-			this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
+			if(this.narrowLight.visible)
+			{
+				this.currentAir = MathUtils.clamp(this.currentAir - 0.02 * (deltaT * 60), this.minAir, this.maxAir);
+				this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
+			}else if(this.wideLight.visible)
+			{
+				this.currentAir = MathUtils.clamp(this.currentAir - 0.005, this.minAir, this.maxAir);
+				this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
+			}else
+			{
+				this.currentAir = MathUtils.clamp(this.currentAir + 0.02, this.minAir, this.maxAir);
+				this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
+			}
 		}
 
 		// If the player is out of air - start subtracting from the player's health
@@ -415,6 +470,7 @@ export default class PlayerController implements AI {
 	 * @see {AI.destroy}
 	 */
 	public destroy(): void {
+		this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: this.propSound});
 		this.receiver.destroy()
 	}
 
@@ -423,7 +479,8 @@ export default class PlayerController implements AI {
 	 * @param event 
 	 */
 	protected handleShootLaserEvent(event: GameEvent): void {
-		this.currentAir -= this.laserEnergyCost;
+		if(!this.infiniteBattery)
+			this.currentAir -= this.laserEnergyCost;
 		this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
 		this.shootLight.intensity = 0.8;
 		this.wideLight.visible = false;
@@ -444,7 +501,9 @@ export default class PlayerController implements AI {
 					this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
 					break;
 				default:
-					this.currentHealth -= 2;
+					if(!this.infiniteHealth)
+						this.currentHealth -= 2;
+					this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.PLAYERHIT_AUDIO_KEY, loop: false, holdReference: false});
 					this.emitter.fireEvent(HW2Events.PLAYER_HEALTH_CHANGE, {curhealth: this.currentHealth, maxhealth: this.maxHealth});
 					this.owner.animation.playIfNotAlready(PlayerAnimations.HIT, false);
 					this.owner.animation.queue(PlayerAnimations.IDLE, true);
@@ -460,8 +519,10 @@ export default class PlayerController implements AI {
 		//this.currentHealth -= 2;
 		if(!this.invincible)
 		{
-			this.currentHealth -= 2;
+			if(!this.infiniteHealth)
+				this.currentHealth -= 2;
 			this.emitter.fireEvent(HW2Events.PLAYER_HEALTH_CHANGE, {curhealth: this.currentHealth, maxhealth: this.maxHealth});
+			this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.PLAYERHIT_AUDIO_KEY, loop: false, holdReference: false});
 			this.owner.animation.playIfNotAlready(PlayerAnimations.HIT, false);
 			this.owner.animation.queue(PlayerAnimations.IDLE, true);
 			this.invincible = true;
@@ -471,6 +532,7 @@ export default class PlayerController implements AI {
 	}
 
 	protected handlePlayerDead(event: GameEvent): void {
+		this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.EXPLOSION_AUDIO_KEY, loop: false, holdReference: false});
 		this.owner.animation.playIfNotAlready(PlayerAnimations.DEATH, true);
 		this.destroy();
 	}

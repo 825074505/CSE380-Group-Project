@@ -38,7 +38,15 @@
       "frames": [
         {
           "index": 4,
-          "duration": 3
+          "duration": 10
+        },
+        {
+          "index": 5,
+          "duration": 10
+        },
+        {
+          "index": 6,
+          "duration": 10
         }
       ]
     },
@@ -48,7 +56,19 @@
       "frames": [
         {
           "index": 8,
-          "duration": 3
+          "duration": 30
+        },
+        {
+          "index": 9,
+          "duration": 30
+        },
+        {
+          "index": 10,
+          "duration": 30
+        },
+        {
+          "index": 11,
+          "duration": 30
         }
       ]
     },
@@ -58,7 +78,19 @@
       "frames": [
         {
           "index": 12,
-          "duration": 3
+          "duration": 10
+        },
+        {
+          "index": 13,
+          "duration": 10
+        },
+        {
+          "index": 14,
+          "duration": 10
+        },
+        {
+          "index": 15,
+          "duration": 10
         }
       ]
     },
@@ -68,7 +100,19 @@
       "frames": [
         {
           "index": 16,
-          "duration": 3
+          "duration": 30
+        },
+        {
+          "index": 17,
+          "duration": 30
+        },
+        {
+          "index": 18,
+          "duration": 30
+        },
+        {
+          "index": 19,
+          "duration": 30
         }
       ]
     },
@@ -78,7 +122,19 @@
       "frames": [
         {
           "index": 20,
-          "duration": 3
+          "duration": 30
+        },
+        {
+          "index": 21,
+          "duration": 30
+        },
+        {
+          "index": 22,
+          "duration": 30
+        },
+        {
+          "index": 23,
+          "duration": 30
         }
       ]
     }

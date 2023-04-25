@@ -16,6 +16,9 @@ import ProjectileBehavior, {projectileBehaviors} from "./ProjectileBehavior";
 import Emitter from "../../Wolfie2D/Events/Emitter";
 import { GraphicType } from "../../Wolfie2D/Nodes/Graphics/GraphicTypes";
 import Color from "../../Wolfie2D/Utils/Color";
+import {AudioKeys} from "../scenes/HW2Scene";
+import { GameEventType } from "../../Wolfie2D/Events/GameEventType";
+import {projectileInfo} from "../levels/monsterInfo";
 
 export const MineAnimations = {
     IDLE: "IDLE",
@@ -77,13 +80,20 @@ export default class MineBehavior2 implements AI {
     private monsterState: number = 0;
     private monsterType: number = 0;
 
+    /*
     private projectileBehavior: number = 0;
     private projectileSpeed: number = 0;
-    private projectileFrequency: number = 3; //seconds
-    private projectileLaserLength: number = 1;
+    */
+    //private projectileFrequency: number = 3; //seconds
+    //private projectilePause: number = 3;
+    private projectiles: Array<projectileInfo>;
+    private projectileIndex = 0;
     private projectileTimer: number = 0;
+    /*
+    private projectileLaserLength: number = 1;
     private projectileSplitX: number;
     private projectileInvincible: boolean;
+    */
 
     private splitOnDeath: boolean;
 
@@ -102,6 +112,11 @@ export default class MineBehavior2 implements AI {
     private gravity: number = 10;
 
     private electricLight: Light;
+
+    public alive:boolean = true;
+    private appeared: boolean = false; //Only for electric appear
+
+    private charging: boolean = false;
 
     /**
      * @see {AI.initializeAI}
@@ -127,45 +142,42 @@ export default class MineBehavior2 implements AI {
         this.timeSincePhased = 0;
         this.owner.animation.play(MineAnimations.IDLE, true);
         this.spawnLoc = new Vec2(this.owner.position.x, this.owner.position.y);
-        this.movementPattern = options.movementPattern;
-        this.player = options.player;
-        this.narrowLight = options.narrowLight;
-        this.wideLight = options.wideLight;
-        this.electricLight = options.electricLight;
-        this.projectileInvincible = options.projectileInvincible;
-        this.splitOnDeath = options.splitOnDeath;
 
-        if(this.electricLight != null)
+        const info = options.monInfo;
+        if(info != null)
         {
-            this.electricLight.visible = true;
-            this.monsterState = monsterStates.invincible;
-        }
+            this.movementPattern = info.movementPattern;
+            this.player = options.player;
+            this.narrowLight = options.narrowLight;
+            this.wideLight = options.wideLight;
+            this.electricLight = options.electricLight;
+            this.splitOnDeath = info.splitOnDeath;
 
-        if (options.monsterType != null)
-            this.monsterType = options.monsterType;
+            if(this.electricLight != null)
+            {
+                this.electricLight.visible = true;
+                this.monsterState = monsterStates.invincible;
+            }
 
-        if (options.weakToLight != null)
-            this.weakToLight = options.weakToLight;
+            if (info.monsterType != null)
+                this.monsterType = info.monsterType;
 
-        if(options.stoppingX != null)
-            this.stoppingX = options.stoppingX;
+            if (info.weakToLight != null)
+                this.weakToLight = info.weakToLight;
 
-        if(options.projectileBehavior != null)
-            this.projectileBehavior = options.projectileBehavior;
+            if(info.stoppingX != null)
+                this.stoppingX = info.stoppingX;
 
-        if(options.projectileSpeed != null)
-            this.projectileSpeed = options.projectileSpeed;
-
-        if(options.projectileFrequency != null)
-            this.projectileFrequency = options.projectileFrequency;
-
-        if(options.projectileLaserLength != null)
-            this.projectileLaserLength = options.projectileLaserLength;
-        //TODO rest of projectile vars also maybe reconsider this
-        if(this.projectileBehavior == projectileBehaviors.laser)
-            this.projectileFrequency += this.projectileLaserLength;
+            this.projectiles = info.projectiles;
+            if(this.projectiles != null)
+            {
+                //start with first
+                this.projectileIndex = this.projectiles.length - 1;
+                //start time
+                this.projectileTimer = this.projectiles[this.projectileIndex].waitTime - 1;
+            }
             
-        this.projectileSplitX = options.projectileSplitX;
+        }
             
 
 
@@ -242,6 +254,14 @@ export default class MineBehavior2 implements AI {
                 this.movementPattern = movementPatterns.trackPlayer;
             }
             */
+            //hacky wait for electric time
+            /*
+            if(this.monsterType == monsterTypes.electricField && this.owner.position.x < 900 && !this.appeared)
+            {
+                this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.ELECTRICAPPEAR_AUDIO_KEY, loop: false, holdReference: true});
+                this.appeared = true;
+            }
+            */
 
             switch(this.movementPattern)
             {
@@ -310,6 +330,7 @@ export default class MineBehavior2 implements AI {
                     if(this.lightState != lightStates.narrow){
                         this.timeSinceLight = 0;
                         this.owner.animation.playIfNotAlready(MineAnimations.WEAKENING, true);
+                        this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.ENEMYWEAKENING_AUDIO_KEY, loop: false, holdReference: true});
                         this.lightState = lightStates.narrow;
                     }
                     this.timeSinceLight += deltaT;
@@ -318,6 +339,7 @@ export default class MineBehavior2 implements AI {
                 {
                     if(this.lightState != lightStates.wide){
                         this.owner.animation.playIfNotAlready(MineAnimations.INVINCIBLE, true);
+                        this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.ENEMYWEAKENING_AUDIO_KEY});
                         this.lightState = lightStates.wide;
                         this.monsterState = monsterStates.invincible;
                     }
@@ -326,13 +348,17 @@ export default class MineBehavior2 implements AI {
                 {
                     if(this.lightState != lightStates.dark){
                         this.owner.animation.playIfNotAlready(MineAnimations.INVINCIBLE, true);
+                        this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.ENEMYWEAKENING_AUDIO_KEY});
                         this.lightState = lightStates.dark;
                         this.monsterState = monsterStates.invincible;
                     }
                 }
 
+                //Been in the light long enough
                 if(this.timeSinceLight > 1 && this.monsterState != monsterStates.weak)
                 {
+                    this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.ENEMYWEAK_AUDIO_KEY, loop: false, holdReference: false});
+                    this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.ENEMYWEAKENING_AUDIO_KEY});
                     this.monsterState = monsterStates.weak;
                     this.owner.animation.playIfNotAlready(MineAnimations.IDLE, true);
                 }
@@ -390,12 +416,13 @@ export default class MineBehavior2 implements AI {
             }
 
             //projectiles
-            if(this.projectileBehavior != projectileBehaviors.none)
+            if(this.projectiles != null)
             {
                 this.projectileTimer += deltaT;
-                if(this.projectileTimer >= this.projectileFrequency)
+                if(this.projectileTimer >= this.projectiles[this.projectileIndex].waitTime)
                 {
                     this.projectileTimer = 0;
+                    this.projectileIndex = (this.projectileIndex + 1) % this.projectiles.length;
                     this.spawnProjectile();
                 }
             }
@@ -405,10 +432,12 @@ export default class MineBehavior2 implements AI {
 
     protected spawnProjectile(): void {
         //console.log("mon",this.projectileSplitX);
-        this.emitter.fireEvent(HW2Events.SPAWN_PROJECTILE, {projectileInfo: {behavior: this.projectileBehavior, src: this.owner, player: this.player,
-                                        projectileSpeed: this.projectileSpeed, projectileFrequency: this.projectileFrequency, projectileLaserLength: this.projectileLaserLength,
-                                        splitX: this.projectileSplitX, invincible: this.projectileInvincible}});
 
+        if(this.projectiles[this.projectileIndex].behavior != projectileBehaviors.justWait)
+        {
+            this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.ENEMYSHOOT_AUDIO_KEY, loop: false, holdReference: false});
+            this.emitter.fireEvent(HW2Events.SPAWN_PROJECTILE, {src: this.owner, projectileInfo: this.projectiles[this.projectileIndex]});
+        }
 
     }
 
@@ -438,6 +467,7 @@ export default class MineBehavior2 implements AI {
             switch(this.monsterType)
             {
                 case monsterTypes.stalactite:
+                    //create falling stalactite
                     this.movementPattern = movementPatterns.falling;
                     break;
                 case monsterTypes.spinning:
@@ -448,13 +478,22 @@ export default class MineBehavior2 implements AI {
 
                         if(angle > (Math.PI/2 + this.owner.rotation) % (2 * Math.PI)   &&    angle < ((3 * Math.PI)/2 + this.owner.rotation) % (2 * Math.PI))
                         {
-                            this.owner.animation.playIfNotAlready(MineAnimations.EXPLODING, false, HW2Events.MINE_EXPLODED);
+                            this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.HITENEMY_AUDIO_KEY, loop: false, holdReference: false});
+                            this.monsterDeath();
+                        }else
+                        {
+                            this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.ENEMYDEFLECTED_AUDIO_KEY, loop: false, holdReference: false});
                         }
                     }
                     break;
                 default:
-                    if(this.monsterState == monsterStates.weak)
-                        this.owner.animation.playIfNotAlready(MineAnimations.EXPLODING, false, HW2Events.MINE_EXPLODED);
+                    if(this.monsterState == monsterStates.weak){
+                        this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.HITENEMY_AUDIO_KEY, loop: false, holdReference: false});
+                        this.monsterDeath();
+                    }else
+                    {
+                        this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.ENEMYDEFLECTED_AUDIO_KEY, loop: false, holdReference: false});
+                    }
                     break;
                 
             }
@@ -473,9 +512,18 @@ export default class MineBehavior2 implements AI {
     protected handlePlayerMineCollision(event: GameEvent): void {
         let id = event.data.get("id");
         if (id === this.owner.id) {
-            if(this.monsterType != monsterTypes.electricField)
+            if(this.monsterType == monsterTypes.electricField)
             {
-                this.owner.animation.playIfNotAlready(MineAnimations.EXPLODING, false, HW2Events.MINE_EXPLODED);
+                if(!this.charging)
+				{
+					this.charging = true;
+					this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.RECHARGING_AUDIO_KEY, loop: false, holdReference: false});
+				}
+            }
+            else if(this.alive)
+            {
+                //maybe change this?
+                this.monsterDeath();
             }
         }
     }
@@ -484,14 +532,22 @@ export default class MineBehavior2 implements AI {
         let stalactiteID = event.data.get("stalactiteID");
         let monsterID = event.data.get("monsterID");
         if (stalactiteID === this.owner.id) {
-            this.owner.animation.playIfNotAlready(MineAnimations.EXPLODING, false, HW2Events.MINE_EXPLODED);
+            //this.owner.animation.playIfNotAlready(MineAnimations.EXPLODING, false, HW2Events.MINE_EXPLODED);
+            this.owner.visible = false;
         }else if (monsterID === this.owner.id)
         {
             if(this.monsterState == monsterStates.weak || this.monsterType == monsterTypes.weakFromTop)
             {
-                this.owner.animation.playIfNotAlready(MineAnimations.EXPLODING, false, HW2Events.MINE_EXPLODED);
+                this.monsterDeath();
             }
         }
+    }
+
+
+    protected monsterDeath(): void {
+        this.alive = false;
+        this.owner.animation.playIfNotAlready(MineAnimations.EXPLODING, false, HW2Events.MINE_EXPLODED);
+        this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.ENEMYDEAD_AUDIO_KEY, loop: false, holdReference: false});
     }
 }
 

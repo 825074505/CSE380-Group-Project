@@ -314,6 +314,16 @@ export default class MainMenu extends Scene {
             this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":1});
         else if (Input.isKeyJustPressed("2"))
             this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":2});
+        else if (Input.isKeyJustPressed("3"))
+            this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":3});
+        else if (Input.isKeyJustPressed("4"))
+            this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":4});
+        else if (Input.isKeyJustPressed("5"))
+            this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":5});
+        else if (Input.isKeyJustPressed("6"))
+            this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":6});
+        else if (Input.isKeyJustPressed("2"))
+            this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":2});
 
         while(this.receiver.hasNextEvent()){
             this.handleEvent(this.receiver.getNextEvent());
