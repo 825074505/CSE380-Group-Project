@@ -40,6 +40,13 @@ export const level5Objs: Array<monsterInfo> = [
 	spawnY: 600,
 	objs: threeGuysInARow,
 	},
+	{
+	spawnTime: 4.0,
+	spriteKey: "ELECTRICITY",
+	spawnY: 800,
+	movementPattern: movementPatterns.moveLeft,
+	monsterType: monsterTypes.electricField,
+	},
 
 	{
 	spawnTime: 1.0,

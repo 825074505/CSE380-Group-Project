@@ -58,13 +58,16 @@ export default class GameOver extends Scene {
         const mines = <Label>this.add.uiElement(UIElementType.LABEL, "primary", {position: new Vec2(center.x, center.y + 100), text: `Power Used: ${this.energyUsed.toFixed(1)}`});
         mines.textColor = Color.GREEN;
 
-        const text = <Label>this.add.uiElement(UIElementType.LABEL, "primary", {position: new Vec2(center.x, center.y + 300), text: "Click to return to main menu"});
+        const text = <Label>this.add.uiElement(UIElementType.LABEL, "primary", {position: new Vec2(center.x, center.y + 300), text: "Click to return"});
         text.textColor = Color.WHITE;
     }
 
     public updateScene(){
         if(Input.isMouseJustPressed()){
-            this.sceneManager.changeToScene(MainMenu, {screen: "mainMenu"}, {});
-        }
+            if(this.arcadeMode)
+                this.sceneManager.changeToScene(MainMenu, {screen: "mainMenu"}, {});
+            else
+                this.sceneManager.changeToScene(MainMenu, {screen: "levelSelect"}, {});
+        }       
     }
 }

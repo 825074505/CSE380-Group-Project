@@ -173,21 +173,11 @@ export default class HW2Scene extends Scene {
 	//Tutorial level stuff
 	private tutorial : boolean;
 	private current_tutorialSection : number = 0;
-	private openedLight : boolean = false;
-	private closedLight : boolean = false;
-	private completedSteer : boolean = false;
-	private usedElectricField : boolean = false;
-	private shotEnemy : boolean = false;
-	private weakToLightDead : boolean = false;
-	private narrowedLight : boolean = false;
-	private spawnedEnemy1 : boolean = false;
-	private spawnedEnemy2 : boolean = false;
+	private completedCurrentSection: boolean;
 	
 	private tutorialText : Label;
 	private tutorialText2 : Label;
 	private tutorialOverTimer : Timer;
-	private overTimerHasRun: boolean = false;
-	private tutorialSectionTimer : Timer;
 	
     // A flag to indicate whether or not this scene is being recorded
     private recording: boolean;
@@ -357,10 +347,6 @@ export default class HW2Scene extends Scene {
 		this.lights = new Array();
 
 		this.levelObjs = levels[this.currentLevel].objs;
-		if(!this.tutorial){
-			this.tutorialText.setText('')
-			this.tutorialText2.setText('')
-		}
 
 		// Initialize object pools
 		this.initObjectPools();
@@ -372,19 +358,20 @@ export default class HW2Scene extends Scene {
 		this.receiver.subscribe(HW2Events.PLAYER_HEALTH_CHANGE);
 		this.receiver.subscribe(HW2Events.AIR_CHANGE);
 		this.receiver.subscribe(HW2Events.SPAWN_PROJECTILE);
+		this.receiver.subscribe(HW2Events.MINE_EXPLODED);
 
 		//Game events
 		this.receiver.subscribe(HW2Events.RESUME_GAME);
 		this.receiver.subscribe(HW2Events.BACK_TO_MAIN);
-		this.receiver.subscribe(HW2Events.SHOT_ENEMY);
-		this.receiver.subscribe(HW2Events.SHOT_WEAKTOLIGHT);
 		// Subscribe to laser events
 		this.receiver.subscribe(HW2Events.FIRING_LASER);
+		this.receiver.subscribe(HW2Events.ENEMY_WEAKENED);
 
 		this.emitter.fireEvent(GameEventType.PLAY_MUSIC, {key: HW2Scene.SONG_KEY, loop: true, holdReference: true});
 
 
-		//TODO sort levelObjs by spawn time just in case
+		if(this.tutorial)
+			this.startTutorialSection(0);
 	}
 	/**
 	 * @see Scene.updateScene 
@@ -399,83 +386,8 @@ export default class HW2Scene extends Scene {
 			this.timePassed += deltaT;
 
 		
-		if(this.tutorial){
-			this.handleTutorialText();
-			//console.log(this.current_tutorialSection)
-			if(Input.isKeyJustPressed("j")){
-				if(this.current_tutorialSection === 0){
-					this.current_tutorialSection += 1;
-					this.closedLight = true;
-				}
-				else if(this.current_tutorialSection ===1){
-					this.current_tutorialSection += 1;
-					this.openedLight = true;
-				}
-			}
-			else if(this.current_tutorialSection ===2 && this.openedLight){
-				//spawn obsatacles and check if player steered through them successfully
-				if(this.tutorialSectionTimer.isStopped()){
-					if(this.completedSteer){
-						this.current_tutorialSection +=1;
-						
-					}
-					else{
-						this.progressTutorial(this.current_tutorialSection-2)
-						this.tutorialSectionTimer.start()
-						this.completedSteer = true;
-					}
-				}
-			}
-			else if(this.current_tutorialSection===3 && this.completedSteer){
-				//spawn an electric field and check if a player has used it
-				if(this.tutorialSectionTimer.isStopped()){
-					if(this.usedElectricField){
-						this.current_tutorialSection += 1;
-					}
-					else{
-						this.progressTutorial(this.current_tutorialSection-2)
-						this.tutorialSectionTimer.start()
-
-					}
-
-				}
-			}
-			else if(this.current_tutorialSection===4 && this.usedElectricField){
-				//spawn a normal enemy and check if a player has shot it
-				if(this.shotEnemy){
-						this.current_tutorialSection += 1;
-				}
-				else if(!this.spawnedEnemy1){
-					this.spawnedEnemy1 = true;
-					this.progressTutorial(this.current_tutorialSection-2);
-				}
-
-			} 
-			else if(this.current_tutorialSection===5 && this.shotEnemy){
-				//spawn a special enemy that is weak to light and check if a player has killed it
-				if(this.weakToLightDead){
-					this.current_tutorialSection += 1;
-				}
-				else if (!this.spawnedEnemy2){
-						
-					this.progressTutorial(this.current_tutorialSection-2);
-					this.spawnedEnemy2 = true;
-				}		
-
-			}
-			else if(this.current_tutorialSection===6 && this.weakToLightDead){
-				//initiate a timer that makes player go back to main menu after 3 second
-				if(this.overTimerHasRun == false){
-					this.tutorialOverTimer.start()
-					this.overTimerHasRun = true;
-					console.log("rerun timer")
-				}
-				else{
-					this.handleTimers();
-				}
-				
-			}
-		}
+		if(this.tutorial && this.current_tutorialSection <= 1 && Input.isKeyJustPressed("j"))
+			this.startTutorialSection(this.current_tutorialSection+1);
 		
 		// Move the backgrounds
 		this.moveBackgrounds(deltaT);
@@ -501,6 +413,7 @@ export default class HW2Scene extends Scene {
 
 		// Handle screen despawning of mines and bubbles
 		for (let mine of this.mines) if (mine.visible) this.handleScreenDespawn(mine);
+		for (let projectile of this.projectiles) if (projectile.visible) this.handleScreenDespawn(projectile);
 		//for (let bubble of this.bubbles) if (bubble.visible) this.handleScreenDespawn(bubble);
 		//this.wrapPlayer(this.player, this.viewport.getCenter(), this.viewport.getHalfSize());
 		this.lockPlayer(this.player, this.viewport.getCenter(), this.viewport.getHalfSize());
@@ -579,13 +492,18 @@ export default class HW2Scene extends Scene {
 				this.spawnProjectile(event);
 				break;
 			}
-			case HW2Events.SHOT_ENEMY:{
-				this.shotEnemy = true;
+			case HW2Events.MINE_EXPLODED:
+			{
+				if(this.tutorial)
+					this.startTutorialSection(this.current_tutorialSection + 1);
 				break;
 			}
-			case HW2Events.SHOT_WEAKTOLIGHT:{
-				if(this.current_tutorialSection === 5){
-					this.weakToLightDead = true;
+			case HW2Events.ENEMY_WEAKENED:{
+				if(this.tutorial){
+					if(this.current_tutorialSection == 5)
+						this.startTutorialSection(this.current_tutorialSection + 2);
+					else
+						this.startTutorialSection(this.current_tutorialSection + 1);
 				}
 				break;
 			}
@@ -753,7 +671,7 @@ export default class HW2Scene extends Scene {
 
 		//Tutorial Level Texts
 
-		this.tutorialText = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 150), text: "Press j to turn on and off headlight"});
+		this.tutorialText = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 150), text: ""});
 		this.tutorialText.textColor = Color.WHITE;
 		this.tutorialText2 = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 200), text: ""});
 		this.tutorialText2.textColor = Color.WHITE;
@@ -818,7 +736,6 @@ export default class HW2Scene extends Scene {
 
 		this.gameOverTimer = new Timer(3000);
 		this.tutorialOverTimer = new Timer(3000);
-		this.tutorialSectionTimer = new Timer(13000);
 
 	}
 	/**
@@ -936,7 +853,7 @@ export default class HW2Scene extends Scene {
 		let newObjList = new Array(this.getRecLevelObjLength(this.levelObjs));
 		//this.logArray(newObjList);
 		this.recAddObjs(newObjList, this.levelObjs);
-		for(const mon of newObjList) if (mon.monsterType == monsterTypes.electricField) mon.spawnTime -= 5;
+		//for(const mon of newObjList) if (mon.monsterType == monsterTypes.electricField) mon.spawnTime -= 5;
 		this.levelObjs = newObjList.sort((a, b) => a.spawnTime - b.spawnTime);
 		console.log(this.levelObjs);
 	}
@@ -1075,41 +992,45 @@ export default class HW2Scene extends Scene {
 	protected progressEnemies(): void {
 		while(this.curMonsterIndex < this.levelObjs.length && this.timePassed > this.levelObjs[this.curMonsterIndex].spawnTime)
 		{
-			let mine: Sprite = this.mines[this.curMonsterIndex];
-
-			mine.visible = true;
-			// Extract the size of the viewport
-			let paddedViewportSize = this.viewport.getHalfSize().scaled(2).add(this.worldPadding);
-			let viewportSize = this.viewport.getHalfSize().scaled(2);
-
-			//mine.position.copy(RandUtils.randVec(viewportSize.x, paddedViewportSize.x, paddedViewportSize.y - viewportSize.y, viewportSize.y));
-			mine.position = new Vec2((viewportSize.x + mine.sizeWithZoom.x/2), this.levelObjs[this.curMonsterIndex].spawnY);
-			//mine.position = new Vec2(450, 450);
-			const mineInfo = this.levelObjs[this.curMonsterIndex];
-
-			let electricLight = null;
-			if(mineInfo.monsterType == monsterTypes.electricField)
-			{
-				mine.position = new Vec2((viewportSize.x + mine.sizeWithZoom.x/2) + 500, this.levelObjs[this.curMonsterIndex].spawnY);
-				electricLight = this.add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: new Vec2(0, 0), 
-																					angle : 0,
-																					intensity : 0.5,
-																					distance : 10,
-																					tintColor : Color.BLUE,
-																					angleRange : new Vec2(360, 360),
-																					opacity : 0.5,
-																					lightScale : 1.0});
-				this.lights.push(electricLight);
-			}
-			mine.setAIActive(true, {monInfo: mineInfo, electricLight: electricLight, player: this.player, narrowLight: this.narrowLight, wideLight: this.wideLight});
-
+			this.spawnEnemy(this.curMonsterIndex);
 			this.curMonsterIndex++; 
-
-			//sounds
-			this.spawnMonsterSound(mineInfo.monsterType)
 		}
 	}
 
+	protected spawnEnemy(monsterIndex: number): void {
+		let mine: Sprite = this.mines[monsterIndex];
+
+		mine.visible = true;
+		// Extract the size of the viewport
+		let paddedViewportSize = this.viewport.getHalfSize().scaled(2).add(this.worldPadding);
+		let viewportSize = this.viewport.getHalfSize().scaled(2);
+
+		//mine.position.copy(RandUtils.randVec(viewportSize.x, paddedViewportSize.x, paddedViewportSize.y - viewportSize.y, viewportSize.y));
+		mine.position = new Vec2((viewportSize.x + mine.sizeWithZoom.x/2), this.levelObjs[monsterIndex].spawnY);
+		//mine.position = new Vec2(450, 450);
+		const mineInfo = this.levelObjs[monsterIndex];
+
+		let electricLight = null;
+		if(mineInfo.monsterType == monsterTypes.electricField)
+		{
+			//mine.position = new Vec2((viewportSize.x + mine.sizeWithZoom.x/2) + 500, this.levelObjs[this.curMonsterIndex].spawnY);
+			electricLight = this.add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: new Vec2(0, 0), 
+																				angle : 0,
+																				intensity : 0.5,
+																				distance : 10,
+																				tintColor : Color.BLUE,
+																				angleRange : new Vec2(360, 360),
+																				opacity : 0.5,
+																				lightScale : 1.0});
+			this.lights.push(electricLight);
+		}
+		mine.setAIActive(true, {monInfo: mineInfo, electricLight: electricLight, player: this.player, narrowLight: this.narrowLight, wideLight: this.wideLight});
+
+		//sounds
+		this.spawnMonsterSound(mineInfo.monsterType)
+	}
+
+	/*
 	protected progressTutorial(sectionNum): void {
 		let mine: Sprite = this.mines[sectionNum];
 
@@ -1126,7 +1047,6 @@ export default class HW2Scene extends Scene {
 		let electricLight = null;
 		if(mineInfo.monsterType == monsterTypes.electricField)
 		{
-			mine.position = new Vec2((viewportSize.x + mine.sizeWithZoom.x/2) + 500, this.levelObjs[this.curMonsterIndex].spawnY);
 			electricLight = this.add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: new Vec2(0, 0), 
 																				angle : 0,
 																				intensity : 0.5,
@@ -1145,6 +1065,8 @@ export default class HW2Scene extends Scene {
 
 
 	}
+	*/
+
 	protected spawnMonsterSound(monsterType: number)
 	{
 		switch(monsterType)
@@ -1292,17 +1214,22 @@ export default class HW2Scene extends Scene {
 	 * It may be helpful to make your own drawings while figuring out the math for this part.
 	 */
 	public handleScreenDespawn(node: CanvasNode): void {
-
-		//this kinda sucks
-		if(node.visible)
+		if(node.position.x + node.sizeWithZoom.x < 0)
 		{
-			if(node.position.x + node.sizeWithZoom.x < -700)
-				node.visible = false;
-			else if(node.constructor.name === "Light" && node.position.x < 500)
-				node.visible = false;
-				//Todo set light for node to false if it has one by sending out an event
-
+			node.visible = false;
+			this.emitter.fireEvent(HW2Events.NODE_DESPAWN, {id: node.id});
+			if(this.tutorial)
+			{
+				if(this.completedCurrentSection)
+					this.startTutorialSection(this.current_tutorialSection + 1);
+				else
+					this.startTutorialSection(this.current_tutorialSection);
+			}
+				
 		}
+			//node.visible = false;
+			//Todo set light for node to false if it has one by sending out an event
+
 	}
 
 	/** Methods for updating the UI */
@@ -1377,7 +1304,7 @@ export default class HW2Scene extends Scene {
 		this.airBar.position.set(this.airBarBg.position.x - (unit / 2) * (maxAir - currentAir), this.airBarBg.position.y);
 		//TODO FIX HARDCODED COST FOR SHOT
 		this.airBar.backgroundColor = currentAir < 2.5 ? Color.RED : Color.WHITE;
-		if(oldair != null)
+		if(oldair != null && this.gameOverTimer.isStopped())
 			this.energyUsed += oldair - currentAir;
 	}
 	/**
@@ -1496,10 +1423,11 @@ export default class HW2Scene extends Scene {
 			for(let collider of this.playerHitboxes){
 				if (mine.visible && collider.boundary.overlaps(mine.collisionShape)) {
 					if(this.tutorial && this.levelObjs[mineInd].monsterType === monsterTypes.stalagmite){
-						this.completedSteer = false;
+						this.completedCurrentSection = false;
 					}
 					else if(this.tutorial && this.levelObjs[mineInd].monsterType === monsterTypes.electricField){
-						this.usedElectricField = true;
+						//this.startTutorialSection(this.current_tutorialSection + 1);
+						this.completedCurrentSection = true;
 					}
 					this.emitter.fireEvent(HW2Events.PLAYER_MINE_COLLISION, {id: mine.id, monsterType: this.levelObjs[mineInd].monsterType});
 					collisions += 1;
@@ -1560,9 +1488,11 @@ export default class HW2Scene extends Scene {
 						//this.emitter.fireEvent(HW2Events.LASER_MINE_COLLISION, { mineId: mine.id, laserId: laser.id, hit: hitInfo});
 						hitMineList.push({mine: mine, hitInfo: hitInfo});
 						collisions += 1;
-						if(this.tutorial && this.levelObjs[index].monsterType == monsterTypes.default && this.shotEnemy == false){
-							this.shotEnemy = true;
+
+						if(this.tutorial && this.current_tutorialSection==5){
+							this.startTutorialSection(6);
 						}
+
 					}
 				}
 			}
@@ -1939,32 +1869,49 @@ export default class HW2Scene extends Scene {
 		for(;this.curMonsterIndex < this.levelObjs.length && this.levelObjs[this.curMonsterIndex].spawnTime < time; this.curMonsterIndex++);
 	}
 
-	protected handleTutorialText(): void {
-		if(this.closedLight && this.current_tutorialSection===1){
-			this.tutorialText.setText("↑↑↑ Using the light needs energy(restores when closed)")
-			return
+	protected startTutorialSection(section: number): void {
+		this.current_tutorialSection = section;
+		console.log("current section", section);
+		if(section===0)
+			this.tutorialText.setText("Press J to switch the headlight on and off");
+		else if(section===1)
+		{
+			this.tutorialText.setText("↑↑↑ Using the light needs energy (recharges when off)")
+			this.tutorialText2.setText("Press J again to turn the headlight back on");
 		}
-		if(this.openedLight && this.current_tutorialSection===2){
-			this.tutorialText.setText("Press A and D to Steer the plane, try to steer through the obstacles.")
-			return
+		else if(section===2){
+			this.tutorialText.setText("Press A and D to steer the plane. Avoid the obstacle!");
+			this.tutorialText2.setText("");
+			this.spawnEnemy(0);
+			this.completedCurrentSection = true;
 		}
-		if(this.completedSteer && this.current_tutorialSection===3){
-			this.tutorialText.setText("Electric fields restore your battery quickly.")
-			return
+		else if(section===3){
+			this.tutorialText.setText("Fly through electric fields to restore your battery quickly");
+			this.completedCurrentSection = false;
+			this.spawnEnemy(1);
 		}
-		if(this.usedElectricField && this.current_tutorialSection===4){
-			this.tutorialText.setText("Aim at the enemy, press L to shoot!")	
-			return
+		else if(section===4){
+			this.tutorialText.setText("Aim at the enemy, press L to shoot!")
+			this.spawnEnemy(2);
 		}
-		if(this.shotEnemy && this.current_tutorialSection===5){
-			this.tutorialText.setText("Hold K to narrow the headlights.")
-			this.tutorialText2.setText("it can be used to aim more accurately and weaken certain enemies.")
-			return
+		else if(section===5)
+		{
+			this.tutorialText.setText("Try firing at this enemy")
+			this.spawnEnemy(3);
 		}
-		if(this.weakToLightDead && this.current_tutorialSection===6){
-			this.tutorialText.setText("Congratulation, you have completed the tutorial!")
+		else if(section===6){
+			this.tutorialText.setText("Some enemies need to be weakened first")
+			this.tutorialText2.setText("Hold K to narrow the headlights and aim at the enemy")
+		}
+		else if (section==7)
+		{
+			this.tutorialText.setText("The enemy has been weakened!");
+			this.tutorialText2.setText("Aim at the enemy, press L to shoot!");
+		}
+		else if(section===8){
+			this.tutorialText.setText("Congratulations, you have completed the tutorial!")
 			this.tutorialText2.setText("")
-			return
+			this.tutorialOverTimer.start();
 		}
 	}
 

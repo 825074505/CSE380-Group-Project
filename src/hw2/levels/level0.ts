@@ -15,7 +15,7 @@ export const level0Objs: Array<monsterInfo> = [
 		monsterType: monsterTypes.stalagmite,
 	},
 	{
-	spawnTime: 5.0,
+	spawnTime: 0.0,
 	spriteKey: "ELECTRICITY",
 	spawnY: 500,
 	movementPattern: movementPatterns.moveLeft,

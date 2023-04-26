@@ -125,6 +125,7 @@ export default class MineBehavior2 implements AI {
     private timeSinceSpawn: number = 0;
 
     private notEnemyList: Array<number>;
+    private peakElecBrightness: number;
 
 
     /**
@@ -140,6 +141,7 @@ export default class MineBehavior2 implements AI {
         this.receiver.subscribe(HW2Events.MINE_EXPLODED);
         this.receiver.subscribe(HW2Events.PLAYER_MINE_COLLISION);
         this.receiver.subscribe(HW2Events.ENEMY_STALACTITE_COLLISION);
+        this.receiver.subscribe(HW2Events.NODE_DESPAWN);
         this.monsterType = monsterTypes.default;
         this.activate(options);
     }
@@ -167,6 +169,8 @@ export default class MineBehavior2 implements AI {
             {
                 this.electricLight.visible = true;
                 this.monsterState = monsterStates.invincible;
+                //this.peakElecBrightness = this.electricLight.intensity;
+                //this.electricLight.intensity = 0;
             }
 
             if (info.monsterType != null)
@@ -245,6 +249,10 @@ export default class MineBehavior2 implements AI {
             }
             case HW2Events.ENEMY_STALACTITE_COLLISION: {
                 this.handleMonsterStalactitleCollision(event);
+                break;
+            }
+            case HW2Events.NODE_DESPAWN: {
+                this.handleNodeDespawn(event);
                 break;
             }
             default: {
@@ -380,6 +388,7 @@ export default class MineBehavior2 implements AI {
                 {
                     this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.ENEMYWEAK_AUDIO_KEY, loop: false, holdReference: false});
                     this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.ENEMYWEAKENING_AUDIO_KEY});
+                    this.emitter.fireEvent(HW2Events.ENEMY_WEAKENED);
                     this.monsterState = monsterStates.weak;
                     this.owner.animation.playIfNotAlready(MineAnimations.IDLE, true);
                 }
@@ -519,10 +528,6 @@ export default class MineBehavior2 implements AI {
                     break;
                 
             }
-
-            //tutorial
-            if(this.monsterType == monsterTypes.weakToLight && this.monsterState == monsterStates.weak)
-                this.emitter.fireEvent(HW2Events.SHOT_WEAKTOLIGHT);
         }
     }
 
@@ -573,6 +578,17 @@ export default class MineBehavior2 implements AI {
         this.alive = false;
         this.owner.animation.playIfNotAlready(MineAnimations.EXPLODING, false, HW2Events.MINE_EXPLODED);
         this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.ENEMYDEAD_AUDIO_KEY, loop: false, holdReference: false});
+    }
+
+    protected handleNodeDespawn(event: GameEvent): void {
+        let id = event.data.get("id");
+        if (id === this.owner.id) {
+            if(this.monsterType == monsterTypes.electricField)
+            {
+                this.electricLight.visible = false;
+            }
+            //this.owner.visible = false;
+        }
     }
 }
 

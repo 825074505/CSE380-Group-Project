@@ -63,6 +63,7 @@ export default class ProjectileBehavior implements AI {
         //this.receiver.subscribe(HW2Events.PLAYER_BUBBLE_COLLISION);
         this.receiver.subscribe(HW2Events.LASER_PROJECTILE_COLLISION);
         this.receiver.subscribe(HW2Events.PLAYER_PROJECTILE_COLLISION);
+        this.receiver.subscribe(HW2Events.NODE_DESPAWN);
 
         this.emitter = new Emitter();
 
@@ -183,6 +184,15 @@ export default class ProjectileBehavior implements AI {
                 let id = event.data.get("id");
                 if(id === this.owner.id && this.light != null)
                     this.light.visible = false;
+                break;
+            }
+            case HW2Events.NODE_DESPAWN: {
+                let id = event.data.get("id");
+                if(id === this.owner.id && this.light != null)
+                {
+                    this.light.visible = false;
+                    this.owner.visible = false;
+                }
                 break;
             }
             default: {
