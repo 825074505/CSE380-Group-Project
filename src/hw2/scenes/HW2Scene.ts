@@ -168,8 +168,6 @@ export default class HW2Scene extends Scene {
 	private pause : Layer;
 	private paused: boolean;
 
-	private currentLevel: number;
-
 	//Tutorial level stuff
 	private tutorial : boolean;
 	private current_tutorialSection : number = 0;
@@ -206,7 +204,7 @@ export default class HW2Scene extends Scene {
 
 	private playerHitboxes: Array<Graphic>;
 
-
+	private currentLevel: number;
 	private levelObjs: Array<monsterInfo>;
 
 	// Object pool for lasers
@@ -825,7 +823,7 @@ export default class HW2Scene extends Scene {
 			this.mines[i].addAI(MineBehavior2, {movementPattern: 0});
 
 			if(this.levelObjs[i].spriteScale != null)
-				this.mines[i].scale.set(this.levelObjs[i].spriteScale, this.levelObjs[i].spriteScale);
+				this.mines[i].scale.set(this.levelObjs[i].spriteScale * 6.0, this.levelObjs[i].spriteScale * 6.0);
 			else
 				this.mines[i].scale.set(6.0, 6.0);
 
@@ -1024,48 +1022,11 @@ export default class HW2Scene extends Scene {
 																				lightScale : 1.0});
 			this.lights.push(electricLight);
 		}
-		mine.setAIActive(true, {monInfo: mineInfo, electricLight: electricLight, player: this.player, narrowLight: this.narrowLight, wideLight: this.wideLight});
+		mine.setAIActive(true, {monInfo: mineInfo, electricLight: electricLight, player: this.player, narrowLight: this.narrowLight, wideLight: this.wideLight, speedMod: levels[this.currentLevel].speedMod});
 
 		//sounds
 		this.spawnMonsterSound(mineInfo.monsterType)
 	}
-
-	/*
-	protected progressTutorial(sectionNum): void {
-		let mine: Sprite = this.mines[sectionNum];
-
-		mine.visible = true;
-		// Extract the size of the viewport
-		let paddedViewportSize = this.viewport.getHalfSize().scaled(2).add(this.worldPadding);
-		let viewportSize = this.viewport.getHalfSize().scaled(2);
-
-		//mine.position.copy(RandUtils.randVec(viewportSize.x, paddedViewportSize.x, paddedViewportSize.y - viewportSize.y, viewportSize.y));
-		mine.position = new Vec2((viewportSize.x + paddedViewportSize.x)/2, this.levelObjs[sectionNum].spawnY);
-		//mine.position = new Vec2(450, 450);
-		const mineInfo = this.levelObjs[sectionNum];
-
-		let electricLight = null;
-		if(mineInfo.monsterType == monsterTypes.electricField)
-		{
-			electricLight = this.add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: new Vec2(0, 0), 
-																				angle : 0,
-																				intensity : 0.5,
-																				distance : 10,
-																				tintColor : Color.BLUE,
-																				angleRange : new Vec2(360, 360),
-																				opacity : 0.5,
-																				lightScale : 1.0});
-		}
-		mine.setAIActive(true, {monInfo: mineInfo, electricLight: electricLight, player: this.player, narrowLight: this.narrowLight, wideLight: this.wideLight});
-
-		this.curMonsterIndex++; 
-
-		//sounds
-		this.spawnMonsterSound(mineInfo.monsterType);
-
-
-	}
-	*/
 
 	protected spawnMonsterSound(monsterType: number)
 	{
@@ -1715,12 +1676,13 @@ export default class HW2Scene extends Scene {
 	 */
 	protected lockPlayer(player: CanvasNode, viewportCenter: Vec2, viewportHalfSize: Vec2): void {
 		// TODO prevent the player from moving off the left/right side of the screen
-		if(player.position.y < viewportCenter.y - viewportHalfSize.y)
+		const padding = 50;
+		if(player.position.y < viewportCenter.y - viewportHalfSize.y + padding)
 		{
-			player.position.y = viewportCenter.y - viewportHalfSize.y;
-		}else if (player.position.y > viewportCenter.x + viewportHalfSize.y)
+			player.position.y = viewportCenter.y - viewportHalfSize.y + padding;
+		}else if (player.position.y > viewportCenter.x + viewportHalfSize.y - padding)
 		{
-			player.position.y = viewportCenter.y + viewportHalfSize.y;
+			player.position.y = viewportCenter.y + viewportHalfSize.y - padding;
 		}
 	}
 

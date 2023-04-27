@@ -7,19 +7,16 @@ const threeGuysInARow: Array<monsterInfo> = [
 		spawnTime: 0.0,
 		spriteKey: "MINE",
 		spawnY: 0,
-		movementPattern: movementPatterns.moveLeft,
 		},
 		{
 		spawnTime: 1.0,
 		spriteKey: "MINE",
 		spawnY: 0,
-		movementPattern: movementPatterns.moveLeft,
 		},
 		{
 		spawnTime: 2.0,
 		spriteKey: "MINE",
 		spawnY: 0,
-		movementPattern: movementPatterns.moveLeft,
 		}]
 //test level, not for play
 export const level5Objs: Array<monsterInfo> = [
@@ -27,7 +24,6 @@ export const level5Objs: Array<monsterInfo> = [
 	spawnTime: 0.0,
 	spriteKey: "ELECTRICITY",
 	spawnY: 800,
-	movementPattern: movementPatterns.moveLeft,
 	monsterType: monsterTypes.electricField,
 	},
 	{
@@ -44,7 +40,6 @@ export const level5Objs: Array<monsterInfo> = [
 	spawnTime: 4.0,
 	spriteKey: "ELECTRICITY",
 	spawnY: 800,
-	movementPattern: movementPatterns.moveLeft,
 	monsterType: monsterTypes.electricField,
 	},
 
@@ -52,9 +47,13 @@ export const level5Objs: Array<monsterInfo> = [
 	spawnTime: 1.0,
 	spriteKey: "MINE",
 	spawnY: 250,
-	movementPattern: movementPatterns.moveLeft,
 	monsterType: monsterTypes.spinning,
-	stoppingX: 800,
+	movementPatterns: [{
+		moveDistance: 100,
+		length: 5.0,
+	}, 
+	{}
+	],
 
 	projectiles: [{behavior: projectileBehaviors.atCurrentPos,
 			speed: 200,
@@ -66,39 +65,46 @@ export const level5Objs: Array<monsterInfo> = [
 	spawnTime: 2.0,
 	spriteKey: "MINE",
 	spawnY: 450,
-	movementPattern: movementPatterns.trackPlayer,
 	monsterType: monsterTypes.weakToDark,
 	},
 	{
 	spawnTime: 4.0,
 	spriteKey: "MINE",
 	spawnY: 450,
-	movementPattern: movementPatterns.sineWave,
+	
+	movementPatterns: [{
+		movementPattern: movementPatterns.sineWave,
+	}],
 	monsterType: monsterTypes.weakFromTop,
 	},
 	{
 	spawnTime: 4.0,
 	spriteKey: "STALACTITETOP",
 	spawnY: 96,
-	movementPattern: movementPatterns.moveLeft,
 	monsterType: monsterTypes.stalactite,
 	},
 	{
 	spawnTime: 6.0,
 	spriteKey: "MINE",
 	spawnY: 450,
-	movementPattern: movementPatterns.triangleWave,
+	movementPatterns: [{
+		movementPattern: movementPatterns.triangleWave,
+	}],
 	},
 	{
 	spawnTime: 8.0,
 	spriteKey: "MINE",
 	spawnY: 450,
-	movementPattern: movementPatterns.runAway,
+	movementPatterns: [{
+		movementPattern: movementPatterns.runAway,
+	}],
 	},
 	{
 	spawnTime: 10.0,
 	spriteKey: "MINE",
 	spawnY: 450,
-	movementPattern: movementPatterns.phasing,
+	movementPatterns: [{
+		movementPattern: movementPatterns.phasing,
+	}],
 	},
 ]

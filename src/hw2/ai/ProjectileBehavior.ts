@@ -188,9 +188,9 @@ export default class ProjectileBehavior implements AI {
             }
             case HW2Events.NODE_DESPAWN: {
                 let id = event.data.get("id");
-                if(id === this.owner.id && this.light != null)
+                if(id === this.owner.id)
                 {
-                    this.light.visible = false;
+                    if(this.light != null) this.light.visible = false;
                     this.owner.visible = false;
                 }
                 break;
@@ -203,11 +203,10 @@ export default class ProjectileBehavior implements AI {
 
     public update(deltaT: number): void {   
         // Only update the bubble if it's visible
-        if (this.owner.visible) {
+        while (this.receiver.hasNextEvent())
+            this.handleEvent(this.receiver.getNextEvent());
 
-            while (this.receiver.hasNextEvent()) {
-                this.handleEvent(this.receiver.getNextEvent());
-            }
+        if (this.owner.visible) {
 
             switch(this.behavior)
             {

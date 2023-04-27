@@ -11,7 +11,6 @@ const pincer: Array<monsterInfo> = [
 		spawnY: -525,
 		hitboxScaleX: 0.03,
 		hitboxScaleY: 1.0,
-		movementPattern: movementPatterns.moveLeft,
 		monsterType: monsterTypes.stalagmite,
 	},
 	{
@@ -20,7 +19,6 @@ const pincer: Array<monsterInfo> = [
 		spawnY: 525,
 		hitboxScaleX: 0.03,
 		hitboxScaleY: 1.0,
-		movementPattern: movementPatterns.moveLeft,
 		monsterType: monsterTypes.stalagmite,
 	}
 ]
@@ -30,22 +28,29 @@ export const level2Objs: Array<monsterInfo> = [
 	spawnTime: 0.0,
 	spriteKey: "MINE",
 	spawnY: 450,
-	movementPattern: movementPatterns.sineWave,
+	
+	movementPatterns: [{
+		movementPattern: movementPatterns.sineWave,
+	}],
 	},
 
 	{
 	spawnTime: 2.5,
 	spriteKey: "MINE",
 	spawnY: 300,
-	movementPattern: movementPatterns.sineWave,
-	amplitude: -150,
+	movementPatterns: [{
+		movementPattern: movementPatterns.sineWave,
+		amplitude: -150,
+	}],
 	},
 
 	{
 	spawnTime: 5.0,
 	spriteKey: "MINE",
 	spawnY: 600,
-	movementPattern: movementPatterns.sineWave,
+	movementPatterns: [{
+		movementPattern: movementPatterns.sineWave,
+	}],
 	weakToLight: true,
 	},
 
@@ -92,7 +97,9 @@ export const level2Objs: Array<monsterInfo> = [
 	spriteKey: "MINE",
 	spawnY: 450,
 	monsterType: monsterTypes.spinning,
-	stoppingX: 600,
+	movementPatterns: [{
+		moveDistance: 300,
+	}],
 	},
 
 	{
@@ -125,7 +132,9 @@ export const level2Objs: Array<monsterInfo> = [
 	spriteKey: "MINE",
 	spawnY: 700,
 	monsterType: monsterTypes.spinning,
-	movementPattern: movementPatterns.trackPlayer,
+	movementPatterns: [{
+		movementPattern: movementPatterns.trackPlayer,
+	}],
 	},
 
 ]

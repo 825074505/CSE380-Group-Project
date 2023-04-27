@@ -9,7 +9,6 @@ const pincer: Array<monsterInfo> = [
 		spawnY: -550,
 		hitboxScaleX: 0.01,
 		hitboxScaleY: 0.98,
-		movementPattern: movementPatterns.moveLeft,
 		monsterType: monsterTypes.stalagmite,
 	},
 	{
@@ -18,7 +17,6 @@ const pincer: Array<monsterInfo> = [
 		spawnY: 550,
 		hitboxScaleX: 0.01,
 		hitboxScaleY: 0.98,
-		movementPattern: movementPatterns.moveLeft,
 		monsterType: monsterTypes.stalagmite,
 	}
 ]

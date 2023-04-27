@@ -7,11 +7,13 @@ export const level4Objs: Array<monsterInfo> = [
 	spriteKey: "MINE",
 	spawnY: 450,
 	weakToLight: true,
-	movementPattern: movementPatterns.triangleWave,
-	spriteScale: 12,
-	period: 6,
-	amplitude: 300,
-	stoppingX: 750,
+	movementPatterns: [{
+		movementPattern: movementPatterns.triangleWave,
+		period: 6,
+		amplitude: -300,
+		moveDistance: 250,
+	}],
+	spriteScale: 2,
 	timeToWeak: 10,
 	projectiles: [
 			{behavior: projectileBehaviors.left,

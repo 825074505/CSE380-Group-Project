@@ -10,6 +10,7 @@ export type level = {
 	objs: Array<monsterInfo>;
 	BACKGROUND_PATH: string;
 	SONG_PATH: string;
+	speedMod?: number;
 }
 
 export const levels: level[] = [
@@ -24,6 +25,7 @@ export const levels: level[] = [
 		objs: level1Objs,
 		BACKGROUND_PATH: "hw2_assets/sprites/blacknoise.png",
 		SONG_PATH: "hw2_assets/sounds/songs/eost1.mp3",
+		speedMod: 2,
 	},
 	//level 2
 	{

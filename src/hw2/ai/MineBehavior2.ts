@@ -18,7 +18,7 @@ import { GraphicType } from "../../Wolfie2D/Nodes/Graphics/GraphicTypes";
 import Color from "../../Wolfie2D/Utils/Color";
 import {AudioKeys} from "../scenes/HW2Scene";
 import { GameEventType } from "../../Wolfie2D/Events/GameEventType";
-import {projectileInfo} from "../levels/monsterInfo";
+import {projectileInfo, movementInfo} from "../levels/monsterInfo";
 
 export const MineAnimations = {
     IDLE: "IDLE",
@@ -68,7 +68,7 @@ enum lightStates {
  */
 export default class MineBehavior2 implements AI {
     private owner: AnimatedSprite;
-    private speed: number;
+    private speed: number = 100;
     private direction: Vec2;
     private receiver: Receiver;
     private emitter: Emitter;
@@ -76,30 +76,36 @@ export default class MineBehavior2 implements AI {
     private wideLight: Light;
 	private narrowLight: Light;
     private player: AnimatedSprite;
-    private movementPattern: number = 0;
     private monsterState: number = 0;
     private monsterType: number = 0;
 
-    /*
-    private projectileBehavior: number = 0;
-    private projectileSpeed: number = 0;
-    */
-    //private projectileFrequency: number = 3; //seconds
-    //private projectilePause: number = 3;
+ 
     private projectiles: Array<projectileInfo>;
     private projectileIndex = 0;
     private projectileTimer: number = 0;
-    /*
-    private projectileLaserLength: number = 1;
-    private projectileSplitX: number;
-    private projectileInvincible: boolean;
-    */
+
+    private movementPatterns: Array<movementInfo>;
+    private movementIndex = 0;
+    private timeSinceSpawn: number = 0;
+    private endMovePattern: boolean = false;
+
+    private movementPattern: number = 0;
+    private amplitude: number = 150;
+    private period: number = 6.3;
+    private offset: number = 0;
+    private stoppingX: number = -500;
+    private moveTime: number;
+
+    private closeToPlayer: boolean = false;
+
+    private speedMod: number = 1;
+
 
     private splitOnDeath: boolean;
 
 
     private weakToLight: boolean = false;
-    private stoppingX: number = -500;
+    private timeToWeak: number = 1;
 
     private timeSincePhased: number;
 
@@ -110,6 +116,7 @@ export default class MineBehavior2 implements AI {
 
     private fallingSpeed: number = 0;
     private gravity: number = 10;
+    
 
     private electricLight: Light;
 
@@ -118,11 +125,6 @@ export default class MineBehavior2 implements AI {
 
     private charging: boolean = false;
 
-    private amplitude: number = 150;
-    private period: number = 1;
-    private timeToWeak: number = 1;
-
-    private timeSinceSpawn: number = 0;
 
     private notEnemyList: Array<number>;
     private peakElecBrightness: number;
@@ -149,16 +151,18 @@ export default class MineBehavior2 implements AI {
      * @see {AI.activate}
      */
     activate(options: Record<string, any>): void {
-        this.speed = 100;
         this.timeSincePhased = 0;
         this.owner.animation.play(MineAnimations.IDLE, true);
         this.spawnLoc = new Vec2(this.owner.position.x, this.owner.position.y);
         this.notEnemyList = [monsterTypes.stalactite, monsterTypes.stalactiteTop, monsterTypes.stalagmite, monsterTypes.electricField];
         const info = options.monInfo;
+
+        if(options.speedMod != null)
+            this.speedMod = options.speedMod;
+
+
         if(info != null)
         {
-            if(info.movementPattern != null)
-                this.movementPattern = info.movementPattern;
             this.player = options.player;
             this.narrowLight = options.narrowLight;
             this.wideLight = options.wideLight;
@@ -169,8 +173,6 @@ export default class MineBehavior2 implements AI {
             {
                 this.electricLight.visible = true;
                 this.monsterState = monsterStates.invincible;
-                //this.peakElecBrightness = this.electricLight.intensity;
-                //this.electricLight.intensity = 0;
             }
 
             if (info.monsterType != null)
@@ -179,8 +181,8 @@ export default class MineBehavior2 implements AI {
             if (info.weakToLight != null)
                 this.weakToLight = info.weakToLight;
 
-            if(info.stoppingX != null)
-                this.stoppingX = info.stoppingX;
+            if(info.timeToWeak != null)
+                this.timeToWeak = info.timeToWeak;
 
             this.projectiles = info.projectiles;
             if(this.projectiles != null)
@@ -191,19 +193,14 @@ export default class MineBehavior2 implements AI {
                 this.projectileTimer = this.projectiles[this.projectileIndex].waitTime - 1;
             }
 
-            if(info.amplitude != null)
+            if(info.movementPatterns != null)
             {
-                this.amplitude = info.amplitude;
+                this.movementPatterns = info.movementPatterns;
+                this.setMovementInfo(this.movementPatterns[0]);
             }
-
-            if(info.timeToWeak != null)
-                this.timeToWeak = info.timeToWeak;
-
-            if(info.period != null)
-                this.period = info.period;
-            
         }
-            
+        
+        
 
 
 
@@ -277,11 +274,22 @@ export default class MineBehavior2 implements AI {
             //Movement
 
             //Make the enemies chase the player if they get close, commented out for testing reasons but this works
-            
-            if(this.owner.position.x < 300 && this.movementPattern != movementPatterns.trackPlayer && !this.notEnemyList.includes(this.monsterType))
+            //prob a bug here when 
+            if(this.owner.position.x < 300 && !this.closeToPlayer && !this.notEnemyList.includes(this.monsterType))
             {
                 this.movementPattern = movementPatterns.trackPlayer;
+                this.moveTime = null;
+                this.closeToPlayer = true;
+                this.speed = 100;
             }
+
+            if(this.moveTime != null && this.timeSinceSpawn >= this.moveTime)
+            {
+                this.movementIndex = (this.movementIndex + 1) % this.movementPatterns.length;
+                this.setMovementInfo(this.movementPatterns[this.movementIndex]);
+            }
+
+
             
             //hacky wait for electric time
             /*
@@ -308,14 +316,14 @@ export default class MineBehavior2 implements AI {
                     this.owner.position.add(this.direction.scaled(this.speed * deltaT));
                     //add this to parameters at some point
                     //TODO add offset for sin so its random
-                    this.owner.position = new Vec2(this.owner.position.x, this.spawnLoc.y + Math.sin(this.timeSinceSpawn / this.period) * this.amplitude);
+                    this.owner.position = new Vec2(this.owner.position.x, this.spawnLoc.y - Math.sin(((this.timeSinceSpawn + this.offset) * 2 * Math.PI) / this.period) * this.amplitude);
                     break;
 
                 case movementPatterns.triangleWave:
                     this.owner.position.add(this.direction.scaled(this.speed * deltaT));
                     //add this to parameters at some point
                     //TODO add offset
-                    this.owner.position = new Vec2(this.owner.position.x, this.spawnLoc.y + MathUtils.tri(this.timeSinceSpawn, this.period) * this.amplitude);
+                    this.owner.position = new Vec2(this.owner.position.x, this.spawnLoc.y - MathUtils.tri(this.timeSinceSpawn + this.offset, this.period) * this.amplitude);
                     break;
 
                 case movementPatterns.runAway:
@@ -470,6 +478,42 @@ export default class MineBehavior2 implements AI {
             this.emitter.fireEvent(HW2Events.SPAWN_PROJECTILE, {src: this.owner, projectileInfo: this.projectiles[this.projectileIndex]});
         }
 
+    }
+
+    protected setMovementInfo(info: movementInfo): void {
+        
+        if(info.movementPattern != null)
+            this.movementPattern = info.movementPattern;
+        else
+            this.movementPattern = movementPatterns.moveLeft;
+
+        if(info.moveDistance != null)
+            this.stoppingX = Math.min(900, this.owner.position.x) - info.moveDistance;
+        else
+            this.stoppingX = -500;
+
+        if(info.amplitude != null)
+        {
+            this.amplitude = info.amplitude;
+        }else
+            this.amplitude = 150;
+
+        if(info.period != null)
+            this.period = info.period;
+        else
+            this.period = 6.3;
+
+        if(info.offset != null)
+            this.offset = info.offset;
+        else
+            this.offset = 0;
+
+        if(info.speed != null)
+            this.speed = info.speed * this.speedMod;
+        else
+            this.speed = 100 * this.speedMod;
+
+        this.moveTime = info.length;
     }
 
     /**
