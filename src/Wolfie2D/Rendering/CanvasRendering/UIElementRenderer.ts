@@ -1,5 +1,6 @@
 import Vec2 from "../../DataTypes/Vec2";
 import Button from "../../Nodes/UIElements/Button";
+import NewButton from "../../Nodes/UIElements/NewButton";
 import Label from "../../Nodes/UIElements/Label";
 import Slider from "../../Nodes/UIElements/Slider";
 import TextInput from "../../Nodes/UIElements/TextInput";
@@ -68,6 +69,10 @@ export default class UIElementRenderer {
      */
     renderButton(button: Button): void {
         this.renderLabel(button);
+    }
+
+    renderNewButton(button: NewButton): void {
+        button.calculateBackgroundColor();
     }
 
     /**

@@ -182,15 +182,17 @@ export default class HW2Scene extends Scene {
     // The seed that should be set before the game starts
     private seed: string;
 
-	// The key and path to the background sprite
-	public static BACKGROUND_KEY = "BACKGROUND"
-    public static BACKGROUND_PATH = "hw2_assets/sprites/blacknoise.png"
+
+
+	private backgroundKeyPaths = {};
 
 	public static SONG_KEY = "SONG"
 
 	// Sprites for the background images
 	private bg1: Sprite;
 	private bg2: Sprite;
+
+	private bgs: Array<Sprite>;
 
 	// Here we define member variables of our game, and object pools for adding in game objects
 	private player: AnimatedSprite;
@@ -280,7 +282,6 @@ export default class HW2Scene extends Scene {
 	 */
 	public override loadScene(){
 		// Load in the background image
-		this.load.image(HW2Scene.BACKGROUND_KEY, levels[this.currentLevel].BACKGROUND_PATH);
 
 		this.load.audio(HW2Scene.SONG_KEY, levels[this.currentLevel].SONG_PATH);
 
@@ -320,6 +321,34 @@ export default class HW2Scene extends Scene {
 		{
 			this.load.audio(AudioKeys[akeys[i]], AudioKeys[akeys[i+1]])
 		}
+
+		//this.load.image(HW2Scene.BACKGROUND_KEY, levels[this.currentLevel].BACKGROUND_PATH);
+		const path = levels[this.currentLevel].BACKGROUND_PATH;
+
+		this.backgroundKeyPaths = {
+				// The key and path to the background sprite
+			BACKGROUND_KEY: "BACKGROUND",
+			BACKGROUND_PATH: path + "bg1.png",
+
+			BGF1_KEY: "BGF1",
+			BGF1_PATH: path + "bgf1.png",
+
+			BGF2_KEY: "BGF2",
+			BGF2_PATH: path + "bgf2.png",
+
+			BGF3_KEY: "BGF3",
+			BGF3_PATH: path + "bgf3.png",
+
+			BGF4_KEY: "BGF4",
+			BGF4_PATH: path + "bgf4.png",
+		}
+
+		skeys = Object.keys(this.backgroundKeyPaths);
+
+		for(let i = 0; i < skeys.length; i+=2)
+		{
+			this.load.image(this.backgroundKeyPaths[skeys[i]], this.backgroundKeyPaths[skeys[i+1]]);
+		}
 	}
 	/**
 	 * @see Scene.startScene()
@@ -327,6 +356,8 @@ export default class HW2Scene extends Scene {
 	public override startScene(){
 
 		this.worldPadding = new Vec2(64, 64);
+		this.sceneManager.renderingManager.lightingEnabled = true;
+		this.sceneManager.renderingManager.downsamplingEnabled = true;
 
 		// Create a background layer
 		this.addLayer(HW2Layers.BACKGROUND, 0);
@@ -481,6 +512,7 @@ export default class HW2Scene extends Scene {
 				break;
 			}
 			case HW2Events.BACK_TO_MAIN:{
+				this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: HW2Scene.SONG_KEY});
 				this.sceneManager.changeToScene(MainMenu,{level:1})
 				break;
 				
@@ -740,14 +772,38 @@ export default class HW2Scene extends Scene {
 	 * Initializes the background image sprites for the game.
 	 */
 	protected initBackground(): void {
-		this.bg1 = this.add.sprite(HW2Scene.BACKGROUND_KEY, HW2Layers.BACKGROUND);
-		this.bg1.scale.set(1.5, 1.5);
-		this.bg1.position.copy(this.viewport.getCenter());
+		
 
-		this.bg2 = this.add.sprite(HW2Scene.BACKGROUND_KEY, HW2Layers.BACKGROUND);
-		this.bg2.scale.set(1.5, 1.5);
-		this.bg2.position = this.bg1.position.clone();
-		this.bg2.position.add(this.bg1.sizeWithZoom.scale(2, 0));
+
+		this.bgs = new Array();
+		this.initBackgroundHelper(this.backgroundKeyPaths["BACKGROUND_KEY"], this.viewport.getCenter(), 0, 1.5);
+		let bottomMid = this.viewport.getCenter().clone().add(new Vec2(0, 225));
+		this.initBackgroundHelper(this.backgroundKeyPaths["BGF1_KEY"], bottomMid);
+		this.initBackgroundHelper(this.backgroundKeyPaths["BGF2_KEY"], bottomMid);
+		this.initBackgroundHelper(this.backgroundKeyPaths["BGF3_KEY"], bottomMid);
+		this.initBackgroundHelper(this.backgroundKeyPaths["BGF4_KEY"], bottomMid);
+		let topMid = this.viewport.getCenter().clone().sub(new Vec2(0, 225));
+		this.initBackgroundHelper(this.backgroundKeyPaths["BGF1_KEY"], topMid, Math.PI);
+		this.initBackgroundHelper(this.backgroundKeyPaths["BGF2_KEY"], topMid, Math.PI);
+		this.initBackgroundHelper(this.backgroundKeyPaths["BGF3_KEY"], topMid, Math.PI);
+		this.initBackgroundHelper(this.backgroundKeyPaths["BGF4_KEY"], topMid, Math.PI);
+	}
+	//TODO
+	//hardcoded size
+	protected initBackgroundHelper(key: string, position: Vec2, rotation: number = 0, scale: number = 6): void {
+		let index = this.bgs.push(this.add.sprite(key, HW2Layers.BACKGROUND)) - 1;
+		//this.bg1.scale.set(1.5, 1.5);
+		this.bgs[index].scale.set(scale, scale);
+		this.bgs[index].position.copy(position);
+		this.bgs[index].rotation = rotation;
+
+		index = this.bgs.push(this.add.sprite(key, HW2Layers.BACKGROUND)) - 1;
+		//this.bg1.scale.set(1.5, 1.5);
+		this.bgs[index].scale.set(scale, scale);
+		this.bgs[index].position = this.bgs[index-1].position.clone();
+		//1.875 because 2 * 15/16 since there are extra 10 px padding for the bgs
+		this.bgs[index].position.add(this.bgs[index-1].sizeWithZoom.scale(1.875, 0));
+		this.bgs[index].rotation = rotation;
 	}
 	/**
 	 * This method initializes each of the object pools for this scene.
@@ -1263,9 +1319,9 @@ export default class HW2Scene extends Scene {
 		let unit = this.airBarBg.size.x / maxAir;
 		this.airBar.size.set(this.airBarBg.size.x - unit * (maxAir - currentAir), this.airBarBg.size.y);
 		this.airBar.position.set(this.airBarBg.position.x - (unit / 2) * (maxAir - currentAir), this.airBarBg.position.y);
-		//TODO FIX HARDCODED COST FOR SHOT
 		this.airBar.backgroundColor = currentAir < 2.5 ? Color.RED : Color.WHITE;
-		if(oldair != null && this.gameOverTimer.isStopped())
+		//TODO think about this
+		if(oldair != null && this.gameOverTimer.isStopped() && this.timePassed < 2)
 			this.energyUsed += oldair - currentAir;
 	}
 	/**
@@ -1736,17 +1792,30 @@ export default class HW2Scene extends Scene {
 		if(!this.paused)
 		{
 			let move = new Vec2(40, 0);
-			this.bg1.position.sub(move.clone().scaled(deltaT));
-			this.bg2.position.sub(move.clone().scaled(deltaT));
+			this.moveBackground(0, move, deltaT);
+			this.moveBackground(2, new Vec2(25, 0), deltaT);
+			this.moveBackground(4, new Vec2(50, 0), deltaT);
+			this.moveBackground(6, new Vec2(75, 0), deltaT);
+			this.moveBackground(8, new Vec2(100, 0), deltaT);
 
-			let edgePos = this.viewport.getCenter().clone().add(this.bg1.sizeWithZoom.clone().scale(-2, 0));
+			this.moveBackground(10, new Vec2(25, 0), deltaT);
+			this.moveBackground(12, new Vec2(50, 0), deltaT);
+			this.moveBackground(14, new Vec2(75, 0), deltaT);
+			this.moveBackground(16, new Vec2(100, 0), deltaT);
+		}
+	}
 
-			if (this.bg1.position.x <= edgePos.x){
-				this.bg1.position = this.viewport.getCenter().clone().add(this.bg1.sizeWithZoom.clone().scale(2, 0))
-			}
-			if (this.bg2.position.x <= edgePos.x){
-				this.bg2.position = this.viewport.getCenter().clone().add(this.bg2.sizeWithZoom.clone().scale(2, 0))
-			}
+	protected moveBackground(index: number, move: Vec2, deltaT: number): void {
+		this.bgs[index].position.sub(move.clone().scaled(deltaT));
+		this.bgs[index+1].position.sub(move.clone().scaled(deltaT));
+
+		let edgePos = this.viewport.getCenter().clone().add(this.bgs[index].sizeWithZoom.clone().scale(-1.875, 0));
+
+		if (this.bgs[index].position.x <= edgePos.x){
+			this.bgs[index].position = new Vec2(this.viewport.getCenter().x, this.bgs[index].position.y).add(this.bgs[index].sizeWithZoom.clone().scale(1.875, 0))
+		}
+		if (this.bgs[index+1].position.x <= edgePos.x){
+			this.bgs[index+1].position = new Vec2(this.viewport.getCenter().x, this.bgs[index].position.y).add(this.bgs[index+1].sizeWithZoom.clone().scale(1.875, 0))
 		}
 	}
 

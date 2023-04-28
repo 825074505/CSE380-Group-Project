@@ -10,16 +10,19 @@ import GameEvent from "../../Wolfie2D/Events/GameEvent";
 import RandUtils from "../../Wolfie2D/Utils/RandUtils";
 import { GameEventType } from "../../Wolfie2D/Events/GameEventType";
 import Input from "../../Wolfie2D/Input/Input";
+import AnimatedSprite from "../../Wolfie2D/Nodes/Sprites/AnimatedSprite";
+import Sprite from "../../Wolfie2D/Nodes/Sprites/Sprite";
 
 // Layers in the main menu
 const MainMenuLayer = {
+    BACKGROUND: "BACKGROUND",
     MAIN_MENU: "MAIN_MENU", 
     CONTROLS: "CONTROLS",
     ABOUT: "ABOUT",
     LEVEL_SELECT: "LEVEL_SELECT",
     BEST_SCORES: "BEST_SCORES",
     SPLASH_SCREEN:"SPLASH_SCREEN"
-} as const
+};
 
 // Events triggered in the main menu
 const MainMenuEvent = {
@@ -35,7 +38,17 @@ const MainMenuEvent = {
     EXIT: "EXIT",
     TUTORIAL_PRESSED: "TUTORIAL_PRESSED"
 
-} as const;
+};
+
+const SpriteKeys = {
+	TITLETEXT_KEY: "TITLETEXT",
+    TITLETEXT_PATH: "hw2_assets/sprites/titletext.png"
+};
+
+export const SpritesheetKeys = {
+    GAMETEXT_KEY: "GAMETEXT",
+    GAMETEXT_PATH: "hw2_assets/spritesheets/gameText.json",
+};
 
 export default class MainMenu extends Scene {
     // Layers, for multiple main menu screens
@@ -52,6 +65,10 @@ export default class MainMenu extends Scene {
 
     private retScreen : string;
 
+    private buttonSprites: Map<string, AnimatedSprite>;
+    private backgroundKeyPaths = {};
+    private bgs: Array<Sprite>;
+
 
 
     public initScene(options: Record<string, any>): void {
@@ -63,15 +80,59 @@ export default class MainMenu extends Scene {
         
     }
 
+    public override loadScene(){
+        let sskeys = Object.keys(SpritesheetKeys);
+
+		for(let i = 0; i < sskeys.length; i+=2)
+		{
+			this.load.spritesheet(SpritesheetKeys[sskeys[i]], SpritesheetKeys[sskeys[i+1]]);
+		}
+
+		let skeys = Object.keys(SpriteKeys);
+
+		for(let i = 0; i < skeys.length; i+=2)
+		{
+			this.load.image(SpriteKeys[skeys[i]], SpriteKeys[skeys[i+1]]);
+		}
+
+        const path = "hw2_assets/sprites/bg1nonoise/";
+        this.backgroundKeyPaths = {
+				// The key and path to the background sprite
+			BACKGROUND_KEY: "BACKGROUND",
+			BACKGROUND_PATH: path + "bg1.png",
+
+			BGF1_KEY: "BGF1",
+			BGF1_PATH: path + "bgf1.png",
+
+			BGF2_KEY: "BGF2",
+			BGF2_PATH: path + "bgf2.png",
+
+			BGF3_KEY: "BGF3",
+			BGF3_PATH: path + "bgf3.png",
+
+			BGF4_KEY: "BGF4",
+			BGF4_PATH: path + "bgf4.png",
+		}
+
+		skeys = Object.keys(this.backgroundKeyPaths);
+
+		for(let i = 0; i < skeys.length; i+=2)
+		{
+			this.load.image(this.backgroundKeyPaths[skeys[i]], this.backgroundKeyPaths[skeys[i+1]]);
+		}
+    }
     public override startScene(){
+        this.sceneManager.renderingManager.lightingEnabled = false;
+        //this.sceneManager.renderingManager.downsamplingEnabled = false;
 
         const center = this.viewport.getCenter();
+        this.addLayer(MainMenuLayer.BACKGROUND, 0);
+        this.initBackground();
         //Splash Screen
         this.splashScreen = this.addUILayer(MainMenuLayer.SPLASH_SCREEN);
         //let bg = this.addLayer("background");
         //bg.setDepth(-100);
         //this.add.graphic("","background");
-
         // Main menu screen
         this.mainMenu = this.addUILayer(MainMenuLayer.MAIN_MENU);
         this.mainMenu.setHidden(true);
@@ -89,15 +150,44 @@ export default class MainMenu extends Scene {
         this.bestScores = this.addUILayer(MainMenuLayer.BEST_SCORES);
         this.bestScores.setHidden(true);
 
-        
+        const playSprite = this.add.animatedSprite(SpritesheetKeys.GAMETEXT_KEY, MainMenuLayer.SPLASH_SCREEN);
+        this.add.uiElement(UIElementType.NEWBUTTON, MainMenuLayer.SPLASH_SCREEN, {position: new Vec2(447, 744), onClickEventId: MainMenuEvent.START_GAME, sprite: playSprite,
+        defaultAnimation: "PLAY", hoverAnimation: "PLAYSELECT"});
 
-        const start = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.SPLASH_SCREEN, {position: new Vec2(center.x, center.y), text: "Enter Game"});
-        start.size.set(200, 50);
-        start.borderWidth = 2;
-        start.borderColor = Color.MAGENTA;
-        start.backgroundColor = Color.TRANSPARENT;
-        start.onClickEventId = MainMenuEvent.START_GAME;
+        const titleText = this.add.sprite(SpriteKeys.TITLETEXT_KEY, MainMenuLayer.SPLASH_SCREEN);
+        titleText.scale.scale(6.0);
+        titleText.position = new Vec2(447, 453);
 
+
+        const tutorialSprite = this.add.animatedSprite(SpritesheetKeys.GAMETEXT_KEY, MainMenuLayer.MAIN_MENU);
+        this.add.uiElement(UIElementType.NEWBUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(447, 96), onClickEventId: MainMenuEvent.TUTORIAL_PRESSED, sprite: tutorialSprite,
+        defaultAnimation: "TUTORIAL", hoverAnimation: "TUTORIALSELECT"});
+
+        const arcadeSprite = this.add.animatedSprite(SpritesheetKeys.GAMETEXT_KEY, MainMenuLayer.MAIN_MENU);
+        this.add.uiElement(UIElementType.NEWBUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(447, 210), onClickEventId: MainMenuEvent.PLAY_GAME, sprite: arcadeSprite,
+        defaultAnimation: "ARCADE", hoverAnimation: "ARCADESELECT"}); 
+
+        const levelSelectSprite = this.add.animatedSprite(SpritesheetKeys.GAMETEXT_KEY, MainMenuLayer.MAIN_MENU);
+        this.add.uiElement(UIElementType.NEWBUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(447, 324), onClickEventId: MainMenuEvent.LEVEL_SELECT, sprite: levelSelectSprite,
+        defaultAnimation: "LEVEL", hoverAnimation: "LEVELSELECT"});
+
+        const controlsSprite = this.add.animatedSprite(SpritesheetKeys.GAMETEXT_KEY, MainMenuLayer.MAIN_MENU);
+        this.add.uiElement(UIElementType.NEWBUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(447, 438), onClickEventId: MainMenuEvent.CONTROLS, sprite: controlsSprite,
+        defaultAnimation: "CONTROLS", hoverAnimation: "CONTROLSSELECT"});
+
+        const backstorySprite = this.add.animatedSprite(SpritesheetKeys.GAMETEXT_KEY, MainMenuLayer.MAIN_MENU);
+        this.add.uiElement(UIElementType.NEWBUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(447, 552), onClickEventId: MainMenuEvent.ABOUT, sprite: backstorySprite,
+        defaultAnimation: "BACKSTORY", hoverAnimation: "BACKSTORYSELECT"});
+
+        const highscoresSprite = this.add.animatedSprite(SpritesheetKeys.GAMETEXT_KEY, MainMenuLayer.MAIN_MENU);
+        this.add.uiElement(UIElementType.NEWBUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(447, 666), onClickEventId: MainMenuEvent.BEST_SCORES, sprite: highscoresSprite,
+        defaultAnimation: "HIGHSCORES", hoverAnimation: "HIGHSCORESSELECT"});
+
+        const returnSprite = this.add.animatedSprite(SpritesheetKeys.GAMETEXT_KEY, MainMenuLayer.MAIN_MENU);
+        this.add.uiElement(UIElementType.NEWBUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(447, 810), onClickEventId: MainMenuEvent.EXIT, sprite: returnSprite,
+        defaultAnimation: "RETURN", hoverAnimation: "RETURNSELECT"});
+
+        /*
         // Add tutorial button
         const tutorial = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y -200), text: "Tutorial"});
         tutorial.size.set(200, 50);
@@ -105,8 +195,10 @@ export default class MainMenu extends Scene {
         tutorial.borderColor = Color.WHITE;
         tutorial.backgroundColor = Color.TRANSPARENT;
         tutorial.onClickEventId = MainMenuEvent.TUTORIAL_PRESSED;
+        */
         
         // Add play button, and give it an event to emit on press
+        /*
         const play = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y - 100), text: "Arcade Mode"});
         play.size.set(200, 50);
         play.borderWidth = 2;
@@ -157,12 +249,9 @@ export default class MainMenu extends Scene {
         exit.borderColor = Color.WHITE;
         exit.backgroundColor = Color.TRANSPARENT;
         exit.onClickEventId = MainMenuEvent.EXIT;
-
+        */
         
-        
-
-        const splashHeader = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.SPLASH_SCREEN, {position: new Vec2(center.x, center.y - 200), text: "Welcome To Echoes of the Subterra"});
-        splashHeader.textColor = Color.GREEN;
+       
 
         const header = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y - 250), text: "Controls"});
         header.textColor = Color.WHITE;
@@ -336,6 +425,38 @@ export default class MainMenu extends Scene {
         }
     }
 
+    protected initBackground(): void {
+		this.bgs = new Array();
+		this.initBackgroundHelper(this.backgroundKeyPaths["BACKGROUND_KEY"], this.viewport.getCenter(), 0, 1.5);
+		let bottomMid = this.viewport.getCenter().clone().add(new Vec2(0, 225));
+		this.initBackgroundHelper(this.backgroundKeyPaths["BGF1_KEY"], bottomMid);
+		this.initBackgroundHelper(this.backgroundKeyPaths["BGF2_KEY"], bottomMid);
+		this.initBackgroundHelper(this.backgroundKeyPaths["BGF3_KEY"], bottomMid);
+		this.initBackgroundHelper(this.backgroundKeyPaths["BGF4_KEY"], bottomMid);
+		let topMid = this.viewport.getCenter().clone().sub(new Vec2(0, 225));
+		this.initBackgroundHelper(this.backgroundKeyPaths["BGF1_KEY"], topMid, Math.PI);
+		this.initBackgroundHelper(this.backgroundKeyPaths["BGF2_KEY"], topMid, Math.PI);
+		this.initBackgroundHelper(this.backgroundKeyPaths["BGF3_KEY"], topMid, Math.PI);
+		this.initBackgroundHelper(this.backgroundKeyPaths["BGF4_KEY"], topMid, Math.PI);
+	}
+	//TODO
+	//hardcoded size
+	protected initBackgroundHelper(key: string, position: Vec2, rotation: number = 0, scale: number = 6): void {
+		let index = this.bgs.push(this.add.sprite(key, MainMenuLayer.BACKGROUND)) - 1;
+		//this.bg1.scale.set(1.5, 1.5);
+		this.bgs[index].scale.set(scale, scale);
+		this.bgs[index].position.copy(position);
+		this.bgs[index].rotation = rotation;
+
+		index = this.bgs.push(this.add.sprite(key, MainMenuLayer.BACKGROUND)) - 1;
+		//this.bg1.scale.set(1.5, 1.5);
+		this.bgs[index].scale.set(scale, scale);
+		this.bgs[index].position = this.bgs[index-1].position.clone();
+		//1.875 because 2 * 15/16 since there are extra 10 px padding for the bgs
+		this.bgs[index].position.add(this.bgs[index-1].sizeWithZoom.scale(1.875, 0));
+		this.bgs[index].rotation = rotation;
+	}
+
     public override updateScene(){
         if(Input.isKeyJustPressed("1"))
             this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":1});
@@ -352,10 +473,41 @@ export default class MainMenu extends Scene {
         else if (Input.isKeyJustPressed("2"))
             this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":2});
 
+        this.moveBackgrounds(1/60);
         while(this.receiver.hasNextEvent()){
             this.handleEvent(this.receiver.getNextEvent());
         }
     }
+
+    protected moveBackgrounds(deltaT: number): void {
+        
+		let move = new Vec2(40, 0);
+		this.moveBackground(0, move, deltaT);
+		this.moveBackground(2, new Vec2(25, 0), deltaT);
+		this.moveBackground(4, new Vec2(50, 0), deltaT);
+		this.moveBackground(6, new Vec2(75, 0), deltaT);
+		this.moveBackground(8, new Vec2(100, 0), deltaT);
+
+		this.moveBackground(10, new Vec2(25, 0), deltaT);
+		this.moveBackground(12, new Vec2(50, 0), deltaT);
+		this.moveBackground(14, new Vec2(75, 0), deltaT);
+		this.moveBackground(16, new Vec2(100, 0), deltaT);
+        
+	}
+
+	protected moveBackground(index: number, move: Vec2, deltaT: number): void {
+		this.bgs[index].position.sub(move.clone().scaled(deltaT));
+		this.bgs[index+1].position.sub(move.clone().scaled(deltaT));
+
+		let edgePos = this.viewport.getCenter().clone().add(this.bgs[index].sizeWithZoom.clone().scale(-1.875, 0));
+
+		if (this.bgs[index].position.x <= edgePos.x){
+			this.bgs[index].position = new Vec2(this.viewport.getCenter().x, this.bgs[index].position.y).add(this.bgs[index].sizeWithZoom.clone().scale(1.875, 0))
+		}
+		if (this.bgs[index+1].position.x <= edgePos.x){
+			this.bgs[index+1].position = new Vec2(this.viewport.getCenter().x, this.bgs[index].position.y).add(this.bgs[index+1].sizeWithZoom.clone().scale(1.875, 0))
+		}
+	}
 
     protected handleEvent(event: GameEvent): void {
         switch(event.type) {

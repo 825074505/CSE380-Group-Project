@@ -78,6 +78,8 @@ export default class PlayerController implements AI {
 	private planeWingsMaxSize: number;
 	private renderingManager: RenderingManager;
 
+	private wideHeadlightOn: boolean;
+
 	private blinkingLightMaxBrightness: number;
 	private blinkingLightMinBrightness: number;
 	private blinkingLightBrightnessIncreasing: boolean;
@@ -284,6 +286,7 @@ export default class PlayerController implements AI {
 		if (Input.isJustPressed(HW2Controls.SHOOT) && this.shootTimeOut == false && this.currentAir > this.laserEnergyCost) {
 			//this.currentCharge -= 1;
 			this.shootTimeOut = true;
+			this.wideHeadlightOn = false;
 			this.emitter.fireEvent(HW2Events.SHOOT_LASER, {src: this.shootLight.position, angle: this.currentAngle});
 			this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.SHOOT_AUDIO_KEY, loop: false, holdReference: false});
 			this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.SHOOT2_AUDIO_KEY, loop: false, holdReference: false});

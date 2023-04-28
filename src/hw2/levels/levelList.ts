@@ -17,44 +17,44 @@ export const levels: level[] = [
 	//Tutorial level
 	{
 		objs: level0Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/blacknoise.png",
+		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
 		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
 	},
 	//level 1
 	{
 		objs: level1Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/blacknoise.png",
+		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
 		SONG_PATH: "hw2_assets/sounds/songs/eost1.mp3",
 		speedMod: 2,
 	},
 	//level 2
 	{
 		objs: level2Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/blacknoise.png",
+		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
 		SONG_PATH: "hw2_assets/sounds/songs/eost2.mp3",
 	},
 	//level 3
 	{
 		objs: level3Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/blacknoise.png",
+		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
 		SONG_PATH: "hw2_assets/sounds/songs/eost3.mp3",
 	},
 	//level 4
 	{
 		objs: level4Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/blacknoise.png",
+		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
 		SONG_PATH: "hw2_assets/sounds/songs/eost4bossmusic.mp3",
 	},
 	//level 5
 	{
 		objs: level5Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/blacknoise.png",
+		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
 		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
 	},
 	//level 6
 	{
 		objs: level6Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/blacknoise.png",
+		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
 		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
 	},
 ]

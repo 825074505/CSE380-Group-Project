@@ -12,6 +12,7 @@ import Sprite from "../Nodes/Sprites/Sprite";
 import Tilemap from "../Nodes/Tilemap";
 import UIElement from "../Nodes/UIElement";
 import Label from "../Nodes/UIElements/Label";
+import NewButton from "../Nodes/UIElements/NewButton";
 import ShaderRegistry from "../Registry/Registries/ShaderRegistry";
 import RegistryManager from "../Registry/RegistryManager";
 import ResourceManager from "../ResourceManager/ResourceManager";

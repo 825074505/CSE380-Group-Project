@@ -11,6 +11,7 @@ import Button from "../../Nodes/UIElements/Button";
 import Label from "../../Nodes/UIElements/Label";
 import Slider from "../../Nodes/UIElements/Slider";
 import TextInput from "../../Nodes/UIElements/TextInput";
+import NewButton from "../../Nodes/UIElements/NewButton";
 import Rect from "../../Nodes/Graphics/Rect";
 import ResourceManager from "../../ResourceManager/ResourceManager";
 import Line from "../../Nodes/Graphics/Line";
@@ -57,6 +58,8 @@ export default class CanvasNodeFactory {
 			break;
 			case UIElementType.TEXT_INPUT:
 				instance = this.buildTextInput(options);
+			case UIElementType.NEWBUTTON:
+				instance = this.buildNewButton(options);
 			break;
 			default:
 				throw `UIElementType '${type}' does not exist, or is registered incorrectly.`
@@ -178,6 +181,10 @@ export default class CanvasNodeFactory {
 		this.checkIfPropExists("Button", options, "text", "string");
 
 		return new Button(options.position, options.text);
+	}
+
+	buildNewButton(options?: Record<string, any>): NewButton {
+		return new NewButton(options.position, options.onClickEventId, options.sprite, options.defaultAnimation, options.hoverAnimation);
 	}
 
 	buildLabel(options?: Record<string, any>): Label {

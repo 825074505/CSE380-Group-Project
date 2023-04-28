@@ -15,6 +15,7 @@ import TilemapRenderer from "./CanvasRendering/TilemapRenderer";
 import UIElementRenderer from "./CanvasRendering/UIElementRenderer";
 import Label from "../Nodes/UIElements/Label";
 import Button from "../Nodes/UIElements/Button";
+import NewButton from "../Nodes/UIElements/NewButton";
 import Slider from "../Nodes/UIElements/Slider";
 import TextInput from "../Nodes/UIElements/TextInput";
 import AnimatedSprite from "../Nodes/Sprites/AnimatedSprite";
@@ -264,6 +265,8 @@ export default class CanvasRenderer extends RenderingManager {
             this.uiElementRenderer.renderSlider(uiElement);
         } else if(uiElement instanceof TextInput){
             this.uiElementRenderer.renderTextInput(uiElement);
+        } else if(uiElement instanceof NewButton){
+            this.uiElementRenderer.renderNewButton(uiElement);
         }
     }
 

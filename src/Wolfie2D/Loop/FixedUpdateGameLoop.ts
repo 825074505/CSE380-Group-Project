@@ -61,7 +61,7 @@ export default class FixedUpdateGameLoop extends GameLoop {
         this.updateTimestep = Math.floor(1000/this.maxUpdateFPS);
         this.frameDelta = 0;
         this.lastFrameTime = 0;
-        this.minFrameDelay = 0;
+        this.minFrameDelay = Math.floor(1000/this.maxUpdateFPS);
         this.frame = 0;
         this.fps = this.maxUpdateFPS;   // Initialize the fps to the max allowed fps
         this.fpsUpdateInterval = 1000;
