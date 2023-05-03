@@ -1,17 +1,49 @@
 import Vec2 from "../../Wolfie2D/DataTypes/Vec2";
 import { UIElementType } from "../../Wolfie2D/Nodes/UIElements/UIElementTypes";
+import NewButton from "../../Wolfie2D/Nodes/UIElements/NewButton";
+import Button from "../../Wolfie2D/Nodes/UIElements/Button";
 import Layer from "../../Wolfie2D/Scene/Layer";
 import Scene from "../../Wolfie2D/Scene/Scene";
 import Color from "../../Wolfie2D/Utils/Color";
 import Homework1_Scene from "./HW2Scene";
 import Label from "../../Wolfie2D/Nodes/UIElements/Label";
 import GameEvent from "../../Wolfie2D/Events/GameEvent";
+import { GraphicType } from "../../Wolfie2D/Nodes/Graphics/GraphicTypes";
 
 import RandUtils from "../../Wolfie2D/Utils/RandUtils";
 import { GameEventType } from "../../Wolfie2D/Events/GameEventType";
 import Input from "../../Wolfie2D/Input/Input";
 import AnimatedSprite from "../../Wolfie2D/Nodes/Sprites/AnimatedSprite";
 import Sprite from "../../Wolfie2D/Nodes/Sprites/Sprite";
+import GameOver from "./GameOver";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCp83am53cwUG435Nq84Hil7UWnKB6ABLc",
+  authDomain: "cse380-group-project-10cc5.firebaseapp.com",
+  projectId: "cse380-group-project-10cc5",
+  storageBucket: "cse380-group-project-10cc5.appspot.com",
+  messagingSenderId: "988123209796",
+  appId: "1:988123209796:web:517632feca77c55be99c11",
+  measurementId: "G-BYJCR3VV0X"
+};
+
+// Initialize Firebase
+import { initializeApp } from "firebase/app";
+const app = initializeApp(firebaseConfig);
+console.log("TESTSETSETSETSETSET");
+import {
+   getFirestore
+} from 'firebase/firestore/lite';
+const db = getFirestore(app);
+
+import {
+   getDocs,
+   collection,
+   query,
+   orderBy,
+   addDoc,
+   serverTimestamp
+} from 'firebase/firestore/lite';
 
 // Layers in the main menu
 const MainMenuLayer = {
@@ -36,19 +68,52 @@ const MainMenuEvent = {
     LEVEL_PRESSED: "LEVEL_PRESSED",
     BEST_SCORES: "BEST_SCORES",
     EXIT: "EXIT",
-    TUTORIAL_PRESSED: "TUTORIAL_PRESSED"
-
+    TUTORIAL_PRESSED: "TUTORIAL_PRESSED",
+    BACKSTORY_PREV: "BACKSTORY_PREV",
+    BACKSTORY_NEXT: "BACKSTORY_NEXT",
+    LEADERBOARD_NEXT: "LEADERBOARD_NEXT",
+    LEADERBOARD_PREV: "LEADERBOARD_PREV",
+    GOTOBESTSCORE: "GOTOBESTSCORE",
 };
 
 const SpriteKeys = {
 	TITLETEXT_KEY: "TITLETEXT",
-    TITLETEXT_PATH: "hw2_assets/sprites/titletext.png"
+    TITLETEXT_PATH: "hw2_assets/sprites/titletext.png",
+
+    CONTROLS_KEY: "CONTROLS",
+    CONTROLS_PATH: "hw2_assets/sprites/controlstext.png",
+
+    SCOREINFO_KEY: "SCOREINFO",
+    SCOREINFO_PATH: "hw2_assets/sprites/scoreinfo.png",
 };
 
 export const SpritesheetKeys = {
     GAMETEXT_KEY: "GAMETEXT",
     GAMETEXT_PATH: "hw2_assets/spritesheets/gameText.json",
+
+    BACKSTORY_KEY: "BACKSTORY",
+    BACKSTORY_PATH: "hw2_assets/spritesheets/backstoryText.json",
+
+    LEVELNUMS_KEY: "LEVELNUMS",
+    LEVELNUMS_PATH: "hw2_assets/spritesheets/levelNumbers.json",
+
+    ALPHANUM_KEY: "ALPHANUM",
+    ALPHANUM_PATH: "hw2_assets/spritesheets/alphanum.json",
+
+    SCORENUMS_KEY: "SCORENUMS",
+    SCORENUMS_PATH: "hw2_assets/spritesheets/scorenumbers.json",
 };
+
+export const AudioKeys = {
+	SELECT_AUDIO_KEY: "SELECT",
+    SELECT_AUDIO_PATH: "hw2_assets/sounds/select.wav",
+
+	HOVER_AUDIO_KEY: "HOVER",
+    HOVER_AUDIO_PATH: "hw2_assets/sounds/hover.wav",
+
+    MUSIC_AUDIO_KEY: "TITLEMUSIC",
+    MUSIC_AUDIO_PATH: "hw2_assets/sounds/songs/eosttitle.mp3",
+}
 
 export default class MainMenu extends Scene {
     // Layers, for multiple main menu screens
@@ -69,15 +134,33 @@ export default class MainMenu extends Scene {
     private backgroundKeyPaths = {};
     private bgs: Array<Sprite>;
 
+    private backstorySprite: AnimatedSprite;
+    private backstoryPage: number;
+    private backstoryNext: NewButton;
+    private backstoryPrev: NewButton;
 
+    private leaderboardNext: NewButton;
+    private leaderboardPrev: NewButton;
+
+    private scores: Array<Object>;
+    private bestScoreId: string;
+    private bestScoreIndex: number = -1;
+    private leaderboardUpdated: boolean = false;
+
+    private currentBestScore: Object;
+    private leaderBoardPage: number = 0;
+    private maxLeaderBoardPage: number = 0;
+
+    private scoreSprites: Array<Object>;
+
+    private newScore: Object;
 
     public initScene(options: Record<string, any>): void {
         //this.levels_Unlocked = options.levels ? options.levels : 1
         this.levels_Unlocked = 6;
         this.current_Level = 1
         this.retScreen = options.screen;
-       
-        
+        this.newScore = options.newScore;
     }
 
     public override loadScene(){
@@ -93,6 +176,14 @@ export default class MainMenu extends Scene {
 		for(let i = 0; i < skeys.length; i+=2)
 		{
 			this.load.image(SpriteKeys[skeys[i]], SpriteKeys[skeys[i+1]]);
+		}
+
+        //sounds
+		let akeys = Object.keys(AudioKeys);
+
+		for(let i = 0; i < akeys.length; i+=2)
+		{
+			this.load.audio(AudioKeys[akeys[i]], AudioKeys[akeys[i+1]])
 		}
 
         const path = "hw2_assets/sprites/bg1nonoise/";
@@ -123,8 +214,8 @@ export default class MainMenu extends Scene {
     }
     public override startScene(){
         this.sceneManager.renderingManager.lightingEnabled = false;
+        this.emitter.fireEvent(GameEventType.PLAY_MUSIC, {key: "TITLEMUSIC", loop: true, holdReference: true});
         //this.sceneManager.renderingManager.downsamplingEnabled = false;
-
         const center = this.viewport.getCenter();
         this.addLayer(MainMenuLayer.BACKGROUND, 0);
         this.initBackground();
@@ -152,7 +243,7 @@ export default class MainMenu extends Scene {
 
         const playSprite = this.add.animatedSprite(SpritesheetKeys.GAMETEXT_KEY, MainMenuLayer.SPLASH_SCREEN);
         this.add.uiElement(UIElementType.NEWBUTTON, MainMenuLayer.SPLASH_SCREEN, {position: new Vec2(447, 744), onClickEventId: MainMenuEvent.START_GAME, sprite: playSprite,
-        defaultAnimation: "PLAY", hoverAnimation: "PLAYSELECT"});
+        defaultAnimation: "PLAY", hoverAnimation: "PLAYSELECT", sizeModX: 2, start: true});
 
         const titleText = this.add.sprite(SpriteKeys.TITLETEXT_KEY, MainMenuLayer.SPLASH_SCREEN);
         titleText.scale.scale(6.0);
@@ -185,209 +276,127 @@ export default class MainMenu extends Scene {
 
         const returnSprite = this.add.animatedSprite(SpritesheetKeys.GAMETEXT_KEY, MainMenuLayer.MAIN_MENU);
         this.add.uiElement(UIElementType.NEWBUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(447, 810), onClickEventId: MainMenuEvent.EXIT, sprite: returnSprite,
+        defaultAnimation: "RETURNTITLE", hoverAnimation: "RETURNTITLESELECT"});
+
+
+        const controlsText = this.add.sprite(SpriteKeys.CONTROLS_KEY, MainMenuLayer.CONTROLS);
+        controlsText.scale.scale(6.0);
+        controlsText.position = new Vec2(447, 453);
+
+        const returnMenuSprite = this.add.animatedSprite(SpritesheetKeys.GAMETEXT_KEY, MainMenuLayer.CONTROLS);
+        this.add.uiElement(UIElementType.NEWBUTTON, MainMenuLayer.CONTROLS, {position: new Vec2(447, 810), onClickEventId: MainMenuEvent.MENU, sprite: returnMenuSprite,
         defaultAnimation: "RETURN", hoverAnimation: "RETURNSELECT"});
-
-        /*
-        // Add tutorial button
-        const tutorial = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y -200), text: "Tutorial"});
-        tutorial.size.set(200, 50);
-        tutorial.borderWidth = 2;
-        tutorial.borderColor = Color.WHITE;
-        tutorial.backgroundColor = Color.TRANSPARENT;
-        tutorial.onClickEventId = MainMenuEvent.TUTORIAL_PRESSED;
-        */
-        
-        // Add play button, and give it an event to emit on press
-        /*
-        const play = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y - 100), text: "Arcade Mode"});
-        play.size.set(200, 50);
-        play.borderWidth = 2;
-        play.borderColor = Color.WHITE;
-        play.backgroundColor = Color.TRANSPARENT;
-        play.onClickEventId = MainMenuEvent.PLAY_GAME;
-
-        // Add play recording button
-        const levelSelect = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y), text: "Level Select"});
-        levelSelect.size.set(200, 50);
-        levelSelect.borderWidth = 2;
-        levelSelect.borderColor = Color.WHITE;
-        levelSelect.backgroundColor = Color.TRANSPARENT;
-        levelSelect.onClickEventId = MainMenuEvent.LEVEL_SELECT;
-
-        // Add controls button
-        const controls = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y + 100), text: "Controls"});
-        controls.size.set(200, 50);
-        controls.borderWidth = 2;
-        controls.borderColor = Color.WHITE;
-        controls.backgroundColor = Color.TRANSPARENT;
-        controls.onClickEventId = MainMenuEvent.CONTROLS;
-
-        // Add event button
-        const about = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y + 200), text: "Backstory"});
-        about.size.set(200, 50);
-        about.borderWidth = 2;
-        about.borderColor = Color.WHITE;
-        about.backgroundColor = Color.TRANSPARENT;
-        about.onClickEventId = MainMenuEvent.ABOUT;
-
-   
-
-
-        // Add best score button
-        const bestScores = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y + 300), text: "Best Scores"});
-        bestScores.size.set(200, 50);
-        bestScores.borderWidth = 2;
-        bestScores.borderColor = Color.WHITE;
-        bestScores.backgroundColor = Color.TRANSPARENT;
-        bestScores.onClickEventId = MainMenuEvent.BEST_SCORES;
-
-        // Add exit button
-
-        const exit = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.MAIN_MENU, {position: new Vec2(center.x, center.y + 400), text: "Exit"});
-        exit.size.set(200, 50);
-        exit.borderWidth = 2;
-        exit.borderColor = Color.WHITE;
-        exit.backgroundColor = Color.TRANSPARENT;
-        exit.onClickEventId = MainMenuEvent.EXIT;
-        */
-        
        
+        this.backstorySprite = this.add.animatedSprite(SpritesheetKeys.BACKSTORY_KEY, MainMenuLayer.ABOUT);
+        this.backstorySprite.scale.scale(6.0);
+        this.backstorySprite.position = new Vec2(447, 453);
+        const reducedSize = 1;
+        const returnMenu2Sprite = this.add.animatedSprite(SpritesheetKeys.GAMETEXT_KEY, MainMenuLayer.ABOUT);
+        this.add.uiElement(UIElementType.NEWBUTTON, MainMenuLayer.ABOUT, {position: new Vec2(447, 822), onClickEventId: MainMenuEvent.MENU, sprite: returnMenu2Sprite,
+        defaultAnimation: "RETURN", hoverAnimation: "RETURNSELECT", sizeModX: reducedSize});
 
-        const header = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y - 250), text: "Controls"});
-        header.textColor = Color.WHITE;
+        const prevSprite = this.add.animatedSprite(SpritesheetKeys.GAMETEXT_KEY, MainMenuLayer.ABOUT);
+        this.backstoryPrev = this.add.uiElement(UIElementType.NEWBUTTON, MainMenuLayer.ABOUT, {position: new Vec2(171, 822), onClickEventId: MainMenuEvent.BACKSTORY_PREV, sprite: prevSprite,
+        defaultAnimation: "PREV", hoverAnimation: "PREVSELECT", sizeModX: reducedSize}) as NewButton;
 
-        const ws = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y - 50), text: "-Press A to pitch up"});
-        ws.textColor = Color.WHITE;
-        const ss = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y), text: "-Press D to pitch down"});
-        ss.textColor = Color.WHITE;
-        const js = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y + 100), text: "-Press J to Toggle Headlights"});
-        js.textColor = Color.WHITE
-        const ks = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y + 150), text: "-Hold K to Narrow Headlights"});
-        ks.textColor = Color.WHITE;
-        const ls = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y + 50), text: "-Press L to shoot"});
-        ls.textColor = Color.WHITE;
-
-        const back = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.CONTROLS, {position: new Vec2(center.x, center.y + 250), text: "Back"});
-        back.size.set(200, 50);
-        back.borderWidth = 2;
-        back.borderColor = Color.WHITE;
-        back.backgroundColor = Color.TRANSPARENT;
-        back.onClickEventId = MainMenuEvent.MENU;
-
-        
-
-        const aboutHeader = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 350), text: "Backstory"});
-        aboutHeader.textColor = Color.WHITE;
-
-        const text1 = "In the midst of a fierce dogfight, pilot John Summers narrowly ";
-        const text2 = "evades destruction as his plane suffers critical damage. Gasping ";
-        const text3 = "for breath and with his vision blurring, he steers his crippled aircraft";
-        const text4 = "towards the earth below. Desperate to evade his relentless";
-        const text5 = "pursuers, John veers into the shadowy embrace of a nearby cave,";
-        const text6 = "his plane disappearing into the darkness just as his consciousness";
-        const text7 = "slips away. Awakening to the unnerving hum of his plane's engine,";
-        const text8 = "John is disoriented and alarmed. The air whistles past his aircraft.";
-        const text9 = "He peers through the windshield, but sees nothing but a deep";
-        const text10 = "darkness. With a hesitant flick, he switches on the plane's ";
-        const text11 = "headlights, revealing the vast expanse of an enigmatic";
-        const text12 = "subterranean cave network. Sinister echoes reverberate through";
-        const text13 = "the cavern, sending a shiver down John's spine. Gripping the";
-        const text14 = "controls, he braces himself for the harrowing journey ahead.";
-        
-
-        const line1 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 300), text: text1});
-        const line2 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 250), text: text2});
-        const line3 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 200), text: text3});
-        const line4 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 150), text: text4});
-        const line5 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 100), text: text5});
-        const line6 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y - 50 ), text: text6});
-        const line7 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y), text: text7});
-        const line8 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 50), text: text8});
-        const line9 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 100), text: text9});
-        const line10 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 150), text: text10});
-        const line11 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 200), text: text11});
-        const line12 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 250), text: text12});
-        const line13 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 300), text: text13});
-        const line14 = <Label>this.add.uiElement(UIElementType.LABEL, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 350), text: text14});
-
-
-        line1.textColor = Color.WHITE;
-        line2.textColor = Color.WHITE;
-        line3.textColor = Color.WHITE;
-        line4.textColor = Color.WHITE;
-        line5.textColor = Color.WHITE;
-        line6.textColor = Color.WHITE;
-        line7.textColor = Color.WHITE;
-        line8.textColor = Color.WHITE;
-        line9.textColor = Color.WHITE;
-        line10.textColor = Color.WHITE;
-        line11.textColor = Color.WHITE;
-        line12.textColor = Color.WHITE;
-        line13.textColor = Color.WHITE;
-        line14.textColor = Color.WHITE;
-
-        const aboutBack = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.ABOUT, {position: new Vec2(center.x, center.y + 400), text: "Back"});
-        aboutBack.size.set(200, 50);
-        aboutBack.borderWidth = 2;
-        aboutBack.borderColor = Color.WHITE;
-        aboutBack.backgroundColor = Color.TRANSPARENT;
-        aboutBack.onClickEventId = MainMenuEvent.MENU;
+        const nextSprite = this.add.animatedSprite(SpritesheetKeys.GAMETEXT_KEY, MainMenuLayer.ABOUT);
+        this.backstoryNext = this.add.uiElement(UIElementType.NEWBUTTON, MainMenuLayer.ABOUT, {position: new Vec2(717, 822), onClickEventId: MainMenuEvent.BACKSTORY_NEXT, sprite: nextSprite,
+        defaultAnimation: "NEXT", hoverAnimation: "NEXTSELECT", sizeModX: reducedSize}) as NewButton;
 
 
         // add Level Select screen Buttons
+
+        for(let i = 0; i < 15; i++)
+        {
+            const lsnumSprite = this.add.animatedSprite(SpritesheetKeys.LEVELNUMS_KEY, MainMenuLayer.LEVEL_SELECT);
+            const pos = new Vec2(210 + ((i % 5)*114), 372+(Math.floor(i/5)*102));
+            const but = this.add.uiElement(UIElementType.NEWBUTTON, MainMenuLayer.LEVEL_SELECT, {position: pos, onClickEventId: null, sprite: lsnumSprite,
+            defaultAnimation: i.toString(), hoverAnimation: i.toString() + "s"});
+            but.onClick = () => {this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":i+1})}
+        }
+
+        const returnMenuSprite3 = this.add.animatedSprite(SpritesheetKeys.GAMETEXT_KEY, MainMenuLayer.LEVEL_SELECT);
+        this.add.uiElement(UIElementType.NEWBUTTON, MainMenuLayer.LEVEL_SELECT, {position: new Vec2(447, 810), onClickEventId: MainMenuEvent.MENU, sprite: returnMenuSprite3,
+        defaultAnimation: "RETURN", hoverAnimation: "RETURNSELECT"});
         
         
 
-        const level1 = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.LEVEL_SELECT, {position: new Vec2(center.x, center.y - 100), text: "Level 1"});
-        level1.size.set(200, 50);
-        level1.borderWidth = 2;
-        level1.borderColor = Color.WHITE;
-        level1.backgroundColor = Color.GREEN;
-        level1.onClick = () => {this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":1})}
+        const returnMenu3Sprite = this.add.animatedSprite(SpritesheetKeys.GAMETEXT_KEY, MainMenuLayer.BEST_SCORES);
+        this.add.uiElement(UIElementType.NEWBUTTON, MainMenuLayer.BEST_SCORES, {position: new Vec2(447, 822), onClickEventId: MainMenuEvent.MENU, sprite: returnMenu3Sprite,
+        defaultAnimation: "RETURN", hoverAnimation: "RETURNSELECT", sizeModX: reducedSize});
 
+        const prev2Sprite = this.add.animatedSprite(SpritesheetKeys.GAMETEXT_KEY, MainMenuLayer.BEST_SCORES);
+        this.leaderboardPrev = this.add.uiElement(UIElementType.NEWBUTTON, MainMenuLayer.BEST_SCORES, {position: new Vec2(171, 822), onClickEventId: MainMenuEvent.LEADERBOARD_PREV, sprite: prev2Sprite,
+        defaultAnimation: "PREV", hoverAnimation: "PREVSELECT", sizeModX: reducedSize}) as NewButton;
+
+        const next2Sprite = this.add.animatedSprite(SpritesheetKeys.GAMETEXT_KEY, MainMenuLayer.BEST_SCORES);
+        this.leaderboardNext = this.add.uiElement(UIElementType.NEWBUTTON, MainMenuLayer.BEST_SCORES, {position: new Vec2(717, 822), onClickEventId: MainMenuEvent.LEADERBOARD_NEXT, sprite: next2Sprite,
+        defaultAnimation: "NEXT", hoverAnimation: "NEXTSELECT", sizeModX: reducedSize}) as NewButton;
+        //go to highscorebutton
+        const hsb = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.BEST_SCORES, {position: new Vec2(450, 110), text:""}) as Button;
+        hsb.size = new Vec2(900, 220);
+        hsb.backgroundColor = new Color(150, 150, 150, 0);
+		hsb.borderColor = new Color(0, 0, 0, 0);
+		hsb.textColor = new Color(0, 0, 0, 0);
+        hsb.onClickEventId = MainMenuEvent.GOTOBESTSCORE;
         
-        const level2 = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.LEVEL_SELECT, {position: new Vec2(center.x, center.y), text: "Level 2"});
-        level2.size.set(200, 50);
-        level2.borderWidth = 2;
-        level2.borderColor = Color.WHITE;
-        level2.backgroundColor = this.levels_Unlocked >= 2 ? Color.GREEN : Color.TRANSPARENT
-        level2.onClick = () => {this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":2})}
+        const line = this.add.graphic(GraphicType.RECT, MainMenuLayer.BEST_SCORES, {position: new Vec2(447, 37*6), size: new Vec2(1300, 6)});
+        line.color = new Color(206, 223, 225, 1);
 
-        const level3 = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.LEVEL_SELECT, {position: new Vec2(center.x, center.y + 100), text: "Level 3"});
-        level3.size.set(200, 50);
-        level3.borderWidth = 2;
-        level3.borderColor = Color.WHITE;
-        level3.backgroundColor = this.levels_Unlocked >= 3 ? Color.GREEN : Color.TRANSPARENT
-        level3.onClick = () => {this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":3})}
+        this.scoreSprites = new Array();
 
-        const level4 = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.LEVEL_SELECT, {position: new Vec2(center.x, center.y + 200), text: "Level 4"});
-        level4.size.set(200, 50);
-        level4.borderWidth = 2;
-        level4.borderColor = Color.WHITE;
-        level4.backgroundColor = this.levels_Unlocked >= 4 ? Color.GREEN : Color.TRANSPARENT
-        level4.onClick = () => {this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":4})}
+        for(let i = 0; i < 4; i++)
+        {
+            const position = new Array(3);
+            const name = new Array(3);
+            const level = new Array(2);
+            const damage = new Array(2);
+            const power = new Array(3);
+            for(let j = 0; j < 3; j++)
+            {
+                position[j] = this.add.animatedSprite(SpritesheetKeys.ALPHANUM_KEY, MainMenuLayer.BEST_SCORES);
+                position[j].position = new Vec2(6 * 6 + 8 * 6 * j, 17 * 6 + 29 * 6 * i);
+                position[j].scale.scale(6);
+                position[j].animation.play("0", true);
+
+                name[j] = this.add.animatedSprite(SpritesheetKeys.ALPHANUM_KEY, MainMenuLayer.BEST_SCORES);
+                name[j].position = position[j].position.clone().add(new Vec2(28*6, 0));
+                name[j].animation.play("0", true);
+                name[j].scale.scale(6);
 
 
-        const level5 = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.LEVEL_SELECT, {position: new Vec2(center.x, center.y + 300), text: "Level 5"});
-        level5.size.set(200, 50);
-        level5.borderWidth = 2;
-        level5.borderColor = Color.WHITE;
-        level5.backgroundColor = this.levels_Unlocked >= 5 ? Color.GREEN : Color.TRANSPARENT
-        level5.onClick = () => {this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":5})}
+                power[j] = this.add.animatedSprite(SpritesheetKeys.SCORENUMS_KEY, MainMenuLayer.BEST_SCORES);
+                power[j].animation.play("0", true);
+                power[j].scale.scale(6);
+                power[j].position = new Vec2(900 - 16 * 6 - 3 + 5 * 6 * j, 30*6 + 29 * 6 * i)
+            }
+            for(let j = 0; j < 2; j++)
+            {
+                level[j] = this.add.animatedSprite(SpritesheetKeys.SCORENUMS_KEY, MainMenuLayer.BEST_SCORES);
+                level[j].scale.scale(6);
+                level[j].animation.play("0", true);
+                level[j].position = new Vec2(52*6 + 5*6*j, 30*6 + 29 * 6 * i)
+                damage[j] = this.add.animatedSprite(SpritesheetKeys.SCORENUMS_KEY, MainMenuLayer.BEST_SCORES);
+                damage[j].scale.scale(6);
+                damage[j].animation.play("0", true);
+                damage[j].position = level[j].position.clone().add(new Vec2(42*6,0));
+            }
+            const label = this.add.sprite(SpriteKeys.SCOREINFO_KEY, MainMenuLayer.BEST_SCORES);
+            label.scale.scale(6);
+            label.position = new Vec2(88*6 + 3, 30*6 + 29 * 6 * i);
+            this.scoreSprites.push(
+                {
+                    position: position,
+                    name: name,
+                    level: level,
+                    damage: damage,
+                    power: power,
+                    label: label,
+                }
+            )
+        }
 
-        const level6 = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.LEVEL_SELECT, {position: new Vec2(center.x, center.y + 400), text: "Level 6"});
-        level6.size.set(200, 50);
-        level6.borderWidth = 2;
-        level6.borderColor = Color.WHITE;
-        level6.backgroundColor = this.levels_Unlocked >= 6 ? Color.GREEN : Color.RED
-        level6.onClick = () => {this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":6})}
 
-        const LevelBack = this.add.uiElement(UIElementType.BUTTON, MainMenuLayer.LEVEL_SELECT, {position: new Vec2(center.x, center.y -200), text: "Back"});
-        LevelBack.size.set(200, 50);
-        LevelBack.borderWidth = 2;
-        LevelBack.borderColor = Color.WHITE;
-        LevelBack.backgroundColor = Color.TRANSPARENT;
-        LevelBack.onClickEventId = MainMenuEvent.MENU;
 
         // Subscribe to the button events
         this.receiver.subscribe(MainMenuEvent.START_GAME);
@@ -402,27 +411,71 @@ export default class MainMenu extends Scene {
 
         this.receiver.subscribe(MainMenuEvent.LEVEL_PRESSED);
         this.receiver.subscribe(MainMenuEvent.TUTORIAL_PRESSED);
-
-
+        this.receiver.subscribe(MainMenuEvent.BACKSTORY_PREV);
+        this.receiver.subscribe(MainMenuEvent.BACKSTORY_NEXT);
+        this.receiver.subscribe(MainMenuEvent.LEADERBOARD_NEXT);
+        this.receiver.subscribe(MainMenuEvent.LEADERBOARD_PREV);
+        this.receiver.subscribe(MainMenuEvent.GOTOBESTSCORE);
         //show the correct screen if returned
         if(this.retScreen == "levelSelect")
         {
-            this.splashScreen.setHidden(true);
-            this.mainMenu.setHidden(true);
-            this.controls.setHidden(true);
-            this.about.setHidden(true);
+            this.hidePages();
             this.levelSelect.setHidden(false);
-            this.bestScores.setHidden(true);
+
         }else if(this.retScreen == "mainMenu")
         {
-            this.splashScreen.setHidden(true);
-            this.controls.setHidden(true);
+            this.hidePages();
             this.mainMenu.setHidden(false);
-            this.about.setHidden(true);
-            this.levelSelect.setHidden(true);
-            this.bestScores.setHidden(true);
-    
+        }else if(this.newScore != null)
+        {
+            this.hidePages();
         }
+
+        //Get highscores/update high scores
+        if(this.newScore != null)
+        {
+            this.hidePages();
+            this.newScore["timestamp"] = serverTimestamp();
+            addDoc(collection(db, "eostLeaderboard"), this.newScore).then((res) => {
+                const q = query(collection(db, "eostLeaderboard"), orderBy("level", "desc"), orderBy("damage"), orderBy("power"), orderBy("timestamp"));
+                getDocs(q).then((getres) => {
+                    const index = getres.docs.findIndex(doc => doc.id === res.id);
+                    this.scores = getres.docs.map((doc) => doc.data());
+                    this.maxLeaderBoardPage = Math.floor((this.scores.length - 1)/3);
+                    if(this.bestScoreId != null)
+                    {
+                        const curBestIndex = getres.docs.findIndex(doc => doc.id === this.bestScoreId);
+                        if(index < curBestIndex)
+                        {
+                            this.bestScoreId = res.id;
+                            this.bestScoreIndex = index;
+                        }
+                    }else
+                    {
+                        this.bestScoreId = res.id;
+                        this.bestScoreIndex = index;
+                    }
+                    this.setLeaderBoardPage(Math.floor(index/3));
+                    this.bestScores.setHidden(false);
+                    //if(this.best)
+                    console.log("newindex", index);
+                    console.log("scores", this.scores);
+                });
+            })
+        }else
+        {
+            const q = query(collection(db, "eostLeaderboard"), orderBy("level", "desc"), orderBy("damage"), orderBy("power"), orderBy("timestamp"));
+            getDocs(q).then((res) => {
+                console.log(res.docs);
+                if(this.bestScoreId != null)
+                    this.bestScoreIndex = res.docs.findIndex(doc => doc.id === this.bestScoreId);
+                this.scores = res.docs.map((doc) => doc.data());
+                this.maxLeaderBoardPage = Math.floor((this.scores.length - 1)/3);
+                console.log("scores", this.scores);
+            });
+        }
+
+        
     }
 
     protected initBackground(): void {
@@ -472,6 +525,8 @@ export default class MainMenu extends Scene {
             this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":6});
         else if (Input.isKeyJustPressed("2"))
             this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":2});
+        else if (Input.isKeyJustPressed("m"))
+            this.sceneManager.changeToScene(GameOver, {current_Level: 4, arcadeMode: true, energyUsed: 2, hitsTaken: 3, dead:true, continues:1}, {});
 
         this.moveBackgrounds(1/60);
         while(this.receiver.hasNextEvent()){
@@ -509,15 +564,124 @@ export default class MainMenu extends Scene {
 		}
 	}
 
+    protected setLeaderBoardPage(p: number)
+    {
+        this.leaderBoardPage = p;
+        if(this.leaderBoardPage == 0)
+        {
+            this.leaderboardPrev.visible = false;
+            this.leaderboardPrev.sprite.visible = false;
+        }
+        if(this.leaderBoardPage <= this.maxLeaderBoardPage - 1)
+        {
+            this.leaderboardNext.visible = true;
+            this.leaderboardNext.sprite.visible = true;
+        }
+
+        if(this.leaderBoardPage >= 1)
+        {
+            this.leaderboardPrev.visible = true;
+            this.leaderboardPrev.sprite.visible = true;
+        }
+        if(this.leaderBoardPage == this.maxLeaderBoardPage)
+        {
+            this.leaderboardNext.visible = false;
+            this.leaderboardNext.sprite.visible = false;
+        }
+
+        if(this.bestScoreIndex == -1)
+        {
+            for(let j = 0; j < 3; j++)
+            {
+                this.scoreSprites[0]["name"][j].animation.play("-", true);
+                this.scoreSprites[0]["position"][j].animation.play("-", true);    
+            }
+        }else
+        {
+            this.updateScoreSprites(this.bestScoreIndex, 0);
+        }
+
+        for(let i = 0; i < 3; i++)
+        {
+            const index = 3 * p + i;
+            if(index < this.scores.length)
+            {
+                this.updateScoreSprites(index, i+1);
+            }else
+            {
+                for(const list of Object.values(this.scoreSprites[i + 1]))
+                {
+                    if(list instanceof Sprite)
+                        list.visible = false;
+                    else
+                    {
+                        for(const x of list as Array<AnimatedSprite>)
+                        {
+                            x.visible = false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    protected updateScoreSprites(index: number, i:number) :void {
+        let lpos = (index + 1).toString();
+        while(lpos.length < 3)
+        {
+            lpos = "0" + lpos;
+        } 
+        for(let j = 0; j < 3; j++)
+        {
+            this.scoreSprites[i]["name"][j].visible = true;
+            this.scoreSprites[i]["name"][j].animation.play(this.scores[index]["player"][j].toUpperCase(), true);
+
+            this.scoreSprites[i]["position"][j].visible = true;
+            this.scoreSprites[i]["position"][j].animation.play(lpos[j], true);
+
+            this.scoreSprites[i]["power"][j].visible = true;
+            this.scoreSprites[i]["power"][j].animation.play(this.scores[index]["power"][j], true);
+
+                    
+        }
+        for(let j = 0; j < 2; j++)
+        {
+            this.scoreSprites[i]["level"][j].visible = true;
+            this.scoreSprites[i]["level"][j].animation.play(this.scores[index]["level"][j], true);
+
+            this.scoreSprites[i]["damage"][j].visible = true;
+            this.scoreSprites[i]["damage"][j].animation.play(this.scores[index]["damage"][j], true);
+        }
+        this.scoreSprites[i]["label"].visible = true;
+    }
+    /*
+    const position = new Array(3);
+            const name = new Array(3);
+            const level = new Array(2);
+            const damage = new Array(2);
+            const power = new Array(3);*/
+    protected padString(s: string, len: number, c: string = "0")
+    {
+        while(s.length < len)
+            s = c + s;
+
+        if(s.length > len)
+            s = s.substring(0, len);
+    }
+
+    protected hidePages(): void {
+        this.splashScreen.setHidden(true);
+        this.controls.setHidden(true);
+        this.mainMenu.setHidden(true);
+        this.about.setHidden(true);
+        this.levelSelect.setHidden(true);
+        this.bestScores.setHidden(true);
+    }
     protected handleEvent(event: GameEvent): void {
         switch(event.type) {
             case MainMenuEvent.START_GAME: {
-                this.splashScreen.setHidden(true);
-                this.controls.setHidden(true);
+                this.hidePages();
                 this.mainMenu.setHidden(false);
-                this.about.setHidden(true);
-                this.levelSelect.setHidden(true);
-                this.bestScores.setHidden(true);
                 break;
             }
             case MainMenuEvent.PLAY_GAME: {
@@ -525,36 +689,30 @@ export default class MainMenu extends Scene {
                 break;
             }
             case MainMenuEvent.CONTROLS: {
+                this.hidePages();
                 this.controls.setHidden(false);
-                this.mainMenu.setHidden(true);
-                this.about.setHidden(true);
-                this.levelSelect.setHidden(true);
-                this.bestScores.setHidden(true);
                 break;
             }
             case MainMenuEvent.ABOUT: {
+                this.backstoryPage = 0;
+                this.backstoryPrev.visible = false;
+                this.backstoryPrev.sprite.visible = false;
+                this.backstorySprite.animation.play("0", true);
+                this.backstoryNext.visible = true;
+                this.backstoryNext.sprite.visible = true;
+
+                this.hidePages();
                 this.about.setHidden(false);
-                this.mainMenu.setHidden(true);
-                this.controls.setHidden(true);
-                this.levelSelect.setHidden(true);
-                this.bestScores.setHidden(true);
                 break;
             }
             case MainMenuEvent.MENU: {
+                this.hidePages();
                 this.mainMenu.setHidden(false);
-                this.controls.setHidden(true);
-                this.about.setHidden(true);
-                this.levelSelect.setHidden(true);
-                this.bestScores.setHidden(true);
                 break;
             }
             case MainMenuEvent.LEVEL_SELECT: {
-                // LEVEL SELECT SCREEN NOT IMPLEMENTED YET
-                this.mainMenu.setHidden(true);
-                this.controls.setHidden(true);
-                this.about.setHidden(true);
+                this.hidePages();
                 this.levelSelect.setHidden(false);
-                this.bestScores.setHidden(true);
 
                 break;
             }
@@ -563,13 +721,7 @@ export default class MainMenu extends Scene {
                 if(this.levels_Unlocked >= event.data.get("level")){
                     // Switch To Game Level Scene correspond to level selected
                     this.current_Level = event.data.get("level");
-                    //this.mainMenu.setHidden(false);
-                    //this.controls.setHidden(true);
-                    //this.about.setHidden(true);
-                    //this.levelSelect.setHidden(true);
-                    //this.bestScores.setHidden(true);
-                    this.seed = RandUtils.randomSeed();
-                    this.sceneManager.changeToScene(Homework1_Scene, {level: this.current_Level, seed: this.seed, recording: true});
+                    this.sceneManager.changeToScene(Homework1_Scene, {level: this.current_Level});
                 }
                 break;
 
@@ -581,24 +733,70 @@ export default class MainMenu extends Scene {
             }
             case MainMenuEvent.BEST_SCORES:{
                 // Best Scores NOT IMPLEMENTED YET
-                this.mainMenu.setHidden(true);
-                this.controls.setHidden(true);
-                this.about.setHidden(true);
-                this.levelSelect.setHidden(true);
-                this.bestScores.setHidden(false);
+                this.hidePages();
+                this.bestScores.setHidden(false);    
+                this.setLeaderBoardPage(0);
                 break;
                 
             }
             case MainMenuEvent.EXIT:{
                 // Implement the exit functionality
+                this.hidePages();
                 this.splashScreen.setHidden(false);
-                this.mainMenu.setHidden(true);
-                this.controls.setHidden(true);
-                this.about.setHidden(true);
-                this.levelSelect.setHidden(true);
-                this.bestScores.setHidden(true);
                 break;
             }
+
+            case MainMenuEvent.BACKSTORY_NEXT:{
+                this.backstoryPage++;
+                this.backstorySprite.animation.play(this.backstoryPage.toString(), true);
+                if(this.backstoryPage == 3)
+                {
+                    this.backstoryNext.visible = false;
+                    this.backstoryNext.sprite.visible = false;
+                }else if (this.backstoryPage == 1)
+                {
+                    this.backstoryPrev.visible = true;
+                    this.backstoryPrev.sprite.visible = true;
+                }
+                break;
+            }
+            case MainMenuEvent.BACKSTORY_PREV:{
+                this.backstoryPage--;
+                this.backstorySprite.animation.play(this.backstoryPage.toString(), true);
+                if(this.backstoryPage == 2)
+                {
+                    this.backstoryNext.visible = true;
+                    this.backstoryNext.sprite.visible = true;
+                }else if (this.backstoryPage == 0)
+                {
+                    this.backstoryPrev.visible = false;
+                    this.backstoryPrev.sprite.visible = false;
+                }
+                break;
+            }
+
+            case MainMenuEvent.LEADERBOARD_NEXT: {
+                this.leaderBoardPage++;           
+                this.setLeaderBoardPage(this.leaderBoardPage);
+                break;
+            }
+
+            case MainMenuEvent.LEADERBOARD_PREV: {
+                this.leaderBoardPage--;
+                
+
+                this.setLeaderBoardPage(this.leaderBoardPage);
+                break;
+            }
+            case MainMenuEvent.GOTOBESTSCORE: {
+                if(this.bestScoreIndex != -1)
+                {
+                    this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "SELECT", loop: false, holdReference: false});
+                    this.setLeaderBoardPage(Math.floor(this.bestScoreIndex/3));
+                }
+                break;
+            }
+
             default: {
                 throw new Error(`Unhandled event caught in MainMenu: "${event.type}"`);
             }

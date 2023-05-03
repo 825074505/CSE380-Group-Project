@@ -7,6 +7,8 @@ import { HW2Controls } from "./hw2/HW2Controls";
 import BubbleShaderType from "./hw2/shaders/BubbleShaderType";
 import LaserShaderType from "./hw2/shaders/LaserShaderType";
 
+
+
 // The main function is your entrypoint into Wolfie2D. Specify your first scene and any options here.
 (function main(){
     

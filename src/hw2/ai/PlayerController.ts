@@ -74,6 +74,7 @@ export default class PlayerController implements AI {
 	private wideLightTargetIntensity: number;
 	private narrowLightTargetIntensity: number;
 	private shootLight: Light;
+	private maxShootLightIntensity: number = 0.6;
 	private planeWings: Sprite;
 	private planeWingsMaxSize: number;
 	private renderingManager: RenderingManager;
@@ -121,12 +122,13 @@ export default class PlayerController implements AI {
 		this.activate(options);
 	}
 	public activate(options: Record<string,any>): void {
-		// Set the player's current health
-        this.currentHealth = 10;
 
         // Set upper and lower bounds on the player's health
         this.minHealth = 0;
-        this.maxHealth = 10;
+        this.maxHealth = 3;
+
+		// Set the player's current health
+        this.currentHealth = this.maxHealth;
 
         // Set the player's current air
         this.currentAir = 20;
@@ -339,16 +341,12 @@ export default class PlayerController implements AI {
 			this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.HEADLIGHTON_AUDIO_KEY, loop: false, holdReference: false});
 		}
 
-		if(Input.isPressed(HW2Controls.NARROW_HEADLIGHT) && this.shootTimeOut == false)
+		if(Input.isJustPressed(HW2Controls.NARROW_HEADLIGHT) && this.shootTimeOut == false)
 		{
-			if(!this.narrowLight.visible)
-			{
-				this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.NARROWLIGHT_AUDIO_KEY, loop: false, holdReference: true});
-			}
+			this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.NARROWLIGHT_AUDIO_KEY, loop: false, holdReference: true});
 			this.wideLightTargetIntensity = 0.1;
 			this.wideLight.visible = true;
 			this.narrowLight.visible = true;
-			//TODO SOUND
 		}
 
 		//check if narrow headlight key was released
@@ -369,16 +367,19 @@ export default class PlayerController implements AI {
 		{
 			//TODO make it so that the player cant shoot or turn on lights until shootLight intensity hits 0;
 			//make this a timer probably this is kinda hacky
-			if(this.shootLight.intensity - deltaT <= 0.2 && this.shootLight.intensity > 0.2)
+			const newIntensity = this.shootLight.intensity - deltaT * (this.maxShootLightIntensity/0.8);
+			if(newIntensity <= 0.2 * (this.maxShootLightIntensity/0.8) && this.shootLight.intensity > 0.2 * (this.maxShootLightIntensity/0.8))
 			{
 				this.shootTimeOut = false;
+				/*
 				if(Input.isPressed(HW2Controls.WIDE_HEADLIGHT))
 				{
 					this.wideLight.visible = true;
 					this.wideLight.intensity = 0.3;
 				}
+				*/
 			}
-			this.shootLight.intensity = MathUtils.clamp(this.shootLight.intensity - deltaT, 0, 1);
+			this.shootLight.intensity = MathUtils.clamp(newIntensity, 0, 1);
 		}
 
 		// Player looses a little bit of air each frame
@@ -486,7 +487,7 @@ export default class PlayerController implements AI {
 		if(!this.infiniteBattery)
 			this.currentAir -= this.laserEnergyCost;
 		this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir, oldair:this.currentAir + this.laserEnergyCost});
-		this.shootLight.intensity = 0.8;
+		this.shootLight.intensity = this.maxShootLightIntensity;
 		this.wideLight.visible = false;
 		this.narrowLight.visible = false;
 		this.laserTimer.reset();
@@ -506,7 +507,7 @@ export default class PlayerController implements AI {
 					break;
 				default:
 					if(!this.infiniteHealth)
-						this.currentHealth -= 2;
+						this.currentHealth -= 1;
 					this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.PLAYERHIT_AUDIO_KEY, loop: false, holdReference: false});
 					this.emitter.fireEvent(HW2Events.PLAYER_HEALTH_CHANGE, {curhealth: this.currentHealth, maxhealth: this.maxHealth});
 					this.owner.animation.playIfNotAlready(PlayerAnimations.HIT, false);
@@ -524,7 +525,7 @@ export default class PlayerController implements AI {
 		if(!this.invincible)
 		{
 			if(!this.infiniteHealth)
-				this.currentHealth -= 2;
+				this.currentHealth -= 1;
 			this.emitter.fireEvent(HW2Events.PLAYER_HEALTH_CHANGE, {curhealth: this.currentHealth, maxhealth: this.maxHealth});
 			this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.PLAYERHIT_AUDIO_KEY, loop: false, holdReference: false});
 			this.owner.animation.playIfNotAlready(PlayerAnimations.HIT, false);
@@ -563,6 +564,7 @@ export default class PlayerController implements AI {
 
 	protected handleAirTimer = () => {
 		//this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
+		console.log(this.owner.position.y);
 	}
 
 } 

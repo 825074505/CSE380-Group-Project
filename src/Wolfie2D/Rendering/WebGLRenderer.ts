@@ -161,7 +161,7 @@ export default class WebGLRenderer extends RenderingManager {
         return this.gl;
 	}
 
-	render(visibleSet: CanvasNode[], tilemaps: Tilemap[], uiLayers: Map<UILayer>, lights: CanvasNode[] = null): void {
+	render(visibleSet: CanvasNode[], tilemaps: Tilemap[], uiLayers: Map<UILayer>, lights: CanvasNode[] = null, noiseSprite: Sprite = null): void {
 		/*
 		visibleSet.sort((a, b) => {
 			if(a.getLayer().getDepth() === b.getLayer().getDepth()){
@@ -174,7 +174,7 @@ export default class WebGLRenderer extends RenderingManager {
 	
 		const gl = this.gl;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.gbuffer);
-		this.clear(Color.BLACK);	
+		this.clear(Color.OFFBLACK);	
 		//Render
 		for(let node of visibleSet){
 			this.renderNode(node);
@@ -183,7 +183,11 @@ export default class WebGLRenderer extends RenderingManager {
 		if(this.lightingEnabled)
 		{
 			gl.bindFramebuffer(gl.FRAMEBUFFER, this.dbuffer);
-			this.clear(Color.BLACK);
+			this.clear(Color.OFFBLACK);
+			//noise
+			if(noiseSprite != null)
+				this.renderSprite(noiseSprite);
+
 			let shader = RegistryManager.shaders.get(ShaderRegistry.LIGHT_SHADER);
 			//TODO Render for each light
 			for(let light of lights)
@@ -211,7 +215,7 @@ export default class WebGLRenderer extends RenderingManager {
 	}
 
 	clear(color: Color): void {
-		this.gl.clearColor(color.r, color.g, color.b, color.a);
+		this.gl.clearColor(color.r/255, color.g/255, color.b/255, color.a);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
 		this.textCtx.clearRect(0, 0, this.worldSize.x, this.worldSize.y);
@@ -221,6 +225,8 @@ export default class WebGLRenderer extends RenderingManager {
 
 	protected renderNode(node: CanvasNode): void {
 		// Calculate the origin of the viewport according to this sprite
+		if(!node.visible)
+			return;
         this.origin = this.scene.getViewTranslation(node);
 
         // Get the zoom level of the scene

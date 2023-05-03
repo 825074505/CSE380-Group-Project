@@ -49,7 +49,7 @@ export default abstract class RenderingManager {
      * @param tilemaps The tilemaps used in the application
      * @param uiLayers The user interface layers
      */
-    abstract render(visibleSet: Array<CanvasNode>, tilemaps: Array<Tilemap>, uiLayers: Map<UILayer>, lights: Array<CanvasNode>): void;
+    abstract render(visibleSet: Array<CanvasNode>, tilemaps: Array<Tilemap>, uiLayers: Map<UILayer>, lights: Array<CanvasNode>, noiseSprite: Sprite): void;
 
     /** Clears the canvas */
     abstract clear(color: Color): void;

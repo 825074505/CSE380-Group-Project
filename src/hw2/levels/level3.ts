@@ -21,6 +21,25 @@ const pincer: Array<monsterInfo> = [
 	}
 ]
 
+const fastpincer: Array<monsterInfo> = [
+	{
+		spawnTime: 0.0,
+		spriteKey: "STALACTITE",
+		spawnY: -650,
+		hitboxScaleX: 0.01,
+		hitboxScaleY: 0.98,
+		monsterType: monsterTypes.stalagmite,
+	},
+	{
+		spawnTime: 0.0,
+		spriteKey: "STALAGMITE",
+		spawnY: 650,
+		hitboxScaleX: 0.01,
+		hitboxScaleY: 0.98,
+		monsterType: monsterTypes.stalagmite,
+	}
+]
+
 const pincerWithEnemy: Array<monsterInfo> = [
 	{
 		spawnTime: 0.0,
@@ -53,22 +72,32 @@ const upPath : Array<monsterInfo> = [
 	{
 		spawnTime: 0.0,
 		spawnY: 800,
-		objs: pincer,
+		objs: fastpincer,
+	},
+	{
+		spawnTime: 1.0,
+		spawnY: 620,
+		objs: fastpincer,
 	},
 	{
 		spawnTime: 2.0,
-		spawnY: 700,
-		objs: pincer,
+		spawnY: 440,
+		objs: fastpincer,
+	},
+	{
+		spawnTime: 3.0,
+		spawnY: 260,
+		objs: fastpincer,
 	},
 	{
 		spawnTime: 4.0,
-		spawnY: 600,
-		objs: pincer,
+		spawnY: 80,
+		objs: fastpincer,
 	},
 	{
-		spawnTime: 6.0,
-		spawnY: 500,
-		objs: pincer,
+		spawnTime: 5.0,
+		spawnY: -50,
+		objs: fastpincer,
 	},
 ]
 
@@ -76,26 +105,31 @@ const downPath : Array<monsterInfo> = [
 	{
 		spawnTime: 0.0,
 		spawnY: 100,
-		objs: pincer,
+		objs: fastpincer,
+	},
+	{
+		spawnTime: 1.0,
+		spawnY: 280,
+		objs: fastpincer,
 	},
 	{
 		spawnTime: 2.0,
-		spawnY: 250,
-		objs: pincer,
+		spawnY: 460,
+		objs: fastpincer,
+	},
+	{
+		spawnTime: 3.0,
+		spawnY: 640,
+		objs: fastpincer,
 	},
 	{
 		spawnTime: 4.0,
-		spawnY: 400,
-		objs: pincer,
+		spawnY: 800,
+		objs: fastpincer,
 	},
 	{
-		spawnTime: 6.0,
-		spawnY: 550,
-		objs: pincer,
-	},
-	{
-		spawnTime: 8.0,
-		spawnY: 700,
+		spawnTime: 5.0,
+		spawnY: 825,
 		objs: pincerWithEnemy,
 	},
 ]

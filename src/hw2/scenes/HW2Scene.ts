@@ -79,17 +79,36 @@ export const SpritesheetKeys = {
 
 	STALACTITETOP_KEY: "STALACTITETOP",
 	STALACTITETOP_PATH: "hw2_assets/spritesheets/stalactiteTop.json",
+	
+	TUTORIALTEXT_KEY: "TUTORIALTEXT",
+	TUTORIALTEXT_PATH: "hw2_assets/spritesheets/tutorialText.json",
 
+	HEALTHBAR_KEY: "HEALTHBAR",
+	HEALTHBAR_PATH: "hw2_assets/spritesheets/healthbar.json",
 
+	ENERGYBAR_KEY: "ENERGYBAR",
+	ENERGYBAR_PATH: "hw2_assets/spritesheets/energybar.json",
+
+	GAMETEXT_KEY: "GAMETEXT",
+	GAMETEXT_PATH: "hw2_assets/spritesheets/gameText.json",
+
+	LEVELNUMS_KEY: "LEVELNUMS",
+	LEVELNUMS_PATH: "hw2_assets/spritesheets/levelNumbers.json",
 }
 
 export const SpriteKeys = {
 	PLANEWINGS_KEY: "PLANEWINGS",
 	PLANEWINGS_PATH: "hw2_assets/sprites/testplanewings.png",
 
+	NOISE_KEY: "NOISE",
+	NOISE_PATH: "hw2_assets/sprites/graynoise.png",
 
-	TBUF_KEY: "TBUF",
-	TBUF_PATH: "hw2_assets/sprites/tbuf.png",
+	BARFRAME_KEY: "BARFRAME",
+	BARFRAME_PATH: "hw2_assets/sprites/barframe.png",
+
+	ENERGYBARTIP_KEY: "ENERGYBARTIP",
+	ENERGYBARTIP_PATH: "hw2_assets/sprites/energybartip.png",
+
 }
 
 export const AudioKeys = {
@@ -145,7 +164,7 @@ export const AudioKeys = {
     ELECTRICAPPEAR_AUDIO_PATH: "hw2_assets/sounds/electricSound.wav",
 
 	RECHARGING_AUDIO_KEY: "RECHARGING",
-    RECHARGING_AUDIO_PATH: "hw2_assets/sounds/recharging.wav",
+    RECHARGING_AUDIO_PATH: "hw2_assets/sounds/charge2.wav",
 
 	PROPELLER_AUDIO_KEY: "PROPELLER",
     PROPELLER_AUDIO_PATH: "hw2_assets/sounds/propeller2.wav",
@@ -155,6 +174,12 @@ export const AudioKeys = {
 
 	PROPELLERDOWN_AUDIO_KEY: "PROPELLERDOWN",
     PROPELLERDOWN_AUDIO_PATH: "hw2_assets/sounds/propellerdown2.wav",
+
+	SELECT_AUDIO_KEY: "SELECT",
+    SELECT_AUDIO_PATH: "hw2_assets/sounds/select.wav",
+
+	HOVER_AUDIO_KEY: "HOVER",
+    HOVER_AUDIO_PATH: "hw2_assets/sounds/hover.wav",
 }
 
 
@@ -173,8 +198,6 @@ export default class HW2Scene extends Scene {
 	private current_tutorialSection : number = 0;
 	private completedCurrentSection: boolean;
 	
-	private tutorialText : Label;
-	private tutorialText2 : Label;
 	private tutorialOverTimer : Timer;
 	
     // A flag to indicate whether or not this scene is being recorded
@@ -229,14 +252,19 @@ export default class HW2Scene extends Scene {
 	private airBarBg: Label;
 
 	// Health labels
-	private healthLabel: Label;
-	private healthBar: Label;
-	private healthBarBg: Label;
+	//private healthLabel: Label;
+	private healthBar: AnimatedSprite;
+	private energyBar: AnimatedSprite;
+	private energyBarTip: Sprite;
+	//private healthBarBg: Label;
+
+	private levelNumber: AnimatedSprite;
 
 	// Timers for spawning rocks and bubbles
 	private mineSpawnTimer: Timer;
 	private bubbleSpawnTimer: Timer;
 	private gameOverTimer: Timer;
+	private levelIntroTimer: Timer;
 
 	// Keeps track of mines destroyed, bubbles popped, amount of time passed
 	private bubblesPopped: number = 0;
@@ -258,6 +286,13 @@ export default class HW2Scene extends Scene {
 	private hitsTaken: number = 0;
 	private dead: boolean = false;
 
+	private tutorialTextSprite: AnimatedSprite;
+
+	private pauseResumeSprite: AnimatedSprite;
+	private pauseMenuSprite: AnimatedSprite;
+
+	private continues: number = 0;
+
 	/** Scene lifecycle methods */
 
 	/**
@@ -274,6 +309,10 @@ export default class HW2Scene extends Scene {
 		if(options.hitsTaken != null)
 			this.hitsTaken = options.hitsTaken;
 		console.log("init, ", this.currentLevel);
+		if(options.continues != null)
+			this.continues = options.continues;
+		else if(this.arcadeMode)
+			this.continues = 2;
 
 
 	}
@@ -354,7 +393,7 @@ export default class HW2Scene extends Scene {
 	 * @see Scene.startScene()
 	 */
 	public override startScene(){
-
+		this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: "TITLEMUSIC"});
 		this.worldPadding = new Vec2(64, 64);
 		this.sceneManager.renderingManager.lightingEnabled = true;
 		this.sceneManager.renderingManager.downsamplingEnabled = true;
@@ -362,6 +401,8 @@ export default class HW2Scene extends Scene {
 		// Create a background layer
 		this.addLayer(HW2Layers.BACKGROUND, 0);
 		this.initBackground();
+
+		//if(this.tutorial)
 
 		// Create a layer to serve as our main game - Feel free to use this for your own assets
 		// It is given a depth of 5 to be above our background
@@ -416,7 +457,10 @@ export default class HW2Scene extends Scene {
 
 		
 		if(this.tutorial && this.current_tutorialSection <= 1 && Input.isKeyJustPressed("j"))
-			this.startTutorialSection(this.current_tutorialSection+1);
+			this.startTutorialSection(Math.min(this.current_tutorialSection+1, 1.5));
+
+		if(this.tutorial && this.current_tutorialSection == 1.5 && (Input.isKeyJustPressed("a") || Input.isKeyJustPressed("d")))
+			this.startTutorialSection(2);
 		
 		// Move the backgrounds
 		this.moveBackgrounds(deltaT);
@@ -451,7 +495,11 @@ export default class HW2Scene extends Scene {
 		if(!this.tutorial){this.checkLevelEnd();}
 
 		//console.log(this.gameOverTimer.toString());
-
+		if(Input.isKeyPressed("q") && Input.isKeyJustPressed("m"))
+		{
+			this.sceneManager.changeToScene(GameOver, {current_Level: 4, arcadeMode: true, energyUsed: 2, hitsTaken: 3, dead:true, continues:1}, {});
+			this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: HW2Scene.SONG_KEY});
+		}
 		// Handle events
 		while (this.receiver.hasNextEvent()) {
 			this.handleEvent(this.receiver.getNextEvent());
@@ -460,6 +508,7 @@ export default class HW2Scene extends Scene {
     /**
      * @see Scene.unloadScene()
      */
+
     public override unloadScene(): void {
 		// keep all resources.
 		//this.load.keepSpritesheet(HW2Scene.PLAYER_KEY);
@@ -513,7 +562,10 @@ export default class HW2Scene extends Scene {
 			}
 			case HW2Events.BACK_TO_MAIN:{
 				this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: HW2Scene.SONG_KEY});
-				this.sceneManager.changeToScene(MainMenu,{level:1})
+				if(this.arcadeMode || this.tutorial)
+					this.sceneManager.changeToScene(MainMenu,{screen: "mainMenu"});
+				else
+					this.sceneManager.changeToScene(MainMenu,{screen: "levelSelect"});
 				break;
 				
 			}
@@ -591,7 +643,7 @@ export default class HW2Scene extends Scene {
 
 		this.narrowLight = this.add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: this.player.position.clone(), 
 																					angle : 0,
-																					intensity : 3.0,
+																					intensity : 2.5,
 																					distance : this.viewport.getHalfSize().x * 2 * 1.33,
 																					tintColor : Color.WHITE,
 																					angleRange : new Vec2(12, 0),
@@ -603,7 +655,7 @@ export default class HW2Scene extends Scene {
 																					angle : 0,
 																					intensity : 0.3,
 																					distance : 1000,
-																					tintColor : Color.RED,
+																					tintColor : new Color(255, 40, 46, 1),
 																					angleRange : new Vec2(360, 360),
 																					opacity : 1.0,
 																					lightScale : 0.1});
@@ -646,112 +698,66 @@ export default class HW2Scene extends Scene {
 	protected initUI(): void {
 		// UILayer stuff
 		this.addUILayer(HW2Layers.UI);
+		if(this.tutorial)
+		{
+			this.tutorialTextSprite = this.add.animatedSprite(SpritesheetKeys.TUTORIALTEXT_KEY, HW2Layers.UI);
+			this.tutorialTextSprite.scale.set(6, 6);
+			this.tutorialTextSprite.position = new Vec2(447, 741);
+		}
 
 		// HP Label
+		/*
 		this.healthLabel = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(50, 50), text: "HP "});
 		this.healthLabel.size.set(300, 30);
 		this.healthLabel.fontSize = 24;
 		this.healthLabel.font = "Courier";
 		this.healthLabel.textColor = Color.WHITE;
-
-
-		// Air Label
-		this.airLabel = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(50, 100), text: "PWR"});
-		this.airLabel.size.set(300, 30);
-		this.airLabel.fontSize = 24;
-		this.airLabel.font = "Courier";
-		this.airLabel.textColor = Color.WHITE;
-		/*
-		// Charge Label
-		this.chrgLabel = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(475, 50), text: "Lasers"});
-		this.chrgLabel.size.set(300, 30);
-		this.chrgLabel.fontSize = 24;
-		this.chrgLabel.font = "Courier";
-
-		// Charge airBars
-		this.chrgBarLabels = new Array(4);
-		for (let i = 0; i < this.chrgBarLabels.length; i++) {
-			let pos = new Vec2(500 + (i + 1)*(300 / this.chrgBarLabels.length), 50)
-			this.chrgBarLabels[i] = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: pos, text: ""});
-			this.chrgBarLabels[i].size = new Vec2(300 / this.chrgBarLabels.length, 25);
-			this.chrgBarLabels[i].backgroundColor = Color.GREEN;
-			this.chrgBarLabels[i].borderColor = Color.BLACK;
-		}
 		*/
 
-		// HealthBar
-		this.healthBar = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(225, 50), text: ""});
-		this.healthBar.size = new Vec2(300, 25);
-		this.healthBar.backgroundColor = Color.GREEN;
+		this.healthBar = this.add.animatedSprite(SpritesheetKeys.HEALTHBAR_KEY, HW2Layers.UI);
+		this.healthBar.scale.set(6, 6);
+		this.healthBar.position = new Vec2(192, 39);
+		this.healthBar.animation.play("3", true);
 
-		// AirBar
-		this.airBar = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(225, 100), text: ""});
-		this.airBar.size = new Vec2(300, 25);
-		this.airBar.backgroundColor = Color.WHITE;
+		this.energyBar = this.add.animatedSprite(SpritesheetKeys.ENERGYBAR_KEY, HW2Layers.UI);
+		this.energyBar.scale.set(6, 6);
+		this.energyBar.position = new Vec2(192, 69);
+		this.energyBar.animation.play("0", true);
 
-		// HealthBar Border
-		this.healthBarBg = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(225, 50), text: ""});
-		this.healthBarBg.size = new Vec2(300, 25);
-		this.healthBarBg.borderColor = Color.BLACK;
+		this.energyBarTip = this.add.sprite(SpriteKeys.ENERGYBARTIP_KEY, HW2Layers.UI);
+		this.energyBarTip.scale.set(6, 6);
+		this.energyBarTip.position = new Vec2(192 + 159, 69);
 
-		// AirBar Border
-		this.airBarBg = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(225, 100), text: ""});
-		this.airBarBg.size = new Vec2(300, 25);
-		this.airBarBg.borderColor = Color.BLACK;
+		const barFrame = this.add.sprite(SpriteKeys.BARFRAME_KEY, HW2Layers.UI);
+		barFrame.scale.set(6, 6);
+		barFrame.position = new Vec2(192, 69);
 
-		//Tutorial Level Texts
 
-		this.tutorialText = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 150), text: ""});
-		this.tutorialText.textColor = Color.WHITE;
-		this.tutorialText2 = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 200), text: ""});
-		this.tutorialText2.textColor = Color.WHITE;
-		/*
-
-		const narrowText = "Hold K to narrow the headlights, it can be used to aim more accurately and weaken certain enemies."
-		this.narrow = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 150), text: narrowText});
-
-		const completeTutorialText = "Congratulation, you have completed the tutorial!"
-		this.completeTutorial = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.UI, {position: new Vec2(450, 150), text: completeTutorialText});
-
-		this.light.textColor = Color.WHITE;
-		this.light2.textColor = Color.WHITE;
-		this.steer.textColor = Color.WHITE;
-		this.electric.textColor = Color.WHITE;
-		this.shoot.textColor = Color.WHITE;
-		this.narrow.textColor = Color.WHITE;
-		this.completeTutorial.textColor = Color.WHITE;
-
-		this.light.visible = false;
-		this.light2.visible = false;
-		this.steer.visible = false;
-		this.electric.visible = false;
-		this.shoot.visible = false;
-		this.narrow.visible = false
-		this.completeTutorial.visible = false;
-		*/
+		
 
 		// Add Pause Screen
-		const center = this.viewport.getCenter();
 
 		this.pause = this.addUILayer(HW2Layers.PAUSE);
 		this.pause.setHidden(true);
-		const pauseScreen = <Label>this.add.uiElement(UIElementType.LABEL, HW2Layers.PAUSE, {position: new Vec2(center.x, center.y - 100), text: "Game Paused"});
-        pauseScreen.fontSize = 20
-		pauseScreen.textColor = Color.BLACK
+		
 
-		const resume = this.add.uiElement(UIElementType.BUTTON, HW2Layers.PAUSE, {position: new Vec2(center.x - 100, center.y - 200), text: "Resume"});
-        resume.size.set(200, 50);
-        resume.borderWidth = 2;
-        resume.borderColor = Color.WHITE;
-        resume.backgroundColor = Color.TRANSPARENT;
-        resume.onClickEventId = HW2Events.RESUME_GAME;
 
-		const back = this.add.uiElement(UIElementType.BUTTON, HW2Layers.PAUSE, {position: new Vec2(center.x + 100, center.y - 200), text: "Back to Main"});
-        back.size.set(200, 50);
-        back.borderWidth = 2;
-        back.borderColor = Color.WHITE;
-        back.backgroundColor = Color.TRANSPARENT;
-        back.onClickEventId = HW2Events.BACK_TO_MAIN;
+		const resume2 = this.add.animatedSprite(SpritesheetKeys.GAMETEXT_KEY, HW2Layers.PAUSE);
+		this.add.uiElement(UIElementType.NEWBUTTON, HW2Layers.PAUSE, {position: new Vec2(447, 315), onClickEventId: HW2Events.RESUME_GAME, sprite: resume2,
+        defaultAnimation: "RESUME", hoverAnimation: "RESUMESELECT"});
+
+		const back2 = this.add.animatedSprite(SpritesheetKeys.GAMETEXT_KEY, HW2Layers.PAUSE);
+		this.add.uiElement(UIElementType.NEWBUTTON, HW2Layers.PAUSE, {position: new Vec2(447, 435), onClickEventId: HW2Events.BACK_TO_MAIN, sprite: back2,
+        defaultAnimation: "RETURNMENU", hoverAnimation: "RETURNMENUSELECT"});
+
+		if(!this.tutorial)
+		{
+			this.levelNumber = this.add.animatedSprite(SpritesheetKeys.LEVELNUMS_KEY, HW2Layers.UI);
+			this.levelNumber.position = new Vec2(447, 315);
+			this.levelNumber.scale.scale(6);
+			this.levelNumber.animation.play((this.currentLevel - 1).toString(), true);
+		}
+		
 
 	}
 	/**
@@ -767,13 +773,18 @@ export default class HW2Scene extends Scene {
 		this.gameOverTimer = new Timer(3000);
 		this.tutorialOverTimer = new Timer(3000);
 
+		this.levelIntroTimer = new Timer(3000);
+		this.levelIntroTimer.start();
+
 	}
 	/**
 	 * Initializes the background image sprites for the game.
 	 */
 	protected initBackground(): void {
 		
-
+		this.noiseSprite = this.add.sprite(SpriteKeys.NOISE_KEY, HW2Layers.BACKGROUND);
+		this.noiseSprite.scale.set(1.5, 1.5);
+		this.noiseSprite.position.copy(this.viewport.getCenter());
 
 		this.bgs = new Array();
 		this.initBackgroundHelper(this.backgroundKeyPaths["BACKGROUND_KEY"], this.viewport.getCenter(), 0, 1.5);
@@ -977,7 +988,7 @@ export default class HW2Scene extends Scene {
 		if (laser) {
 			//this.handleShootCollisions(laser, src, angle, this.mines);
 			laser.visible = true;
-			laser.setAIActive(true, {src: src, dst: this.viewport.getHalfSize().scaled(2).add(this.worldPadding.scaled(2)), angle: angle});
+			laser.setAIActive(true, {src: src, dst: this.viewport.getHalfSize().scaled(4), angle: angle});
 			return laser;
 		}
 		return null;
@@ -1070,9 +1081,9 @@ export default class HW2Scene extends Scene {
 			//mine.position = new Vec2((viewportSize.x + mine.sizeWithZoom.x/2) + 500, this.levelObjs[this.curMonsterIndex].spawnY);
 			electricLight = this.add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: new Vec2(0, 0), 
 																				angle : 0,
-																				intensity : 0.5,
-																				distance : 10,
-																				tintColor : Color.BLUE,
+																				intensity : 0.4,
+																				distance : 0,
+																				tintColor : new Color(115, 195, 220, 1),
 																				angleRange : new Vec2(360, 360),
 																				opacity : 0.5,
 																				lightScale : 1.0});
@@ -1231,7 +1242,7 @@ export default class HW2Scene extends Scene {
 	 * It may be helpful to make your own drawings while figuring out the math for this part.
 	 */
 	public handleScreenDespawn(node: CanvasNode): void {
-		if(node.position.x + node.sizeWithZoom.x < 0)
+		if(node.position.x + node.sizeWithZoom.x < 0 && node.visible)
 		{
 			node.visible = false;
 			this.emitter.fireEvent(HW2Events.NODE_DESPAWN, {id: node.id});
@@ -1282,12 +1293,15 @@ export default class HW2Scene extends Scene {
 	 * @see Label for more information about labels 
 	 */
 	protected handleHealthChange(currentHealth: number, maxHealth: number): void {
+		/*
 		let unit = this.healthBarBg.size.x / maxHealth;
 
 		this.healthBar.size.set(this.healthBarBg.size.x - unit * (maxHealth - currentHealth), this.healthBarBg.size.y);
 		this.healthBar.position.set(this.healthBarBg.position.x - (unit / 2) * (maxHealth - currentHealth), this.healthBarBg.position.y);
 
 		this.healthBar.backgroundColor = currentHealth < maxHealth * 1/4 ? Color.RED: currentHealth < maxHealth * 3/4 ? Color.YELLOW : Color.GREEN;
+		*/
+		this.healthBar.animation.play(currentHealth.toString(), true);
 		this.hitsTaken++;
 	}
 	/**
@@ -1316,12 +1330,26 @@ export default class HW2Scene extends Scene {
 	 * @see Label for more information about labels
 	 */
 	protected handleAirChange(currentAir: number, maxAir: number, oldair: number): void {
+		/*
 		let unit = this.airBarBg.size.x / maxAir;
 		this.airBar.size.set(this.airBarBg.size.x - unit * (maxAir - currentAir), this.airBarBg.size.y);
 		this.airBar.position.set(this.airBarBg.position.x - (unit / 2) * (maxAir - currentAir), this.airBarBg.position.y);
-		this.airBar.backgroundColor = currentAir < 2.5 ? Color.RED : Color.WHITE;
+		this.airBar.backgroundColor = currentAir < 2.5 ? Color.RED : Color.WHITE;*/
 		//TODO think about this
-		if(oldair != null && this.gameOverTimer.isStopped() && this.timePassed < 2)
+		const pxlen = 51;
+		const origin = this.healthBar.position.x - (57 * 6/2)  + 5*6 + 3;;
+		//this.energyBar.position.set(this.healthBar.position.x + 6 * 2 - (unit * 6 / 2) * (maxAir - currentAir), this.energyBar.position.y);
+		//this.airBar.backgroundColor = currentAir < 2.5 ? Color.RED : Color.WHITE;
+		
+		const newpxlen = pxlen;
+		//console.log(origin);
+		const truepos = origin + newpxlen * 6 - ((maxAir - currentAir)/maxAir) * newpxlen * 6 - 6;
+		this.energyBarTip.position.set(Math.floor((truepos + 3)/6)*6 - 3, this.energyBar.position.y);
+		//console.log((origin + this.energyBarTip.position.x)/2);
+		this.energyBar.size.set((this.energyBarTip.position.x - origin)/(6) + 1, this.energyBar.size.y);
+		this.energyBar.position.set((origin + this.energyBarTip.position.x) / 2 - 6, this.energyBar.position.y);
+		
+		if(oldair != null && this.gameOverTimer.isStopped() && this.timePassed > 2)
 			this.energyUsed += oldair - currentAir;
 	}
 	/**
@@ -1446,8 +1474,12 @@ export default class HW2Scene extends Scene {
 						//this.startTutorialSection(this.current_tutorialSection + 1);
 						this.completedCurrentSection = true;
 					}
-					this.emitter.fireEvent(HW2Events.PLAYER_MINE_COLLISION, {id: mine.id, monsterType: this.levelObjs[mineInd].monsterType});
-					collisions += 1;
+					const test = mine.ai as MineBehavior2;
+					if(test.alive)
+					{
+						this.emitter.fireEvent(HW2Events.PLAYER_MINE_COLLISION, {id: mine.id, monsterType: this.levelObjs[mineInd].monsterType});
+						collisions += 1;
+					}
 					break;
 				}
 			}
@@ -1497,7 +1529,8 @@ export default class HW2Scene extends Scene {
 			let hitMineList = new Array();
 			for (const index in mines) {
 				let mine = mines[index];
-				if(mine.visible && this.levelObjs[index].monsterType != monsterTypes.electricField)
+				const mineAI = mine.ai as MineBehavior2;
+				if(mine.visible && this.levelObjs[index].monsterType != monsterTypes.electricField && mineAI.alive)
 				{
 					//let hitInfo = mine.collisionShape.getBoundingRect().intersectSegment(firePosition, new Vec2(1200, Math.tan(angle)*laser.size.x * -1));
 					let hitInfo = mine.collisionShape.getBoundingRect().intersectSegment(firePosition, Vec2.ZERO.setToAngle(angle, 1300));
@@ -1521,13 +1554,14 @@ export default class HW2Scene extends Scene {
 				let hitpos = hitMineList[0].hitInfo.pos;
 				//console.log(firePosition.distanceTo(hitpos));
 				//laser.size = new Vec2(firePosition.distanceTo(hitpos), laser.size.y);
-				laser.size.x = (hitpos.x - firePosition.x);
-				laser.position.x = (firePosition.x + hitpos.x)/2;
+				laser.size.x = hitpos.distanceTo(firePosition) + 36;
+				laser.position.x = (firePosition.x + hitpos.x + 36)/2;
 				//console.log(laser.size);
 
 				this.emitter.fireEvent(HW2Events.LASER_MINE_COLLISION, { mineId: hitMineList[0].mine.id, laserId: laser.id, hit: hitMineList[0].hitInfo});
 			}
 
+			
 			for(let projectile of this.projectiles)
 			{
 				if(projectile.visible)
@@ -1755,6 +1789,8 @@ export default class HW2Scene extends Scene {
 			this.spawnBubble();
 		}
 		*/
+		if(this.levelIntroTimer.hasRun() && this.levelIntroTimer.isStopped() && !this.tutorial && this.levelNumber.alpha > 0)
+			this.levelNumber.alpha -= 0.01;
 		// If the game-over timer has run, change to the game-over scene
 		if (this.gameOverTimer.hasRun() && this.gameOverTimer.isStopped()) {
 			console.log("gameOverTimerEnd");
@@ -1765,15 +1801,16 @@ export default class HW2Scene extends Scene {
 				//TODO track player stats and send them to a screen at the end, + add to leaderboard
 				if(this.dead || this.currentLevel == levels.length - 1)
 				{
-					this.sceneManager.changeToScene(GameOver, {current_Level: this.currentLevel, arcadeMode: this.arcadeMode, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, dead:this.dead}, {});
+					this.sceneManager.changeToScene(GameOver, {current_Level: this.currentLevel, arcadeMode: this.arcadeMode, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, dead:this.dead, continues:this.continues}, {});
 				}
 				else
 				{
-					this.sceneManager.changeToScene(HW2Scene, {level: this.currentLevel + 1, arcadeMode: true, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken});
+					this.sceneManager.changeToScene(HW2Scene, {level: this.currentLevel + 1, arcadeMode: true, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, continues: this.continues});
 				}
 			}else
 			{
-				this.sceneManager.changeToScene(GameOver, {current_Level: this.currentLevel, arcadeMode: this.arcadeMode, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, dead:this.dead}, {});
+				this.sceneManager.changeToScene(GameOver, {current_Level: this.currentLevel, arcadeMode: this.arcadeMode, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, dead:this.dead, continues:this.continues}, {});
+				
 			}
 		}
 		if(this.tutorialOverTimer.hasRun() && this.tutorialOverTimer.isStopped()){
@@ -1802,6 +1839,12 @@ export default class HW2Scene extends Scene {
 			this.moveBackground(12, new Vec2(50, 0), deltaT);
 			this.moveBackground(14, new Vec2(75, 0), deltaT);
 			this.moveBackground(16, new Vec2(100, 0), deltaT);
+
+
+			this.noiseSprite.position.sub(move.clone().scaled(deltaT));
+			if(this.noiseSprite.position.x <= 0)
+				this.noiseSprite.position = new Vec2(900, 450)
+
 		}
 	}
 
@@ -1903,47 +1946,27 @@ export default class HW2Scene extends Scene {
 	protected startTutorialSection(section: number): void {
 		this.current_tutorialSection = section;
 		console.log("current section", section);
-		if(section===0)
-			this.tutorialText.setText("Press J to switch the headlight on and off");
-		else if(section===1)
-		{
-			this.tutorialText.setText("↑↑↑ Using the light needs energy (recharges when off)")
-			this.tutorialText2.setText("Press J again to turn the headlight back on");
-		}
-		else if(section===2){
-			this.tutorialText.setText("Press A and D to steer the plane. Avoid the obstacle!");
-			this.tutorialText2.setText("");
+		this.tutorialTextSprite.animation.play(Math.ceil(section).toString(), true);
+		if(section===2){
 			this.spawnEnemy(0);
 			this.completedCurrentSection = true;
 		}
 		else if(section===3){
-			this.tutorialText.setText("Fly through electric fields to restore your battery quickly");
 			this.completedCurrentSection = false;
 			this.spawnEnemy(1);
 		}
 		else if(section===4){
-			this.tutorialText.setText("Aim at the enemy, press L to shoot!")
 			this.spawnEnemy(2);
 		}
 		else if(section===5)
 		{
-			this.tutorialText.setText("Try firing at this enemy")
 			this.spawnEnemy(3);
 		}
-		else if(section===6){
-			this.tutorialText.setText("Some enemies need to be weakened first")
-			this.tutorialText2.setText("Hold K to narrow the headlights and aim at the enemy")
-		}
-		else if (section==7)
-		{
-			this.tutorialText.setText("The enemy has been weakened!");
-			this.tutorialText2.setText("Aim at the enemy, press L to shoot!");
-		}
 		else if(section===8){
-			this.tutorialText.setText("Congratulations, you have completed the tutorial!")
-			this.tutorialText2.setText("")
 			this.tutorialOverTimer.start();
 		}
+
+		
 	}
 
 }

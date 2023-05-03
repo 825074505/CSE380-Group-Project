@@ -184,7 +184,7 @@ export default class CanvasNodeFactory {
 	}
 
 	buildNewButton(options?: Record<string, any>): NewButton {
-		return new NewButton(options.position, options.onClickEventId, options.sprite, options.defaultAnimation, options.hoverAnimation);
+		return new NewButton(options.position, options.onClickEventId, options.sprite, options.defaultAnimation, options.hoverAnimation, options.sizeModX, options.start);
 	}
 
 	buildLabel(options?: Record<string, any>): Label {

@@ -5,6 +5,7 @@ import Emitter from "../../Wolfie2D/Events/Emitter";
 import GameEvent from "../../Wolfie2D/Events/GameEvent";
 import Graphic from "../../Wolfie2D/Nodes/Graphic";
 import MathUtils from "../../Wolfie2D/Utils/MathUtils";
+import Color from "../../Wolfie2D/Utils/Color";
 
 import { HW2Events } from "../HW2Events";
 
@@ -43,8 +44,8 @@ export default class LaserBehavior implements AI {
 
         this.src = Vec2.ZERO;
         this.dst = Vec2.ZERO;
-        this.minSize = new Vec2(Number.NEGATIVE_INFINITY, 10);
-        this.maxSize = new Vec2(Number.POSITIVE_INFINITY, 40);
+        this.minSize = new Vec2(Number.NEGATIVE_INFINITY, 0);
+        this.maxSize = new Vec2(Number.POSITIVE_INFINITY, 18);
 
 
         this.activate(options);
@@ -72,9 +73,11 @@ export default class LaserBehavior implements AI {
         //this.owner.position.y += length * Math.tan(this.angle);
         // Set size of the laser
         this.owner.size.x = this.dst.x - this.src.x;
-        this.owner.size.y = MathUtils.changeRange(this.currentCharge, this.minCharge, this.maxCharge, this.minSize.y, this.maxSize.y);
         // Set the collision shape of the laser - it will be different each time the laser is fired
         this.owner.collisionShape = new AABB(this.owner.position.clone(), this.owner.size.clone().div(new Vec2(2, 2)));
+
+        this.owner.color = new Color(255, 230, 93, 1.0);
+        //this.owner.color = Color.WHITE;
         //if(this.src.x != 0)
         //    this.emitter.fireEvent(HW2Events.FIRING_LASER, {laser: this.owner, src: this.src, angle: this.owner.rotation});
     }
@@ -91,16 +94,21 @@ export default class LaserBehavior implements AI {
             //this.owner.size.x = this.dst.x - this.src.x;
     
             // Set alpha of the laser
-            this.owner.alpha = MathUtils.clamp(MathUtils.changeRange(this.currentCharge, this.minCharge, this.maxCharge, -2, 1), 0, 1);
+            //this.owner.alpha = MathUtils.clamp(MathUtils.changeRange(this.currentCharge, this.minCharge, this.maxCharge, -2, 1), 0, 1);
+            //if(this.currentCharge < 35)
+                //this.owner.alpha = 0;
             //this.owner.alpha = 0.5;
 
             // Update the color of the laser
             //this.owner.color.b = MathUtils.changeRange(this.maxCharge - this.currentCharge, this.minCharge, this.maxCharge, 0, 255);
+            this.owner.color = this.owner.color.lighten(2);
 
             // If this is the first time the laser is fired - send the firing event.
-
+            this.owner.size.y = MathUtils.changeRange(this.currentCharge, this.minCharge, this.maxCharge, this.minSize.y, this.maxSize.y);
             // Update the value of the charge on the laser
             this.currentCharge = MathUtils.clamp(this.currentCharge - 1, this.minCharge, this.maxCharge);
+            this.owner.position.sub(new Vec2(100*deltaT, 0));
+
 
             // If the laser is all out of juice - make it invisible (return it to it's object pool)
             if (this.currentCharge <= this.minCharge) {

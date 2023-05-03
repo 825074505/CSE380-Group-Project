@@ -100,6 +100,10 @@ export default class Color {
 		return new Color(0, 0, 0, 1);
 	}
 
+	static get OFFBLACK(): Color {
+		return new Color(18, 18, 18, 1);
+	}
+
 	/**	
 	 * Orange color
 	 * @returns rgb(255, 100, 0)
@@ -126,8 +130,8 @@ export default class Color {
 	 * Returns a new color slightly lighter than the current color
 	 * @returns A new lighter Color
 	 */
-	lighten(): Color {
-		return new Color(MathUtils.clamp(this.r + 40, 0, 255), MathUtils.clamp(this.g + 40, 0, 255), MathUtils.clamp(this.b + 40, 0, 255), MathUtils.clamp(this.a + 10, 0, 255));
+	lighten(x: number = 40): Color {
+		return new Color(MathUtils.clamp(this.r + x, 0, 255), MathUtils.clamp(this.g + x, 0, 255), MathUtils.clamp(this.b + x, 0, 255), MathUtils.clamp(this.a + 10, 0, 255));
 	}
 
 	/**

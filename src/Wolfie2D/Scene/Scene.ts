@@ -19,6 +19,7 @@ import Map from "../DataTypes/Collections/Map";
 import ParallaxLayer from "./Layers/ParallaxLayer";
 import UILayer from "./Layers/UILayer";
 import CanvasNode from "../Nodes/CanvasNode";
+import Sprite from "../Nodes/Sprites/Sprite";
 import GameNode from "../Nodes/GameNode";
 import SceneOptions from "./SceneOptions";
 import RenderingManager from "../Rendering/RenderingManager";
@@ -90,6 +91,8 @@ export default class Scene implements Updateable {
 
     /** The configuration options for this scene */
     public sceneOptions: SceneOptions;
+
+    public noiseSprite: Sprite;
 
     /**
      * Creates a new Scene. To add a new Scene in your game, use changeToScene() in @reference[SceneManager]
@@ -208,7 +211,7 @@ export default class Scene implements Updateable {
         });
 
         // Send the visible set, tilemaps, and uiLayers to the renderer
-        this.renderingManager.render(visibleSet, this.tilemaps, this.uiLayers, lights);
+        this.renderingManager.render(visibleSet, this.tilemaps, this.uiLayers, lights, this.noiseSprite);
 
         let nodes = this.sceneGraph.getAllNodes();
         this.tilemaps.forEach(tilemap => tilemap.visible ? nodes.push(tilemap) : 0);

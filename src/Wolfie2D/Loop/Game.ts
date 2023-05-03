@@ -212,7 +212,7 @@ export default class Game {
 
             //TODO remove this debug counter stuff, its only for testing
             // Hacky debug mode
-            if(Input.isKeyJustPressed("g") && this.sinceDebugCounter >= 5){
+            if(Input.isKeyPressed("q") && Input.isKeyJustPressed("g") && this.sinceDebugCounter >= 5){
                 this.sinceDebugCounter = 0;
                 this.showDebug = !this.showDebug;
             }

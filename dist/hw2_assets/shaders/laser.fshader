@@ -60,7 +60,8 @@ float dfLine(vec2 start, vec2 end, vec2 uv)
 uniform vec4 u_FragColor;
 void main(){
     gl_FragColor = u_FragColor;
-	gl_FragColor.a = linear_laser(v_Position) * u_Alpha;
+	//gl_FragColor.a = linear_laser(v_Position) * u_Alpha;
+	gl_FragColor.a = u_Alpha;
 }
 
 

@@ -96,6 +96,9 @@ export default class MineBehavior2 implements AI {
     private stoppingX: number = -500;
     private moveTime: number;
 
+    private chargeSoundTimer:number = 0;
+    private chargeSoundLength:number = 0.484;
+
     private closeToPlayer: boolean = false;
 
     private speedMod: number = 1;
@@ -119,6 +122,7 @@ export default class MineBehavior2 implements AI {
     
 
     private electricLight: Light;
+    private targetBrightness: number;
 
     public alive:boolean = true;
     private appeared: boolean = false; //Only for electric appear
@@ -173,6 +177,7 @@ export default class MineBehavior2 implements AI {
             {
                 this.electricLight.visible = true;
                 this.monsterState = monsterStates.invincible;
+                this.targetBrightness = this.electricLight.intensity;
             }
 
             if (info.monsterType != null)
@@ -220,6 +225,9 @@ export default class MineBehavior2 implements AI {
             this.monsterState = monsterStates.invincible;
             this.owner.animation.playIfNotAlready(MineAnimations.TOPWEAK, true);
         }
+
+        if(this.monsterType == monsterTypes.stalagmite)
+            this.monsterState = monsterStates.invincible;
 
 
         this.timeSinceLight = 0;
@@ -451,6 +459,9 @@ export default class MineBehavior2 implements AI {
             if(this.monsterType == monsterTypes.electricField)
             {
                 this.electricLight.position = this.owner.position.clone();
+
+                this.electricLight.intensity = MathUtils.clamp(Math.min((100 - (this.owner.position.x - 850))/100, (this.owner.position.x+50)/50), 0, 1) * this.targetBrightness;
+                
             }
 
             //projectiles
@@ -463,6 +474,14 @@ export default class MineBehavior2 implements AI {
                     this.projectileIndex = (this.projectileIndex + 1) % this.projectiles.length;
                     this.spawnProjectile();
                 }
+            }
+
+            //electric sound
+            if(this.chargeSoundTimer < this.chargeSoundLength)
+            {
+                this.chargeSoundTimer += deltaT;
+                if(this.chargeSoundTimer >= this.chargeSoundLength)
+                    this.charging = false;
             }
 
             this.timeSinceSpawn += deltaT;
@@ -591,6 +610,7 @@ export default class MineBehavior2 implements AI {
                 if(!this.charging)
 				{
 					this.charging = true;
+                    this.chargeSoundTimer = 0;
 					this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.RECHARGING_AUDIO_KEY, loop: false, holdReference: false});
 				}
             }
@@ -619,7 +639,9 @@ export default class MineBehavior2 implements AI {
 
 
     protected monsterDeath(): void {
+        console.log("death");
         this.alive = false;
+        this.movementPattern = movementPatterns.moveLeft;
         this.owner.animation.playIfNotAlready(MineAnimations.EXPLODING, false, HW2Events.MINE_EXPLODED);
         this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.ENEMYDEAD_AUDIO_KEY, loop: false, holdReference: false});
     }
@@ -627,10 +649,10 @@ export default class MineBehavior2 implements AI {
     protected handleNodeDespawn(event: GameEvent): void {
         let id = event.data.get("id");
         if (id === this.owner.id) {
-            if(this.monsterType == monsterTypes.electricField)
-            {
-                this.electricLight.visible = false;
-            }
+        if(this.monsterType == monsterTypes.electricField)
+        {
+            this.electricLight.visible = false;
+        }
             //this.owner.visible = false;
         }
     }
