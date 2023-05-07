@@ -5,7 +5,7 @@ import ProjectileBehavior, {projectileBehaviors} from "../ai/ProjectileBehavior"
 const pincer: Array<monsterInfo> = [
 	{
 		spawnTime: 0.0,
-		spriteKey: "STALACTITE",
+		spriteKey: "STALAGMITE",
 		spawnY: -525,
 		hitboxScaleX: 0.03,
 		hitboxScaleY: 1.0,
@@ -24,7 +24,7 @@ const pincer: Array<monsterInfo> = [
 const fastpincer: Array<monsterInfo> = [
 	{
 		spawnTime: 0.0,
-		spriteKey: "STALACTITE",
+		spriteKey: "STALAGMITE",
 		spawnY: -650,
 		hitboxScaleX: 0.01,
 		hitboxScaleY: 0.98,

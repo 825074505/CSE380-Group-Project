@@ -506,20 +506,10 @@ export default class MainMenu extends Scene {
     public override updateScene(){
         if(Input.isKeyPressed("q"))
         {
-            if(Input.isKeyJustPressed("1"))
-                this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":1});
-            else if (Input.isKeyJustPressed("2"))
-                this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":2});
-            else if (Input.isKeyJustPressed("3"))
-                this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":3});
-            else if (Input.isKeyJustPressed("4"))
-                this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":4});
-            else if (Input.isKeyJustPressed("5"))
-                this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":5});
-            else if (Input.isKeyJustPressed("6"))
-                this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":6});
-            else if (Input.isKeyJustPressed("2"))
-                this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":2});
+            let keys = Input.getKeysJustPressed();
+            keys = keys.filter(key => "0123456789".includes(key));
+            if(keys.length > 0)
+                this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":Number(keys[0])});
             else if (Input.isKeyJustPressed("m"))
                 this.sceneManager.changeToScene(GameOver, {current_Level: 4, arcadeMode: true, energyUsed: 2, hitsTaken: 3, dead:true, continues:1}, {});
             if(Input.isKeyJustPressed("u"))
@@ -527,6 +517,13 @@ export default class MainMenu extends Scene {
                 this.levels_Unlocked = 15;
                 this.updateLevelSprites();
             }
+        }
+        if(Input.isKeyPressed("w"))
+        {
+            let keys = Input.getKeysJustPressed();
+            keys = keys.filter(key => "0123456789".includes(key));
+            if(keys.length > 0)
+                this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":Number(keys[0]) + 10});
         }
         
         this.moveBackgrounds(1/60);
