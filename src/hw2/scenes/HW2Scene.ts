@@ -88,6 +88,9 @@ export const SpritesheetKeys = {
 
 	LEVELNUMS_KEY: "LEVELNUMS",
 	LEVELNUMS_PATH: "hw2_assets/spritesheets/levelNumbers.json",
+
+	EXPLOSION_KEY: "EXPLOSION",
+	EXPLOSION_PATH: "hw2_assets/spritesheets/explosion.json",
 }
 
 export const SpriteKeys = {
@@ -223,9 +226,11 @@ export default class HW2Scene extends Scene {
 	private narrowLight: Graphic;
 	private blinkingLight: Graphic;
 	private shootLight: Graphic;
+	private explosion: AnimatedSprite;
+	private explosionLight: Graphic;
 
 	private playerHitboxes: Array<Graphic>;
-
+	
 	private currentLevel: number;
 	private levelObjs: Array<monsterInfo>;
 
@@ -290,6 +295,7 @@ export default class HW2Scene extends Scene {
 
 	private continues: number = 0;
 
+	private bestScoreId: string;
 	/** Scene lifecycle methods */
 
 	/**
@@ -312,6 +318,9 @@ export default class HW2Scene extends Scene {
 			this.continues = 2;
 		if(options.levels_Unlocked != null)
 			this.levels_Unlocked = options.levels_Unlocked;
+
+		this.bestScoreId = options.bestScoreId;
+		console.log(this.bestScoreId);
 		this.levels_Unlocked = Math.max(this.levels_Unlocked, this.currentLevel - 1);
 
 
@@ -438,6 +447,7 @@ export default class HW2Scene extends Scene {
 		// Subscribe to laser events
 		this.receiver.subscribe(HW2Events.FIRING_LASER);
 		this.receiver.subscribe(HW2Events.ENEMY_WEAKENED);
+		this.receiver.subscribe("explosionend");
 
 		this.emitter.fireEvent(GameEventType.PLAY_MUSIC, {key: HW2Scene.SONG_KEY, loop: true, holdReference: true});
 
@@ -495,12 +505,19 @@ export default class HW2Scene extends Scene {
 
 		//hacky level end for level 1
 		if(!this.tutorial){this.checkLevelEnd();}
+		if(!this.tutorial){this.checkLevelEnd();}
+
+		if(this.explosionLight.visible)
+		{
+			const el = this.explosionLight as Light;
+			el.intensity = Math.max(0, el.intensity - 0.01);
+		}
 
 		//console.log(this.gameOverTimer.toString());
 		if(Input.isKeyPressed("q") && Input.isKeyJustPressed("m"))
 		{
-			this.sceneManager.changeToScene(GameOver, {current_Level: 4, arcadeMode: true, energyUsed: 2, hitsTaken: 3, dead:true, continues:1}, {});
-			this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: HW2Scene.SONG_KEY});
+			this.stopsounds();
+			this.sceneManager.changeToScene(GameOver, {current_Level: 4, arcadeMode: true, energyUsed: 2, hitsTaken: 3, dead:true, continues:1, bestScoreId:this.bestScoreId}, {});
 		}
 		// Handle events
 		while (this.receiver.hasNextEvent()) {
@@ -510,6 +527,14 @@ export default class HW2Scene extends Scene {
     /**
      * @see Scene.unloadScene()
      */
+
+	protected stopsounds()
+	{
+		this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: HW2Scene.SONG_KEY});
+		this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.PROPELLER_AUDIO_KEY});
+		this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.PROPELLERUP_AUDIO_KEY});
+		this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.PROPELLERDOWN_AUDIO_KEY});
+	}
 
     public override unloadScene(): void {
 		// keep all resources.
@@ -537,7 +562,16 @@ export default class HW2Scene extends Scene {
 			}
 			case HW2Events.DEAD: {
 				console.log("DEAD EVENT REACHED");
+				this.wideLight.visible = false;
+				this.narrowLight.visible = false;
+				this.blinkingLight.visible = false;
+				this.explosionLight.visible = true;
 				this.dead = true;
+				this.explosion.position = this.player.position.clone();
+				this.explosionLight.visible = true;
+				this.explosionLight.position = this.player.position.clone();
+				this.explosion.visible = true;
+				this.explosion.animation.play("EXPLOSION", false, "explosionend");
 				this.gameOverTimer.start();
 				break;
 			}
@@ -563,13 +597,13 @@ export default class HW2Scene extends Scene {
 				break;
 			}
 			case HW2Events.BACK_TO_MAIN:{
-				this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: HW2Scene.SONG_KEY});
+				this.stopsounds();
 				if(this.arcadeMode || this.tutorial){
-					this.sceneManager.changeToScene(MainMenu,{screen: "mainMenu", levels_Unlocked: this.levels_Unlocked});
+					this.sceneManager.changeToScene(MainMenu,{screen: "mainMenu", levels_Unlocked: this.levels_Unlocked, bestScoreId:this.bestScoreId});
 				}
 					
 				else
-					this.sceneManager.changeToScene(MainMenu,{screen: "levelSelect", levels_Unlocked: this.levels_Unlocked});
+					this.sceneManager.changeToScene(MainMenu,{screen: "levelSelect", levels_Unlocked: this.levels_Unlocked, bestScoreId:this.bestScoreId});
 				break;
 				
 			}
@@ -591,6 +625,10 @@ export default class HW2Scene extends Scene {
 					else
 						this.startTutorialSection(this.current_tutorialSection + 1);
 				}
+				break;
+			}
+			case "explosionend": {
+				this.explosion.visible = false;
 				break;
 			}
 			default: {
@@ -618,6 +656,9 @@ export default class HW2Scene extends Scene {
 		let planeWings = this.add.sprite(SpriteKeys.PLANEWINGS_KEY, HW2Layers.PRIMARY);
 		this.player = this.add.animatedSprite(SpritesheetKeys.PLAYER_KEY, HW2Layers.PRIMARY);
 		planeWings.scale.set(0.4, 0.4);
+		this.explosion = this.add.animatedSprite(SpritesheetKeys.EXPLOSION_KEY, HW2Layers.PRIMARY);
+		this.explosion.scale.scale(6);
+		this.explosion.visible = false;
 		
 		// Set the player's position to the middle of the screen, and scale it down
 		this.player.position.set(this.viewport.getCenter().x/3, this.viewport.getCenter().y);
@@ -671,6 +712,15 @@ export default class HW2Scene extends Scene {
 																					tintColor : Color.WHITE,
 																					angleRange : new Vec2(270, 0),
 																					opacity : 1.0});
+
+		this.explosionLight = this.add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: this.player.position.clone(), 
+																					angle : 0,
+																					intensity : 0.7,
+																					distance : 0,
+																					tintColor : new Color(255, 143, 86),
+																					angleRange : new Vec2(360, 360),
+																					opacity : 0.5});
+		this.explosionLight.visible = false;
 		/*
 		this.add.graphic(GraphicType.LIGHT, HW2Layers.PRIMARY, {position: new Vec2(450, 450), 
 																					angle : 0,
@@ -880,8 +930,8 @@ export default class HW2Scene extends Scene {
 		*/
 
 		console.log(this.levelObjs[0]);
-		let x = JSON.parse(JSON.stringify(this.levelObjs[0]));
-		console.log(x);
+		//let x = JSON.parse(JSON.stringify(this.levelObjs[0]));
+		//console.log(x);
 		this.expandLevelObjs();
 		this.mines = new Array(this.levelObjs.length);
 		for (let i = 0; i < this.mines.length; i++){
@@ -1246,9 +1296,10 @@ export default class HW2Scene extends Scene {
 	 * It may be helpful to make your own drawings while figuring out the math for this part.
 	 */
 	public handleScreenDespawn(node: CanvasNode): void {
-		if(node.position.x + node.sizeWithZoom.x < 0 && node.visible)
+		if(node.visible && node.position.x + node.sizeWithZoom.x < 0)
 		{
 			node.visible = false;
+			console.log("node despawn");
 			this.emitter.fireEvent(HW2Events.NODE_DESPAWN, {id: node.id});
 			if(this.tutorial)
 			{
@@ -1467,27 +1518,30 @@ export default class HW2Scene extends Scene {
 	 */
 	public handleMinePlayerCollisions(): number {
 		let collisions = 0;
-		for (const mineInd in this.mines) {
-			let mine = this.mines[mineInd];
-			for(let collider of this.playerHitboxes){
-				if (mine.visible && collider.boundary.overlaps(mine.collisionShape)) {
-					if(this.tutorial && this.levelObjs[mineInd].monsterType === monsterTypes.stalagmite){
-						this.completedCurrentSection = false;
+		if(!this.dead)
+		{
+			for (const mineInd in this.mines) {
+				let mine = this.mines[mineInd];
+				for(let collider of this.playerHitboxes){
+					if (mine.visible && collider.boundary.overlaps(mine.collisionShape)) {
+						if(this.tutorial && this.levelObjs[mineInd].monsterType === monsterTypes.stalagmite){
+							this.completedCurrentSection = false;
+						}
+						else if(this.tutorial && this.levelObjs[mineInd].monsterType === monsterTypes.electricField){
+							//this.startTutorialSection(this.current_tutorialSection + 1);
+							this.completedCurrentSection = true;
+						}
+						const test = mine.ai as MineBehavior2;
+						if(test.alive)
+						{
+							this.emitter.fireEvent(HW2Events.PLAYER_MINE_COLLISION, {id: mine.id, monsterType: this.levelObjs[mineInd].monsterType});
+							collisions += 1;
+						}
+						break;
 					}
-					else if(this.tutorial && this.levelObjs[mineInd].monsterType === monsterTypes.electricField){
-						//this.startTutorialSection(this.current_tutorialSection + 1);
-						this.completedCurrentSection = true;
-					}
-					const test = mine.ai as MineBehavior2;
-					if(test.alive)
-					{
-						this.emitter.fireEvent(HW2Events.PLAYER_MINE_COLLISION, {id: mine.id, monsterType: this.levelObjs[mineInd].monsterType});
-						collisions += 1;
-					}
-					break;
 				}
 			}
-		}	
+		}
 		return collisions;
 	}
 
@@ -1799,29 +1853,30 @@ export default class HW2Scene extends Scene {
 		// If the game-over timer has run, change to the game-over scene
 		if (this.gameOverTimer.hasRun() && this.gameOverTimer.isStopped()) {
 			console.log("gameOverTimerEnd");
-			this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: HW2Scene.SONG_KEY});
-			this.player.ai.destroy();
+			this.stopsounds();
+
+			this.player.visible = false;
 			if(this.arcadeMode)
 			{
 				//TODO track player stats and send them to a screen at the end, + add to leaderboard
 				if(this.dead || this.currentLevel == levels.length - 1)
 				{
-					this.sceneManager.changeToScene(GameOver, {current_Level: this.currentLevel, arcadeMode: this.arcadeMode, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, dead:this.dead, continues:this.continues, levels_Unlocked: this.levels_Unlocked}, {});
+					this.sceneManager.changeToScene(GameOver, {current_Level: this.currentLevel, arcadeMode: this.arcadeMode, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, dead:this.dead, continues:this.continues, levels_Unlocked: this.levels_Unlocked, bestScoreId:this.bestScoreId}, {});
 				}
 				else
 				{
-					this.sceneManager.changeToScene(HW2Scene, {level: this.currentLevel + 1, arcadeMode: true, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, continues: this.continues, levels_Unlocked: this.levels_Unlocked});
+					this.sceneManager.changeToScene(HW2Scene, {level: this.currentLevel + 1, arcadeMode: true, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, continues: this.continues, levels_Unlocked: this.levels_Unlocked, bestScoreId:this.bestScoreId});
 				}
 			}else
 			{
-				this.sceneManager.changeToScene(GameOver, {current_Level: this.currentLevel, arcadeMode: this.arcadeMode, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, dead:this.dead, continues:this.continues, levels_Unlocked: this.levels_Unlocked}, {});
+				this.sceneManager.changeToScene(GameOver, {current_Level: this.currentLevel, arcadeMode: this.arcadeMode, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, dead:this.dead, continues:this.continues, levels_Unlocked: this.levels_Unlocked, bestScoreId:this.bestScoreId}, {});
 				
 			}
 		}
 		if(this.tutorialOverTimer.hasRun() && this.tutorialOverTimer.isStopped()){
-			this.player.ai.destroy();
-			this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: HW2Scene.SONG_KEY});
-			this.sceneManager.changeToScene(MainMenu, {screen: "mainMenu"}, {});
+			//this.player.ai.destroy();
+			this.stopsounds();
+			this.sceneManager.changeToScene(MainMenu, {screen: "mainMenu", levels_Unlocked: this.levels_Unlocked, bestScoreId:this.bestScoreId}, {});
 		}
 	}
 

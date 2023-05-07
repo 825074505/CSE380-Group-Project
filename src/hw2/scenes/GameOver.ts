@@ -108,6 +108,7 @@ export default class GameOver extends Scene {
     private returnButton: NewButton;
     private levels_Unlocked: number;
 
+    private bestScoreId: string;
     private enteredName: boolean = false;
 
     private continueLayer: Layer;
@@ -126,12 +127,13 @@ export default class GameOver extends Scene {
         this.powerStr = this.padString(Math.trunc(this.energyUsed).toString(), 3);
         this.levelStr = this.padString(this.curLevel.toString(), 2);
         this.damageStr = this.padString(this.hitsTaken.toString(), 2);
-        if(this.arcadeMode && this.continues > 0)
+        if(this.arcadeMode && this.continues > 0 && this.dead)
             this.continueScreen = true;
         this.renderingManager.lightingEnabled = false;
         this.levels_Unlocked = options.levels_Unlocked;
         if(this.dead == false)
             this.levels_Unlocked += 1;
+        this.bestScoreId = options.bestScoreId;
 
     }
 
@@ -256,14 +258,16 @@ export default class GameOver extends Scene {
         //this.quitSprite.visible = false;
         if(this.arcadeMode)
         {
+            console.log(this.dead);
             if(!this.dead)
             {
                 this.gameCompleteSprite.visible = true;
-                this.enterNameSprite.visible = true;
-                this.gameoversprite.visible = true;
                 this.gameoverLayer.setHidden(false);
+                this.enterNameSprite.visible = true;
+                this.gameOverSprite.visible = false;
+                this.gameoversprite.visible = true;
             }
-            if(this.continues > 0 && this.continueScreen)
+            else if(this.continues > 0 && this.continueScreen)
             {
                 this.continueLayer.setHidden(false);
                 this.continuesprite.visible = true;
@@ -451,6 +455,7 @@ export default class GameOver extends Scene {
             this.flashingTimer += deltaT;
         }
 
+        console.log(this.gameOverSprite.visible);
         while(this.receiver.hasNextEvent()){
             this.handleEvent(this.receiver.getNextEvent());
         }
@@ -476,17 +481,17 @@ export default class GameOver extends Scene {
                 power: this.powerStr,
                 damage: this.damageStr,
                 level: this.levelStr,
-            }, levels_Unlocked: this.levels_Unlocked,
+            }, levels_Unlocked: this.levels_Unlocked, bestScoreId:this.bestScoreId,
             }, {});
         }else{
-            this.sceneManager.changeToScene(MainMenu, {screen: "levelSelect", levels_Unlocked: this.levels_Unlocked}, {});
+            this.sceneManager.changeToScene(MainMenu, {screen: "levelSelect", levels_Unlocked: this.levels_Unlocked, bestScoreId:this.bestScoreId,}, {});
         }
     }
 
     protected handleEvent(event: GameEvent): void {
         switch(event.type) {
             case "continue": {
-                this.sceneManager.changeToScene(Homework1_Scene, {level: this.curLevel, arcadeMode: true, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, continues: this.continues - 1});
+                this.sceneManager.changeToScene(Homework1_Scene, {level: this.curLevel, arcadeMode: true, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, continues: this.continues - 1, bestScoreId:this.bestScoreId,});
             }
             case "quit": {
                 this.continueScreen = false;

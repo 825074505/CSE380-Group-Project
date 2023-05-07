@@ -6,6 +6,14 @@ import {level4Objs} from "./level4";
 import {level5Objs} from "./level5";
 import {level6Objs} from "./level6";
 import {level7Objs} from "./level7";
+import {level8Objs} from "./level8";
+import {level9Objs} from "./level9";
+import {level10Objs} from "./level10";
+import {level11Objs} from "./level11";
+import {level12Objs} from "./level12";
+import {level13Objs} from "./level13";
+import {level14Objs} from "./level14";
+import {level15Objs} from "./level15";
 import {monsterInfo} from "./monsterInfo";
 export type level = {
 	objs: Array<monsterInfo>;
@@ -62,5 +70,45 @@ export const levels: level[] = [
 		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
 		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
 		speedMod: 2,
-	}
+	},
+	{
+		objs: level8Objs,
+		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
+		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
+	},
+	{
+		objs: level9Objs,
+		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
+		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
+	},
+	{
+		objs: level10Objs,
+		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
+		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
+	},
+	{
+		objs: level11Objs,
+		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
+		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
+	},
+	{
+		objs: level12Objs,
+		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
+		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
+	},
+	{
+		objs: level13Objs,
+		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
+		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
+	},
+	{
+		objs: level14Objs,
+		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
+		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
+	},
+	{
+		objs: level15Objs,
+		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
+		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
+	},
 ]

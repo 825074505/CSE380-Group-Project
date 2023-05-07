@@ -71,6 +71,7 @@ export default class ProjectileBehavior implements AI {
     }
 
     public destroy(): void {
+        this.receiver.destroy();
     }
 
     public activate(options: Record<string, any>): void {
