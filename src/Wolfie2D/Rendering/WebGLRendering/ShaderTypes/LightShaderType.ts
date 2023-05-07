@@ -35,12 +35,12 @@ export default class LightShaderType extends QuadShaderType {
 		0.75, 0.75
 		]), gl.STATIC_DRAW);
 		*/
-		const halfSize = (options.distance + 0.50 * 900) * options.scale;
+		const halfSize = (options.distance + 0.50 * options.worldSize.x) * options.scale;
 		
-		const maxX = MathUtils.clamp((options.position.x + halfSize - (900 / 2))/450, -1, 1);
-		const minX = MathUtils.clamp((options.position.x - halfSize - (900 / 2))/450, -1, 1);
-		const maxY = MathUtils.clamp((900 - options.position.y + halfSize - (900 / 2))/450, -1, 1);
-		const minY = MathUtils.clamp((900 - options.position.y - halfSize - (900 / 2))/450, -1, 1);
+		const maxX = MathUtils.clamp((options.position.x + halfSize - (options.worldSize.x / 2))/(options.worldSize.x/2), -1, 1);
+		const minX = MathUtils.clamp((options.position.x - halfSize - (options.worldSize.x / 2))/(options.worldSize.x / 2), -1, 1);
+		const maxY = MathUtils.clamp((options.worldSize.x - options.position.y + halfSize - (options.worldSize.x / 2))/(options.worldSize.x / 2), -1, 1);
+		const minY = MathUtils.clamp((options.worldSize.x - options.position.y - halfSize - (options.worldSize.x / 2))/(options.worldSize.x / 2), -1, 1);
 
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
 		minX, minY,

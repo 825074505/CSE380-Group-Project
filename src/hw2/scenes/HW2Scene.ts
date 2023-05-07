@@ -180,6 +180,9 @@ export const AudioKeys = {
 
 	ENEMYUNWEAK_AUDIO_KEY: "ENEMYUNWEAK",
 	ENEMYUNWEAK_AUDIO_PATH: "hw2_assets/sounds/enemyUnweak.wav",
+
+	LEVELCOMPLETE_AUDIO_KEY: "LEVELCOMPLETE",
+	LEVELCOMPLETE_AUDIO_PATH: "hw2_assets/sounds/levelcomplete.mp3",
 }
 
 
@@ -289,7 +292,7 @@ export default class HW2Scene extends Scene {
 	private dead: boolean = false;
 
 	private tutorialTextSprite: AnimatedSprite;
-
+	private stageClearSprite: AnimatedSprite;
 	private pauseResumeSprite: AnimatedSprite;
 	private pauseMenuSprite: AnimatedSprite;
 
@@ -528,14 +531,18 @@ export default class HW2Scene extends Scene {
      * @see Scene.unloadScene()
      */
 
-	protected stopsounds()
+	protected stopsounds(opt: number = 0)
 	{
 		this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: HW2Scene.SONG_KEY});
-		this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.PROPELLER_AUDIO_KEY});
-		this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.PROPELLERUP_AUDIO_KEY});
-		this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.PROPELLERDOWN_AUDIO_KEY});
+		if(opt == 0)
+		{
+			this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.PROPELLER_AUDIO_KEY});
+			this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.PROPELLERUP_AUDIO_KEY});
+			this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.PROPELLERDOWN_AUDIO_KEY});
+		}
 	}
 
+	/*
     public override unloadScene(): void {
 		// keep all resources.
 		//this.load.keepSpritesheet(HW2Scene.PLAYER_KEY);
@@ -544,7 +551,7 @@ export default class HW2Scene extends Scene {
 		// this.load.keepShader(BubbleShaderType.KEY);
 		// this.load.keepShader(LaserShaderType.KEY);
 	}
-
+	*/
 
 
 	/**
@@ -786,7 +793,11 @@ export default class HW2Scene extends Scene {
 		barFrame.scale.set(6, 6);
 		barFrame.position = new Vec2(192, 69);
 
-
+		this.stageClearSprite = this.add.animatedSprite(SpritesheetKeys.GAMETEXT_KEY, HW2Layers.UI);
+		this.stageClearSprite.scale.scale(6);
+		this.stageClearSprite.position = new Vec2(447, 315);
+		this.stageClearSprite.animation.play("STAGECLEAR", true);
+		this.stageClearSprite.visible = false;
 		
 
 		// Add Pause Screen
@@ -1965,6 +1976,9 @@ export default class HW2Scene extends Scene {
 		{
 			console.log('game over');
 			this.gameOverTimer.start();
+			this.stageClearSprite.visible = true;
+			this.stopsounds(1);
+			this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.LEVELCOMPLETE_AUDIO_KEY, loop: false, holdReference: false});
 		}
 	}
 

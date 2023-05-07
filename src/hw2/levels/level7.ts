@@ -6,6 +6,6 @@ export const level7Objs: Array<monsterInfo> = [
 	{
 	spawnTime: 0,
 	spriteKey: "MINE",
-	spawnY: 450,
+	spawnY: 800,
 	},
 	];

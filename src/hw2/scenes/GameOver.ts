@@ -258,7 +258,7 @@ export default class GameOver extends Scene {
         //this.quitSprite.visible = false;
         if(this.arcadeMode)
         {
-            console.log(this.dead);
+            //console.log(this.dead);
             if(!this.dead)
             {
                 this.gameCompleteSprite.visible = true;
@@ -449,13 +449,13 @@ export default class GameOver extends Scene {
             if(this.flashingTimer > 0.5)
             {
                 this.flashingTimer = 0;
-                console.log("here");
+                //console.log("here");
                 this.scoreSprites["name"][this.nameIndex].visible = !this.scoreSprites["name"][this.nameIndex].visible;
             }
             this.flashingTimer += deltaT;
         }
 
-        console.log(this.gameOverSprite.visible);
+        //console.log(this.gameOverSprite.visible);
         while(this.receiver.hasNextEvent()){
             this.handleEvent(this.receiver.getNextEvent());
         }

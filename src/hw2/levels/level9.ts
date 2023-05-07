@@ -8,4 +8,581 @@ export const level9Objs: Array<monsterInfo> = [
 	spriteKey: "MINE",
 	spawnY: 450,
 	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 0,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+	{
+	spawnTime: 1,
+	spriteKey: "MINE",
+	spawnY: 450,
+	},
+
 	];
