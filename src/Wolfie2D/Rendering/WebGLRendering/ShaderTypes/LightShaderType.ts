@@ -20,6 +20,7 @@ export default class LightShaderType extends QuadShaderType {
 
 	render(gl: WebGLRenderingContext, options: Record<string, any>): void {
 
+		options.position = options.position.clone().scale(options.worldSize.x/900);
 		const program = this.resourceManager.getShaderProgram(this.programKey);
 
 		gl.useProgram(program);

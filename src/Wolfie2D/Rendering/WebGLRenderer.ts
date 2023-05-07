@@ -195,6 +195,7 @@ export default class WebGLRenderer extends RenderingManager {
 				let options: Record<string, any> = shader.getOptions(light);
 				options.texture = this.gbufferTexture;
 				options.worldSize = new Vec2(900, 900);
+				//options.worldSize = new Vec2(150, 150);
 				shader.render(this.gl, options);
 			}
 		}

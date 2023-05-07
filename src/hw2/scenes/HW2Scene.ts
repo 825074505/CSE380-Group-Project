@@ -946,7 +946,25 @@ export default class HW2Scene extends Scene {
 		this.expandLevelObjs();
 		this.mines = new Array(this.levelObjs.length);
 		for (let i = 0; i < this.mines.length; i++){
-			this.mines[i] = this.add.animatedSprite(this.levelObjs[i].spriteKey, HW2Layers.PRIMARY);
+			let skey;
+			if(this.levelObjs[i].spriteKey)
+				skey = this.levelObjs[i].spriteKey;
+			else
+			{
+				switch(this.levelObjs[i].monsterType)
+				{
+					case monsterTypes.stalagmite:
+						skey = "STALAGMITE";
+						break;
+					case monsterTypes.electricField:
+						skey = "ELECTRICITY";
+						break;
+					default:
+						skey = "MINE";	
+				}
+			}
+			
+			this.mines[i] = this.add.animatedSprite(skey, HW2Layers.PRIMARY);
 			
 			// Make our mine inactive by default
 			this.mines[i].visible = false;
