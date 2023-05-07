@@ -27,6 +27,7 @@ export const MineAnimations = {
     WEAKENING: "WEAKENING",
     HALFWEAK: "HALFWEAK",
     TOPWEAK: "TOPWEAK",
+    WEAKTODARK: "WEAKTODARK",
 } as const;
 
 export enum movementPatterns {
@@ -133,6 +134,9 @@ export default class MineBehavior2 implements AI {
     private notEnemyList: Array<number>;
     private peakElecBrightness: number;
 
+    private weakAnim: string;
+    private invinAnim: string;
+
 
     /**
      * @see {AI.initializeAI}
@@ -163,7 +167,7 @@ export default class MineBehavior2 implements AI {
 
         if(options.speedMod != null)
             this.speedMod = options.speedMod;
-
+        console.log(this.speedMod);
 
         if(info != null)
         {
@@ -202,34 +206,51 @@ export default class MineBehavior2 implements AI {
             {
                 this.movementPatterns = info.movementPatterns;
                 this.setMovementInfo(this.movementPatterns[0]);
+            }else
+            {
+                this.speed = 100 * this.speedMod;
             }
         }
         
         
 
+        this.weakAnim = MineAnimations.IDLE;
+        this.invinAnim = MineAnimations.INVINCIBLE;
 
+        if(this.monsterType == monsterTypes.weakFromTop)
+        {
+            this.monsterState = monsterStates.invincible;
+            this.weakAnim = MineAnimations.TOPWEAK;
+            this.owner.animation.playIfNotAlready(MineAnimations.TOPWEAK, true);
+        }
 
-        if(this.weakToLight || this.monsterType == monsterTypes.weakToDark)
+        if(this.monsterType == monsterTypes.spinning)
+        {
+            this.weakAnim = MineAnimations.HALFWEAK;
+            this.owner.animation.playIfNotAlready(MineAnimations.HALFWEAK, true);
+        }
+
+        if(this.weakToLight)
         {
             this.monsterState = monsterStates.invincible;
             this.owner.animation.playIfNotAlready(MineAnimations.INVINCIBLE, true);
         }
 
-        if(this.monsterType == monsterTypes.spinning)
-        {
-            this.owner.animation.playIfNotAlready(MineAnimations.HALFWEAK, true);
-        }
-
-        if(this.monsterType == monsterTypes.weakFromTop)
-        {
-            this.monsterState = monsterStates.invincible;
-            this.owner.animation.playIfNotAlready(MineAnimations.TOPWEAK, true);
-        }
 
         if(this.monsterType == monsterTypes.stalagmite)
+        {
             this.monsterState = monsterStates.invincible;
+            if(this.owner.position.y < 450)
+                this.owner.rotation = Math.PI;
+        }
+            
 
-
+        if(this.monsterType == monsterTypes.weakToDark)
+        {
+            this.monsterState = monsterStates.invincible;
+            this.invinAnim = MineAnimations.WEAKTODARK;
+            this.owner.animation.playIfNotAlready(this.invinAnim, true);
+        }
         this.timeSinceLight = 0;
         //this.owner.position = new Vec2(800, 450);
         //console.log("activated");
@@ -381,7 +402,7 @@ export default class MineBehavior2 implements AI {
                 else if(this.wideLight.visible && this.checkLightCollision(this.wideLight, this.owner.collisionShape))
                 {
                     if(this.lightState != lightStates.wide){
-                        this.owner.animation.playIfNotAlready(MineAnimations.INVINCIBLE, true);
+                        this.owner.animation.playIfNotAlready(this.invinAnim, true);
                         this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.ENEMYWEAKENING_AUDIO_KEY});
                         this.lightState = lightStates.wide;
                         this.monsterState = monsterStates.invincible;
@@ -391,7 +412,7 @@ export default class MineBehavior2 implements AI {
                 else
                 {
                     if(this.lightState != lightStates.dark){
-                        this.owner.animation.playIfNotAlready(MineAnimations.INVINCIBLE, true);
+                        this.owner.animation.playIfNotAlready(this.invinAnim, true);
                         this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.ENEMYWEAKENING_AUDIO_KEY});
                         this.lightState = lightStates.dark;
                         this.monsterState = monsterStates.invincible;
@@ -406,7 +427,7 @@ export default class MineBehavior2 implements AI {
                     this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.ENEMYWEAKENING_AUDIO_KEY});
                     this.emitter.fireEvent(HW2Events.ENEMY_WEAKENED);
                     this.monsterState = monsterStates.weak;
-                    this.owner.animation.playIfNotAlready(MineAnimations.IDLE, true);
+                    this.owner.animation.playIfNotAlready(this.weakAnim, true);
                 }
             }
 
@@ -417,7 +438,10 @@ export default class MineBehavior2 implements AI {
                 if(this.narrowLight.visible && this.checkLightCollision(this.narrowLight, this.owner.collisionShape))
                 {
                     if(this.lightState != lightStates.narrow){
-                        this.owner.animation.playIfNotAlready(MineAnimations.INVINCIBLE, true);
+                        this.owner.animation.playIfNotAlready(this.invinAnim, true);
+                        this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.ENEMYWEAKENING_AUDIO_KEY});
+                        if(this.monsterState = monsterStates.weak)
+                            this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.ENEMYUNWEAK_AUDIO_KEY, loop: false, holdReference: false});
                         this.monsterState = monsterStates.invincible;
                     }
                     this.lightState = lightStates.narrow;
@@ -426,7 +450,10 @@ export default class MineBehavior2 implements AI {
                 {
                     if(this.lightState != lightStates.wide){
                         this.lightState = lightStates.wide;
-                        this.owner.animation.playIfNotAlready(MineAnimations.INVINCIBLE, true);
+                        this.owner.animation.playIfNotAlready(this.invinAnim, true);
+                        if(this.monsterState = monsterStates.weak)
+                            this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.ENEMYUNWEAK_AUDIO_KEY, loop: false, holdReference: false});
+                        this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.ENEMYWEAKENING_AUDIO_KEY});
                         this.monsterState = monsterStates.invincible;
                     }
                 }
@@ -437,6 +464,8 @@ export default class MineBehavior2 implements AI {
                     {
                         this.timeSinceLight = 0.0;
                         this.owner.animation.playIfNotAlready(MineAnimations.WEAKENING, true);
+                        this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.ENEMYWEAKENING_AUDIO_KEY, loop: false, holdReference: true});
+
                         this.lightState = lightStates.dark;
                     }
 
@@ -444,8 +473,10 @@ export default class MineBehavior2 implements AI {
 
                     if(this.timeSinceLight > 0.35 && this.monsterState != monsterStates.weak)
                     {
+                        this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.ENEMYWEAK_AUDIO_KEY, loop: false, holdReference: false});
                         this.monsterState = monsterStates.weak;
-                        this.owner.animation.playIfNotAlready(MineAnimations.IDLE, true);
+                        this.owner.animation.playIfNotAlready(this.weakAnim, true);
+                        this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.ENEMYWEAKENING_AUDIO_KEY});
                     }
                 }
                 
@@ -529,8 +560,10 @@ export default class MineBehavior2 implements AI {
 
         if(info.speed != null)
             this.speed = info.speed * this.speedMod;
-        else
+        else{
             this.speed = 100 * this.speedMod;
+        }
+            
 
         this.moveTime = info.length;
     }

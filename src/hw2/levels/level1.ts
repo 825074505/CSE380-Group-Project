@@ -45,6 +45,11 @@ export const level1Objs: Array<monsterInfo> = [
 	spriteKey: "MINE",
 	spawnY: 450,
 	weakToLight: true,
+	movementPatterns: [
+		{
+			speed:65,
+		}
+	]
 	},
 	{
 	spawnTime: 36.5,

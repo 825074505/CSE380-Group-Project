@@ -5,7 +5,7 @@ import ProjectileBehavior, {projectileBehaviors} from "../ai/ProjectileBehavior"
 const pincer: Array<monsterInfo> = [
 	{
 		spawnTime: 0.0,
-		spriteKey: "STALACTITE",
+		spriteKey: "STALAGMITE",
 		spawnY: -550,
 		hitboxScaleX: 0.01,
 		hitboxScaleY: 0.98,
@@ -24,7 +24,7 @@ const pincer: Array<monsterInfo> = [
 const fastpincer: Array<monsterInfo> = [
 	{
 		spawnTime: 0.0,
-		spriteKey: "STALACTITE",
+		spriteKey: "STALAGMITE",
 		spawnY: -650,
 		hitboxScaleX: 0.01,
 		hitboxScaleY: 0.98,
@@ -53,11 +53,27 @@ const pincerWithEnemy: Array<monsterInfo> = [
 	}
 ]
 
+
+
 const pincerWithEnemyWTL: Array<monsterInfo> = [
 	{
 		spawnTime: 0.0,
 		spawnY: 0,
 		objs: pincer,
+	},
+	{
+		spawnTime: 1.25,
+		spriteKey: "MINE",
+		weakToLight: true,
+		spawnY: 0,
+	}
+]
+
+const fastPincerWithEnemyWTL: Array<monsterInfo> = [
+	{
+		spawnTime: 0.0,
+		spawnY: 0,
+		objs: fastpincer,
 	},
 	{
 		spawnTime: 1.25,
@@ -220,77 +236,77 @@ export const level3Objs: Array<monsterInfo> = [
 	{
 		spawnTime: 64,
 		spawnY: 450,
-		objs: pincerWithEnemyWTL,
+		objs: fastPincerWithEnemyWTL,
+	},
+
+	{
+		spawnTime: 65,
+		spawnY: 250,
+		objs: fastpincer,
 	},
 
 	{
 		spawnTime: 66,
+		spawnY: 50,
+		objs: fastpincer,
+	},
+
+	{
+		spawnTime: 67,
 		spawnY: 250,
-		objs: pincer,
+		objs: fastpincer,
 	},
 
 	{
 		spawnTime: 68,
-		spawnY: 50,
-		objs: pincer,
+		spawnY: 450,
+		objs: fastpincer,
+	},
+
+	{
+		spawnTime: 69,
+		spawnY: 650,
+		objs: fastpincer,
 	},
 
 	{
 		spawnTime: 70,
-		spawnY: 250,
-		objs: pincer,
+		spawnY: 850,
+		objs: fastpincer,
+	},
+
+	{
+		spawnTime: 71,
+		spawnY: 650,
+		objs: fastpincer,
 	},
 
 	{
 		spawnTime: 72,
 		spawnY: 450,
-		objs: pincer,
+		objs: fastpincer,
 	},
 
 	{
 		spawnTime: 74,
-		spawnY: 650,
+		spawnY: 450,
 		objs: pincer,
 	},
 
 	{
 		spawnTime: 76,
-		spawnY: 850,
+		spawnY: 450,
 		objs: pincer,
 	},
 
 	{
 		spawnTime: 78,
-		spawnY: 650,
+		spawnY: 450,
 		objs: pincer,
 	},
 
 	{
 		spawnTime: 80,
-		spawnY: 450,
-		objs: pincer,
-	},
-
-	{
-		spawnTime: 82,
-		spawnY: 450,
-		objs: pincer,
-	},
-
-	{
-		spawnTime: 84,
-		spawnY: 450,
-		objs: pincer,
-	},
-
-	{
-		spawnTime: 86,
-		spawnY: 450,
-		objs: pincer,
-	},
-
-	{
-		spawnTime: 88,
 		spawnY: 450,
 		objs: pincerWithEnemyWTL,
 	},

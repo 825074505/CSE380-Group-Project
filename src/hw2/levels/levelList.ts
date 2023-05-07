@@ -5,6 +5,7 @@ import {level3Objs} from "./level3";
 import {level4Objs} from "./level4";
 import {level5Objs} from "./level5";
 import {level6Objs} from "./level6";
+import {level7Objs} from "./level7";
 import {monsterInfo} from "./monsterInfo";
 export type level = {
 	objs: Array<monsterInfo>;
@@ -25,12 +26,11 @@ export const levels: level[] = [
 		objs: level1Objs,
 		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
 		SONG_PATH: "hw2_assets/sounds/songs/eost1.mp3",
-		speedMod: 2,
 	},
 	//level 2
 	{
 		objs: level2Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
+		BACKGROUND_PATH: "hw2_assets/sprites/bg2/",
 		SONG_PATH: "hw2_assets/sounds/songs/eost2.mp3",
 	},
 	//level 3
@@ -57,4 +57,10 @@ export const levels: level[] = [
 		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
 		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
 	},
+	{
+		objs: level7Objs,
+		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
+		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
+		speedMod: 2,
+	}
 ]

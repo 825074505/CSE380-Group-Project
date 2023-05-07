@@ -142,6 +142,8 @@ export default class MainMenu extends Scene {
     private leaderboardNext: NewButton;
     private leaderboardPrev: NewButton;
 
+    private levelButtons: Array<NewButton>;
+
     private scores: Array<Object>;
     private bestScoreId: string;
     private bestScoreIndex: number = -1;
@@ -156,8 +158,7 @@ export default class MainMenu extends Scene {
     private newScore: Object;
 
     public initScene(options: Record<string, any>): void {
-        //this.levels_Unlocked = options.levels ? options.levels : 1
-        this.levels_Unlocked = 6;
+        this.levels_Unlocked = options.levels_Unlocked ? options.levels_Unlocked : 1
         this.current_Level = 1
         this.retScreen = options.screen;
         this.newScore = options.newScore;
@@ -305,15 +306,18 @@ export default class MainMenu extends Scene {
 
 
         // add Level Select screen Buttons
-
+        this.levelButtons = new Array(15);
         for(let i = 0; i < 15; i++)
         {
             const lsnumSprite = this.add.animatedSprite(SpritesheetKeys.LEVELNUMS_KEY, MainMenuLayer.LEVEL_SELECT);
             const pos = new Vec2(210 + ((i % 5)*114), 372+(Math.floor(i/5)*102));
             const but = this.add.uiElement(UIElementType.NEWBUTTON, MainMenuLayer.LEVEL_SELECT, {position: pos, onClickEventId: null, sprite: lsnumSprite,
-            defaultAnimation: i.toString(), hoverAnimation: i.toString() + "s"});
+            defaultAnimation: i.toString(), hoverAnimation: i.toString() + "s"}) as NewButton;
             but.onClick = () => {this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":i+1})}
+            this.levelButtons[i] = but;
         }
+
+        this.updateLevelSprites();
 
         const returnMenuSprite3 = this.add.animatedSprite(SpritesheetKeys.GAMETEXT_KEY, MainMenuLayer.LEVEL_SELECT);
         this.add.uiElement(UIElementType.NEWBUTTON, MainMenuLayer.LEVEL_SELECT, {position: new Vec2(447, 810), onClickEventId: MainMenuEvent.MENU, sprite: returnMenuSprite3,
@@ -462,17 +466,6 @@ export default class MainMenu extends Scene {
                     console.log("scores", this.scores);
                 });
             })
-        }else
-        {
-            const q = query(collection(db, "eostLeaderboard"), orderBy("level", "desc"), orderBy("damage"), orderBy("power"), orderBy("timestamp"));
-            getDocs(q).then((res) => {
-                console.log(res.docs);
-                if(this.bestScoreId != null)
-                    this.bestScoreIndex = res.docs.findIndex(doc => doc.id === this.bestScoreId);
-                this.scores = res.docs.map((doc) => doc.data());
-                this.maxLeaderBoardPage = Math.floor((this.scores.length - 1)/3);
-                console.log("scores", this.scores);
-            });
         }
 
         
@@ -511,23 +504,31 @@ export default class MainMenu extends Scene {
 	}
 
     public override updateScene(){
-        if(Input.isKeyJustPressed("1"))
-            this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":1});
-        else if (Input.isKeyJustPressed("2"))
-            this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":2});
-        else if (Input.isKeyJustPressed("3"))
-            this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":3});
-        else if (Input.isKeyJustPressed("4"))
-            this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":4});
-        else if (Input.isKeyJustPressed("5"))
-            this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":5});
-        else if (Input.isKeyJustPressed("6"))
-            this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":6});
-        else if (Input.isKeyJustPressed("2"))
-            this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":2});
-        else if (Input.isKeyJustPressed("m"))
-            this.sceneManager.changeToScene(GameOver, {current_Level: 4, arcadeMode: true, energyUsed: 2, hitsTaken: 3, dead:true, continues:1}, {});
-
+        if(Input.isKeyPressed("q"))
+        {
+            if(Input.isKeyJustPressed("1"))
+                this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":1});
+            else if (Input.isKeyJustPressed("2"))
+                this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":2});
+            else if (Input.isKeyJustPressed("3"))
+                this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":3});
+            else if (Input.isKeyJustPressed("4"))
+                this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":4});
+            else if (Input.isKeyJustPressed("5"))
+                this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":5});
+            else if (Input.isKeyJustPressed("6"))
+                this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":6});
+            else if (Input.isKeyJustPressed("2"))
+                this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":2});
+            else if (Input.isKeyJustPressed("m"))
+                this.sceneManager.changeToScene(GameOver, {current_Level: 4, arcadeMode: true, energyUsed: 2, hitsTaken: 3, dead:true, continues:1}, {});
+            if(Input.isKeyJustPressed("u"))
+            {
+                this.levels_Unlocked = 15;
+                this.updateLevelSprites();
+            }
+        }
+        
         this.moveBackgrounds(1/60);
         while(this.receiver.hasNextEvent()){
             this.handleEvent(this.receiver.getNextEvent());
@@ -669,6 +670,24 @@ export default class MainMenu extends Scene {
             s = s.substring(0, len);
     }
 
+    protected updateLevelSprites()
+    {
+        for(let i = 0; i < this.levelButtons.length; i++)
+        {
+            const but = this.levelButtons[i];
+            if(i+1 > this.levels_Unlocked)
+            {
+                but.visible = false;
+                but.sprite.alpha = 0.5;
+            }else
+            {
+                but.visible = true;
+                but.sprite.alpha = 1.0;
+            }
+        }
+        
+    }
+
     protected hidePages(): void {
         this.splashScreen.setHidden(true);
         this.controls.setHidden(true);
@@ -685,7 +704,7 @@ export default class MainMenu extends Scene {
                 break;
             }
             case MainMenuEvent.PLAY_GAME: {
-                this.sceneManager.changeToScene(Homework1_Scene, {level: 1, arcadeMode: true});
+                this.sceneManager.changeToScene(Homework1_Scene, {level: 1, arcadeMode: true, levels_Unlocked: this.levels_Unlocked});
                 break;
             }
             case MainMenuEvent.CONTROLS: {
@@ -718,24 +737,31 @@ export default class MainMenu extends Scene {
             }
 
             case MainMenuEvent.LEVEL_PRESSED: {
-                if(this.levels_Unlocked >= event.data.get("level")){
-                    // Switch To Game Level Scene correspond to level selected
-                    this.current_Level = event.data.get("level");
-                    this.sceneManager.changeToScene(Homework1_Scene, {level: this.current_Level});
-                }
+                this.current_Level = event.data.get("level");
+                this.sceneManager.changeToScene(Homework1_Scene, {level: this.current_Level, levels_Unlocked: this.levels_Unlocked});
                 break;
 
             }
             case MainMenuEvent.TUTORIAL_PRESSED: {
-                this.sceneManager.changeToScene(Homework1_Scene, {level: 0, seed: this.seed, recording: true});
+                this.sceneManager.changeToScene(Homework1_Scene, {level: 0, levels_Unlocked: this.levels_Unlocked});
                 break;
 
             }
             case MainMenuEvent.BEST_SCORES:{
                 // Best Scores NOT IMPLEMENTED YET
                 this.hidePages();
-                this.bestScores.setHidden(false);    
-                this.setLeaderBoardPage(0);
+                const q = query(collection(db, "eostLeaderboard"), orderBy("level", "desc"), orderBy("damage"), orderBy("power"), orderBy("timestamp"));
+                getDocs(q).then((res) => {
+                    console.log(res.docs);
+                    if(this.bestScoreId != null)
+                        this.bestScoreIndex = res.docs.findIndex(doc => doc.id === this.bestScoreId);
+                    this.scores = res.docs.map((doc) => doc.data());
+                    this.maxLeaderBoardPage = Math.floor((this.scores.length - 1)/3);
+                    console.log("scores", this.scores);
+                    this.bestScores.setHidden(false);    
+                    this.setLeaderBoardPage(0);
+                });
+                
                 break;
                 
             }

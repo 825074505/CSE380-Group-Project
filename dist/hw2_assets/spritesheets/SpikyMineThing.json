@@ -8,7 +8,7 @@
 	"topBuffer": 0,
 	"bottomBuffer": 0,
 	"columns": 4,
-	"rows": 6,
+	"rows": 7,
   "animations": [
     {
       "name": "IDLE",
@@ -134,6 +134,28 @@
         },
         {
           "index": 23,
+          "duration": 13
+        }
+      ]
+    },
+    {
+      "name": "WEAKTODARK",
+      "repeat": true,
+      "frames": [
+        {
+          "index": 24,
+          "duration": 13
+        },
+        {
+          "index": 25,
+          "duration": 13
+        },
+        {
+          "index": 26,
+          "duration": 13
+        },
+        {
+          "index": 27,
           "duration": 13
         }
       ]

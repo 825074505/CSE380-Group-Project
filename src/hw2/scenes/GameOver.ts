@@ -106,6 +106,7 @@ export default class GameOver extends Scene {
     private continueSprite: AnimatedSprite;
     private returnSprite: AnimatedSprite;
     private returnButton: NewButton;
+    private levels_Unlocked: number;
 
     private enteredName: boolean = false;
 
@@ -128,6 +129,9 @@ export default class GameOver extends Scene {
         if(this.arcadeMode && this.continues > 0)
             this.continueScreen = true;
         this.renderingManager.lightingEnabled = false;
+        this.levels_Unlocked = options.levels_Unlocked;
+        if(this.dead == false)
+            this.levels_Unlocked += 1;
 
     }
 
@@ -472,10 +476,10 @@ export default class GameOver extends Scene {
                 power: this.powerStr,
                 damage: this.damageStr,
                 level: this.levelStr,
-            }
+            }, levels_Unlocked: this.levels_Unlocked,
             }, {});
         }else{
-            this.sceneManager.changeToScene(MainMenu, {screen: "levelSelect"}, {});
+            this.sceneManager.changeToScene(MainMenu, {screen: "levelSelect", levels_Unlocked: this.levels_Unlocked}, {});
         }
     }
 

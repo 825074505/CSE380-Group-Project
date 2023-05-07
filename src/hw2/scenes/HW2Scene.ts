@@ -71,12 +71,6 @@ export const SpritesheetKeys = {
 	ELECTRICITY_KEY: "ELECTRICITY",
 	ELECTRICITY_PATH: "hw2_assets/spritesheets/Electricity.json",
 
-	STALAGMITE_KEY: "STALAGMITE",
-	STALAGMITE_PATH: "hw2_assets/spritesheets/testStalagmite.json",
-
-	STALACTITE_KEY: "STALACTITE",
-	STALACTITE_PATH: "hw2_assets/spritesheets/stalactite.json",
-
 	STALACTITETOP_KEY: "STALACTITETOP",
 	STALACTITETOP_PATH: "hw2_assets/spritesheets/stalactiteTop.json",
 	
@@ -180,6 +174,9 @@ export const AudioKeys = {
 
 	HOVER_AUDIO_KEY: "HOVER",
     HOVER_AUDIO_PATH: "hw2_assets/sounds/hover.wav",
+
+	ENEMYUNWEAK_AUDIO_KEY: "ENEMYUNWEAK",
+	ENEMYUNWEAK_AUDIO_PATH: "hw2_assets/sounds/enemyUnweak.wav",
 }
 
 
@@ -205,7 +202,7 @@ export default class HW2Scene extends Scene {
     // The seed that should be set before the game starts
     private seed: string;
 
-
+	private levels_Unlocked: number = 0;
 
 	private backgroundKeyPaths = {};
 
@@ -313,6 +310,9 @@ export default class HW2Scene extends Scene {
 			this.continues = options.continues;
 		else if(this.arcadeMode)
 			this.continues = 2;
+		if(options.levels_Unlocked != null)
+			this.levels_Unlocked = options.levels_Unlocked;
+		this.levels_Unlocked = Math.max(this.levels_Unlocked, this.currentLevel - 1);
 
 
 	}
@@ -388,6 +388,8 @@ export default class HW2Scene extends Scene {
 		{
 			this.load.image(this.backgroundKeyPaths[skeys[i]], this.backgroundKeyPaths[skeys[i+1]]);
 		}
+
+		this.load.spritesheet("STALAGMITE", path + "stalagmite.json");
 	}
 	/**
 	 * @see Scene.startScene()
@@ -562,10 +564,12 @@ export default class HW2Scene extends Scene {
 			}
 			case HW2Events.BACK_TO_MAIN:{
 				this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: HW2Scene.SONG_KEY});
-				if(this.arcadeMode || this.tutorial)
-					this.sceneManager.changeToScene(MainMenu,{screen: "mainMenu"});
+				if(this.arcadeMode || this.tutorial){
+					this.sceneManager.changeToScene(MainMenu,{screen: "mainMenu", levels_Unlocked: this.levels_Unlocked});
+				}
+					
 				else
-					this.sceneManager.changeToScene(MainMenu,{screen: "levelSelect"});
+					this.sceneManager.changeToScene(MainMenu,{screen: "levelSelect", levels_Unlocked: this.levels_Unlocked});
 				break;
 				
 			}
@@ -1561,7 +1565,7 @@ export default class HW2Scene extends Scene {
 				this.emitter.fireEvent(HW2Events.LASER_MINE_COLLISION, { mineId: hitMineList[0].mine.id, laserId: laser.id, hit: hitMineList[0].hitInfo});
 			}
 
-			
+			/*	
 			for(let projectile of this.projectiles)
 			{
 				if(projectile.visible)
@@ -1573,6 +1577,7 @@ export default class HW2Scene extends Scene {
 					}
 				}
 			}
+			*/
 		}
 		return collisions;
 	}
@@ -1801,15 +1806,15 @@ export default class HW2Scene extends Scene {
 				//TODO track player stats and send them to a screen at the end, + add to leaderboard
 				if(this.dead || this.currentLevel == levels.length - 1)
 				{
-					this.sceneManager.changeToScene(GameOver, {current_Level: this.currentLevel, arcadeMode: this.arcadeMode, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, dead:this.dead, continues:this.continues}, {});
+					this.sceneManager.changeToScene(GameOver, {current_Level: this.currentLevel, arcadeMode: this.arcadeMode, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, dead:this.dead, continues:this.continues, levels_Unlocked: this.levels_Unlocked}, {});
 				}
 				else
 				{
-					this.sceneManager.changeToScene(HW2Scene, {level: this.currentLevel + 1, arcadeMode: true, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, continues: this.continues});
+					this.sceneManager.changeToScene(HW2Scene, {level: this.currentLevel + 1, arcadeMode: true, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, continues: this.continues, levels_Unlocked: this.levels_Unlocked});
 				}
 			}else
 			{
-				this.sceneManager.changeToScene(GameOver, {current_Level: this.currentLevel, arcadeMode: this.arcadeMode, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, dead:this.dead, continues:this.continues}, {});
+				this.sceneManager.changeToScene(GameOver, {current_Level: this.currentLevel, arcadeMode: this.arcadeMode, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, dead:this.dead, continues:this.continues, levels_Unlocked: this.levels_Unlocked}, {});
 				
 			}
 		}
@@ -1828,17 +1833,23 @@ export default class HW2Scene extends Scene {
 	protected moveBackgrounds(deltaT: number): void {
 		if(!this.paused)
 		{
-			let move = new Vec2(40, 0);
+			let spdmod = 1;
+			
+			if(levels[this.currentLevel].speedMod != null)
+				spdmod = levels[this.currentLevel].speedMod;
+			
+			//console.log(levels[this.currentLevel]);
+			let move = new Vec2(40, 0).scale(spdmod);
 			this.moveBackground(0, move, deltaT);
-			this.moveBackground(2, new Vec2(25, 0), deltaT);
-			this.moveBackground(4, new Vec2(50, 0), deltaT);
-			this.moveBackground(6, new Vec2(75, 0), deltaT);
-			this.moveBackground(8, new Vec2(100, 0), deltaT);
+			this.moveBackground(2, new Vec2(25, 0).scale(spdmod), deltaT);
+			this.moveBackground(4, new Vec2(50, 0).scale(spdmod), deltaT);
+			this.moveBackground(6, new Vec2(75, 0).scale(spdmod), deltaT);
+			this.moveBackground(8, new Vec2(100, 0).scale(spdmod), deltaT);
 
-			this.moveBackground(10, new Vec2(25, 0), deltaT);
-			this.moveBackground(12, new Vec2(50, 0), deltaT);
-			this.moveBackground(14, new Vec2(75, 0), deltaT);
-			this.moveBackground(16, new Vec2(100, 0), deltaT);
+			this.moveBackground(10, new Vec2(25, 0).scale(spdmod), deltaT);
+			this.moveBackground(12, new Vec2(50, 0).scale(spdmod), deltaT);
+			this.moveBackground(14, new Vec2(75, 0).scale(spdmod), deltaT);
+			this.moveBackground(16, new Vec2(100, 0).scale(spdmod), deltaT);
 
 
 			this.noiseSprite.position.sub(move.clone().scaled(deltaT));

@@ -7,7 +7,7 @@ import ProjectileBehavior, {projectileBehaviors} from "../ai/ProjectileBehavior"
 const pincer: Array<monsterInfo> = [
 	{
 		spawnTime: 0.0,
-		spriteKey: "STALACTITE",
+		spriteKey: "STALAGMITE",
 		spawnY: -525,
 		hitboxScaleX: 0.03,
 		hitboxScaleY: 1.0,
