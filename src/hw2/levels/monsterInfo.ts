@@ -29,7 +29,7 @@ export type monsterInfo = {
 	spawnTime: number;  //Amount of seconds after level has started that the enemy should spawn
 	objs?: Array<monsterInfo>; //If this is set then this will be turned into a list of monsters (whose spawnTime is relative to the spawntime in this object) rather than spawn a single monster
 							   //Useful for making preset patterns to reuse.
-	spriteKey?: string; //REQUIRED IF NOT OBJECT LIST
+	spriteKey?: string; //prob don't need to use this, left in case something depends on it
 
 	spriteScale?: number;
 	hitboxScaleX?: number;
@@ -38,15 +38,6 @@ export type monsterInfo = {
 
 	movementPatterns?: Array<movementInfo>;
 
-	/*
-	movementPattern?: number; //Info about movement, conisdered making this its own type but it makes it more verbose
-	period?: number;
-	amplitude?: number;
-	offset?: number;
-
-	length?: number; //Time to stay in this movement pattern. if not set, then infinite length
-	moveDistance?: number; //how far to move left before stopping
-	*/
 
 	phaseTime?: number; //if monsterType is phasing
 
@@ -54,8 +45,6 @@ export type monsterInfo = {
 
 	weakToLight?: boolean;
 	timeToWeak?: number;
-	//speed
-	//projectile
 	projectiles?: Array<projectileInfo>;
 
 	splitOnDeath?: boolean; //Should the enemy split into projectiles on death?
