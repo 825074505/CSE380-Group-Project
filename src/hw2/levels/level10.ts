@@ -19,44 +19,7 @@ const threeGuysInARow: Array<monsterInfo> = [
 	spawnY: 0,
 	}]
 
-const threeGuysInARowWTD: Array<monsterInfo> = [
-	{
-	spawnTime: 0.0,
-	spriteKey: "MINE",
-	spawnY: 0,
-	monsterType: monsterTypes.weakToDark
-	},
-	{
-	spawnTime: 1.0,
-	spriteKey: "MINE",
-	spawnY: 0,
-	monsterType: monsterTypes.weakToDark
-	},
-	{
-	spawnTime: 2.0,
-	spriteKey: "MINE",
-	spawnY: 0,
-	monsterType: monsterTypes.weakToDark
-	}]
-const threeGuysInARowWTL: Array<monsterInfo> = [
-	{
-	spawnTime: 0.0,
-	spriteKey: "MINE",
-	spawnY: 0,
-	weakToLight: true
-	},
-	{
-	spawnTime: 1.0,
-	spriteKey: "MINE",
-	spawnY: 0,
-	weakToLight: true
-	},
-	{
-	spawnTime: 2.0,
-	spriteKey: "MINE",
-	spawnY: 0,
-	weakToLight: true
-	}]
+
 const fastpincer: Array<monsterInfo> = [
 	{
 		spawnTime: 0.0,
@@ -166,12 +129,22 @@ export const level10Objs: Array<monsterInfo> = [
 	{
 		spawnTime: 25,
 		spawnY: 450,
-		objs: threeGuysInARowWTD,
+		monsterType: monsterTypes.weakToDark,
 	},
 	{
-		spawnTime: 28,
+		spawnTime: 26,
+		spawnY: 450,
+		monsterType: monsterTypes.weakToDark,
+	},
+	{
+		spawnTime: 27.5,
 		spawnY: 350,
-		objs: threeGuysInARowWTL,
+		weakToLight: true
+	},
+	{
+		spawnTime: 28.5,
+		spawnY: 350,
+		weakToLight: true
 	},
 	{
 		spawnTime: 30,
@@ -185,17 +158,14 @@ export const level10Objs: Array<monsterInfo> = [
 		movementPatterns: [{
 			movementPattern: movementPatterns.sineWave,
 		}],
-		monsterType: monsterTypes.weakFromTop,
-	},
-	{
-		spawnTime: 34,
-		spawnY: 96,
-		monsterType: monsterTypes.stalactite,
 	},
 	{
 		spawnTime: 35,
 		spawnY: 500,
-		weakToLight:true
+		weakToLight:true,
+		movementPatterns: [{
+			movementPattern: movementPatterns.sineWave,
+		}],
 	},
 	{
 		spawnTime: 36,
@@ -204,17 +174,66 @@ export const level10Objs: Array<monsterInfo> = [
 		movementPatterns: [{
 			movementPattern: movementPatterns.sineWave,
 		}],
-		monsterType: monsterTypes.weakFromTop,
 	},
-	{
-		spawnTime: 36,
-		spawnY: 96,
-		monsterType: monsterTypes.stalactite,
-		},
 	{
 		spawnTime: 37,
 		spawnY: 500,
-		weakToLight:true
+		weakToLight:true,
+		movementPatterns: [{
+			movementPattern: movementPatterns.sineWave,
+		}],
 	},
-	
+	{
+		spawnTime: 39,
+		spawnY: 550,
+		monsterType: monsterTypes.electricField,
+	},
+	{
+		spawnTime: 40,
+		spawnY: 400,
+		
+		movementPatterns: [{
+			movementPattern: movementPatterns.sineWave,
+		}],
+	},
+	{
+		spawnTime: 41,
+		spawnY: 600,
+		
+		movementPatterns: [{
+			movementPattern: movementPatterns.sineWave,
+		}],
+	},
+	{
+		spawnTime: 42,
+		spawnY: 400,
+		
+		movementPatterns: [{
+			movementPattern: movementPatterns.sineWave,
+		}],
+	},
+	{
+		spawnTime: 43,
+		spawnY: 600,
+		
+		movementPatterns: [{
+			movementPattern: movementPatterns.sineWave,
+		}],
+	},
+	{
+		spawnTime: 44,
+		spawnY: 400,
+		
+		movementPatterns: [{
+			movementPattern: movementPatterns.sineWave,
+		}],
+	},
+	{
+		spawnTime: 45,
+		spawnY: 600,
+		
+		movementPatterns: [{
+			movementPattern: movementPatterns.sineWave,
+		}],
+	},
 ];
