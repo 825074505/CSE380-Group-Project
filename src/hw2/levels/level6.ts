@@ -294,5 +294,47 @@ export const level6Objs: Array<monsterInfo> = [
 		spawnY: 750,
 		monsterType: monsterTypes.weakToDark,
 	},
+	{
+		spawnTime: 42.0,
+		spawnY: 0,
+		objs: upPath,
+	},
+	{
+		spawnTime: 44.0,
+		spriteKey: "ELECTRICITY",
+		spawnY: 650,
+		monsterType: monsterTypes.electricField,
+	},
+	{
+		spawnTime: 45.0,
+		spriteKey: "MINE",
+		spawnY: 450,
+		monsterType: monsterTypes.weakToDark,
+	},
+	{
+		spawnTime: 50.0,
+		spawnY: 0,
+		objs: downPath,
+	},
+	{
+		spawnTime: 53.0,
+		spriteKey: "MINE",
+		spawnY: 400,
+		monsterType: monsterTypes.spinning,
+	},
+	{
+		spawnTime: 55.0,
+		spriteKey: "MINE",
+		spawnY: 600,
+		monsterType: monsterTypes.weakToDark,
+	},
+	{
+		spawnTime: 57.0,
+		spriteKey: "MINE",
+		spawnY: 700,
+		monsterType: monsterTypes.weakToDark,
+	},
+
+
 
 ]
