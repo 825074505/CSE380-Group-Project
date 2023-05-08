@@ -1,6 +1,6 @@
 {
 	"name": "electricity",
-	"spriteSheetImage": "electricity2.png",
+	"spriteSheetImage": "Electricity2.png",
 	"spriteWidth": 24,
 	"spriteHeight": 24,
 	"leftBuffer": 0,
