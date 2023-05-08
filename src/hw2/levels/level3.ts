@@ -150,6 +150,8 @@ const downPath : Array<monsterInfo> = [
 	},
 ]
 
+
+
 export const level3Objs: Array<monsterInfo> = [
 	
 	{
