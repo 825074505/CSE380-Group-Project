@@ -106,7 +106,7 @@ export const level10Objs: Array<monsterInfo> = [
 		monsterType: monsterTypes.spinning,
 	},
 	{
-		spawnTime: 17,
+		spawnTime: 19,
 		spawnY: 450,
 		
 		movementPatterns: [{
