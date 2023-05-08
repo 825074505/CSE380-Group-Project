@@ -314,12 +314,6 @@ export const level6Objs: Array<monsterInfo> = [
 		monsterType: monsterTypes.spinning,
 	},
 	{
-		spawnTime: 55.0,
-		spriteKey: "MINE",
-		spawnY: 600,
-		monsterType: monsterTypes.weakToDark,
-	},
-	{
 		spawnTime: 60.0,
 		spawnY: 450,
 		objs: pincerWithEnemySpin,
