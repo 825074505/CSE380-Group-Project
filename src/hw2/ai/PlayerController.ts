@@ -526,7 +526,7 @@ export default class PlayerController implements AI {
 
 	protected handlePlayerProjectileCollision(event: GameEvent): void {
 		//this.currentHealth -= 2;
-		if(!this.invincible)
+		if(!this.invincible && this.owner.visible)
 		{
 			if(!this.infiniteHealth)
 				this.currentHealth -= 1;

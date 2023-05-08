@@ -34,7 +34,7 @@ export const level8Objs: Array<monsterInfo> = [
 			angle: Math.PI,
 			waitTime: 2.0,
 			splitX: 700,
-			splitAngles: [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1],
+			splitAngles: [-1, -0.5, 0, 0.5, 1],
 			},
 
 			{behavior: projectileBehaviors.atAngle,
@@ -117,7 +117,7 @@ export const level8Objs: Array<monsterInfo> = [
 			angle: Math.PI,
 			waitTime: 1,
 			splitX: 600,
-			splitAngles: [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1],
+			splitAngles: [-1, -0.5, 0, 0.5, 1],
 			},
 
 			{behavior: projectileBehaviors.left,
@@ -125,7 +125,7 @@ export const level8Objs: Array<monsterInfo> = [
 			angle: Math.PI,
 			waitTime: 1,
 			splitX: 600,
-			splitAngles: [-1.125,-0.875, -0.625, -0.375, -0.125, 0.125, 0.375, 0.625, 0.875, 1.125],
+			splitAngles: [-1.25, -0.75, -0.25,  0.25,  0.75, 1.25],
 			},
 
 			{behavior: projectileBehaviors.left,
@@ -133,7 +133,7 @@ export const level8Objs: Array<monsterInfo> = [
 			angle: Math.PI,
 			waitTime: 1,
 			splitX: 600,
-			splitAngles: [-1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1],
+			splitAngles: [-1, -0.5, 0, 0.5, 1],
 			},
 
 			{behavior: projectileBehaviors.left,
@@ -141,7 +141,7 @@ export const level8Objs: Array<monsterInfo> = [
 			angle: Math.PI,
 			waitTime: 1,
 			splitX: 600,
-			splitAngles: [-1.125,-0.875, -0.625, -0.375, -0.125, 0.125, 0.375, 0.625, 0.875, 1.125],
+			splitAngles: [-1.25, -0.75, -0.25,  0.25,  0.75, 1.25],
 			},
 
 			{behavior: projectileBehaviors.left,
@@ -149,7 +149,7 @@ export const level8Objs: Array<monsterInfo> = [
 			angle: Math.PI,
 			waitTime: 1,
 			splitX: 600,
-			splitAngles: [-1.125,-0.875, -0.625, -0.375, -0.125, 0.125, 0.375, 0.625, 0.875, 1.125],
+			splitAngles: [-1, -0.5, 0, 0.5, 1],
 			},
 			]
 

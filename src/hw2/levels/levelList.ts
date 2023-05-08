@@ -90,7 +90,8 @@ export const levels: level[] = [
 	{
 		objs: level11Objs,
 		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
-		SONG_PATH: "hw2_assets/sounds/songs/eost3.mp3",
+		speedMod: 2,
+		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
 	},
 	{
 		objs: level12Objs,
