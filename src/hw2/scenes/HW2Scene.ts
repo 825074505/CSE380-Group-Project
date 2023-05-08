@@ -2002,6 +2002,7 @@ export default class HW2Scene extends Scene {
 			this.gameOverTimer.start();
 			this.stageClearSprite.visible = true;
 			this.stopsounds(1);
+			this.emitter.fireEvent("levelcomplete");
 			this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.LEVELCOMPLETE_AUDIO_KEY, loop: false, holdReference: false});
 		}
 	}

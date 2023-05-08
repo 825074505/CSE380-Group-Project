@@ -118,6 +118,7 @@ export default class PlayerController implements AI {
 		this.receiver.subscribe(HW2Events.DEAD);
 		this.receiver.subscribe(HW2Events.PLAYER_BUBBLE_COLLISION);
 		this.receiver.subscribe(HW2Events.PLAYER_PROJECTILE_COLLISION);
+		this.receiver.subscribe("levelcomplete");
 
 		this.activate(options);
 	}
@@ -471,6 +472,10 @@ export default class PlayerController implements AI {
 				this.handlePlayerProjectileCollision(event);
 				break;
 			}
+			case "levelcomplete": {
+                this.invincible = true;
+                break;
+            }
 			default: {
 				throw new Error(`Unhandled event of type: ${event.type} caught in PlayerController`);
 			}

@@ -29,7 +29,7 @@ export const level12Objs: Array<monsterInfo> = [
 	}
 	],
 	spriteScale: 2,
-	timeToWeak: 13,
+	timeToWeak: 17,
 	projectiles: [
 			{behavior: projectileBehaviors.left,
 			speed: 200,
