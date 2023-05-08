@@ -124,6 +124,11 @@ export default class GameOver extends Scene {
         this.continues = options.continues;
         if(options.name != null)
             this.name = options.name.toUpperCase();
+
+        if(this.arcadeMode && !this.dead){
+            console.log("beat game");
+            this.curLevel+=1;
+        }
         this.powerStr = this.padString(Math.trunc(this.energyUsed).toString(), 3);
         this.levelStr = this.padString(this.curLevel.toString(), 2);
         this.damageStr = this.padString(this.hitsTaken.toString(), 2);
@@ -133,8 +138,8 @@ export default class GameOver extends Scene {
         this.levels_Unlocked = options.levels_Unlocked;
         if(this.dead == false)
             this.levels_Unlocked += 1;
-        if(this.arcadeMode && !this.dead)
-            this.curLevel+=1;
+        
+            
         this.bestScoreId = options.bestScoreId;
 
     }

@@ -75,7 +75,7 @@ export default class ProjectileBehavior implements AI {
     }
 
     public activate(options: Record<string, any>): void {
-        console.log(options);
+        //console.log(options);
         this.src = options.src;
         const info = options.info;
         if(info != null)
@@ -146,7 +146,7 @@ export default class ProjectileBehavior implements AI {
 
             if(this.behavior == projectileBehaviors.atAngle)
             {
-                console.log(info.angle);
+                //console.log(info.angle);
                 this.dst = Vec2.ZERO.setToAngle(this.angle, 1000).add(this.owner.position);
             }
 
