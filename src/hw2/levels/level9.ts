@@ -98,7 +98,7 @@ export const level9Objs: Array<monsterInfo> = [
 	{
 		spawnTime: 13,
 		spawnY: 250,
-		weakToLight: true,
+		monsterType:monsterTypes.weakToDark
 	},
 
 	{
