@@ -305,12 +305,12 @@ export default class PlayerController implements AI {
 		//hitbox positions
 
 		//hitbox positions
-		for(let i = 0; i < this.hitboxes.length; i++)
+		for(let i = 2; i < this.hitboxes.length + 2; i++)
 		{
 			let nx = this.owner.position.x - ((this.owner.size.x/3) - i*(this.owner.size.x/6)) * this.owner.scale.x * Math.cos(this.currentAngle);
 			let ny = this.owner.position.y + ((this.owner.size.x/3) - i*(this.owner.size.x/6)) * this.owner.scale.x * Math.sin(this.currentAngle);
 			
-			this.hitboxes[i].position = new Vec2(nx, ny);
+			this.hitboxes[i-2].position = new Vec2(nx, ny);
 		}
 
 
