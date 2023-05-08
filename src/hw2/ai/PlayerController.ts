@@ -64,7 +64,7 @@ export default class PlayerController implements AI {
 	private deadSent: boolean;
 
 	private shootTimeOut: boolean = false;
-	private laserEnergyCost: number = 2.0;
+	private laserEnergyCost: number = 3.0;
 
 	private p1: Graphic;
 	private p2: Graphic;
@@ -198,6 +198,9 @@ export default class PlayerController implements AI {
 		}
 
         // If the player is out of hp - play the death animation
+		if(this.owner.visible)
+		{
+
 		if (this.currentHealth <= this.minHealth) {
 			if(this.deadSent == false)
 			{
@@ -431,6 +434,8 @@ export default class PlayerController implements AI {
 		{
 			this.blinkingLightBrightnessIncreasing = !this.blinkingLightBrightnessIncreasing;
 		}
+
+		}
 	}
 	/**
 	 * This method handles all events that the reciever for the PlayerController is
@@ -475,7 +480,6 @@ export default class PlayerController implements AI {
 	 * @see {AI.destroy}
 	 */
 	public destroy(): void {
-		this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: this.propSound});
 		this.receiver.destroy()
 	}
 
@@ -538,8 +542,11 @@ export default class PlayerController implements AI {
 
 	protected handlePlayerDead(event: GameEvent): void {
 		this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.EXPLOSION_AUDIO_KEY, loop: false, holdReference: false});
+		this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: this.propSound});
 		this.owner.animation.playIfNotAlready(PlayerAnimations.DEATH, true);
-		this.destroy();
+		this.planeWings.visible = false;
+		this.owner.visible = false;
+		//this.destroy();
 	}
 
 	/** 

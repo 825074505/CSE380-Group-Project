@@ -162,6 +162,8 @@ export default class MainMenu extends Scene {
         this.current_Level = 1
         this.retScreen = options.screen;
         this.newScore = options.newScore;
+        this.bestScoreId = options.bestScoreId;
+        console.log(this.bestScoreId);
     }
 
     public override loadScene(){
@@ -511,7 +513,7 @@ export default class MainMenu extends Scene {
             if(keys.length > 0)
                 this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":Number(keys[0])});
             else if (Input.isKeyJustPressed("m"))
-                this.sceneManager.changeToScene(GameOver, {current_Level: 4, arcadeMode: true, energyUsed: 2, hitsTaken: 3, dead:true, continues:1}, {});
+                this.sceneManager.changeToScene(GameOver, {current_Level: 4, arcadeMode: true, energyUsed: 2, hitsTaken: 3, dead:false, continues:1, bestScoreId: this.bestScoreId}, {});
             if(Input.isKeyJustPressed("u"))
             {
                 this.levels_Unlocked = 15;
@@ -701,7 +703,7 @@ export default class MainMenu extends Scene {
                 break;
             }
             case MainMenuEvent.PLAY_GAME: {
-                this.sceneManager.changeToScene(Homework1_Scene, {level: 1, arcadeMode: true, levels_Unlocked: this.levels_Unlocked});
+                this.sceneManager.changeToScene(Homework1_Scene, {level: 1, arcadeMode: true, levels_Unlocked: this.levels_Unlocked, bestScoreId: this.bestScoreId});
                 break;
             }
             case MainMenuEvent.CONTROLS: {
@@ -735,12 +737,12 @@ export default class MainMenu extends Scene {
 
             case MainMenuEvent.LEVEL_PRESSED: {
                 this.current_Level = event.data.get("level");
-                this.sceneManager.changeToScene(Homework1_Scene, {level: this.current_Level, levels_Unlocked: this.levels_Unlocked});
+                this.sceneManager.changeToScene(Homework1_Scene, {level: this.current_Level, levels_Unlocked: this.levels_Unlocked, bestScoreId: this.bestScoreId});
                 break;
 
             }
             case MainMenuEvent.TUTORIAL_PRESSED: {
-                this.sceneManager.changeToScene(Homework1_Scene, {level: 0, levels_Unlocked: this.levels_Unlocked});
+                this.sceneManager.changeToScene(Homework1_Scene, {level: 0, levels_Unlocked: this.levels_Unlocked, bestScoreId: this.bestScoreId});
                 break;
 
             }

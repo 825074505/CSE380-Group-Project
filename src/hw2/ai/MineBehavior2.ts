@@ -682,11 +682,11 @@ export default class MineBehavior2 implements AI {
     protected handleNodeDespawn(event: GameEvent): void {
         let id = event.data.get("id");
         if (id === this.owner.id) {
-        if(this.monsterType == monsterTypes.electricField)
-        {
-            this.electricLight.visible = false;
-        }
-            //this.owner.visible = false;
+            if(this.monsterType == monsterTypes.electricField)
+            {
+                this.electricLight.visible = false;
+            }
+            this.owner.visible = false;
         }
     }
 }

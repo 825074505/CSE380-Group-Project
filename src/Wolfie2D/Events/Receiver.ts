@@ -45,6 +45,7 @@ export default class Receiver {
 				console.log("Queue: " + this.q);
 			}
 		this.q.enqueue(event);
+		//console.log("queue size", this.q.getSize())
 		} catch(e){
 			console.warn("Receiver overflow for event " + event.toString());
 			console.log("Reciever id " + this.id);

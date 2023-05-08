@@ -202,6 +202,26 @@ const threeGuysInARowWTD: Array<monsterInfo> = [
 	monsterType: monsterTypes.weakToDark
 	}]
 
+	const threeGuysInARowWTL: Array<monsterInfo> = [
+		{
+		spawnTime: 0.0,
+		spriteKey: "MINE",
+		spawnY: 0,
+		weakToLight:true
+		},
+		{
+		spawnTime: 1.0,
+		spriteKey: "MINE",
+		spawnY: 0,
+		weakToLight:true
+		},
+		{
+		spawnTime: 2.0,
+		spriteKey: "MINE",
+		spawnY: 0,
+		weakToLight:true
+		}]
+
 export const level6Objs: Array<monsterInfo> = [
 	{
 		spawnTime: 0.0,
