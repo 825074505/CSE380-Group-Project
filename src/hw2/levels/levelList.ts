@@ -45,46 +45,46 @@ export const levels: level[] = [
 	//level 3
 	{
 		objs: level3Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
+		BACKGROUND_PATH: "hw2_assets/sprites/bg3/",
 		SONG_PATH: "hw2_assets/sounds/songs/eost3.mp3",
 	},
 	//level 4
 	{
 		objs: level4Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
+		BACKGROUND_PATH: "hw2_assets/sprites/bg6/",
 		SONG_PATH: "hw2_assets/sounds/songs/eost4bossmusic.mp3",
 	},
 	//level 5
 	{
 		objs: level5Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
+		BACKGROUND_PATH: "hw2_assets/sprites/bg4/",
 		SONG_PATH: "hw2_assets/sounds/songs/eost1.mp3",
 	},
 	//level 6
 	{
 		objs: level6Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
+		BACKGROUND_PATH: "hw2_assets/sprites/bg5/",
 		SONG_PATH: "hw2_assets/sounds/songs/eost2.mp3",
 	},
 	{
 		objs: level7Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
+		BACKGROUND_PATH: "hw2_assets/sprites/bg2/",
 		SONG_PATH: "hw2_assets/sounds/songs/eost3.mp3",
 	},
 	{
 		objs: level8Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
+		BACKGROUND_PATH: "hw2_assets/sprites/bg6/",
 		SONG_PATH: "hw2_assets/sounds/songs/eost4bossmusic.mp3",
 		boss: true,
 	},
 	{
 		objs: level9Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
+		BACKGROUND_PATH: "hw2_assets/sprites/bg3/",
 		SONG_PATH: "hw2_assets/sounds/songs/eost1.mp3",
 	},
 	{
 		objs: level10Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
+		BACKGROUND_PATH: "hw2_assets/sprites/bg4/",
 		SONG_PATH: "hw2_assets/sounds/songs/eost2.mp3",
 	},
 	{
@@ -95,7 +95,7 @@ export const levels: level[] = [
 	},
 	{
 		objs: level12Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
+		BACKGROUND_PATH: "hw2_assets/sprites/bg6/",
 		SONG_PATH: "hw2_assets/sounds/songs/eost4bossmusic.mp3",
 		boss: true,
 	},
