@@ -673,8 +673,8 @@ export default class HW2Scene extends Scene {
 
 		this.playerP1 = this.add.graphic(GraphicType.RECT, HW2Layers.PRIMARY, {position: this.player.position.clone(), size: new Vec2(10, 10)});
 		this.playerP2 = this.add.graphic(GraphicType.RECT, HW2Layers.PRIMARY, {position: this.player.position.clone(), size: new Vec2(10, 10)});
-		this.playerHitboxes = new Array(5);
-		for(let i = 0; i < 5; i++)
+		this.playerHitboxes = new Array(3);
+		for(let i = 0; i < 3; i++)
 		{
 			let hb = this.add.graphic(GraphicType.RECT, HW2Layers.PRIMARY, {position: this.player.position.clone(), size: new Vec2(86, 32)});
 			hb.scale.set(0.4, 0.4);
@@ -1979,16 +1979,22 @@ export default class HW2Scene extends Scene {
 	}
 
 	protected checkLevelEnd(): void {
-		if(this.curMonsterIndex != this.mines.length)
-			return;
-
-
-		for(let i = this.mines.length - 1; i >= 0 && i >= this.mines.length - 5; i--)
+		if(levels[this.currentLevel].boss && this.mines[0].visible)
 		{
-			if(this.mines[i].position.x > 0 && this.mines[i].visible && this.levelObjs[i].monsterType != monsterTypes.electricField)
-				return;
+			return;
 		}
+		else if (!levels[this.currentLevel].boss)
+		{
+			if(this.curMonsterIndex != this.mines.length)
+				return;
 
+
+			for(let i = this.mines.length - 1; i >= 0 && i >= this.mines.length - 5; i--)
+			{
+				if(this.mines[i].position.x > 0 && this.mines[i].visible && this.levelObjs[i].monsterType != monsterTypes.electricField)
+					return;
+			}
+		}
 		//The level is over
 		if(this.gameOverTimer.isStopped())
 		{

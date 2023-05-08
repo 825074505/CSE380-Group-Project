@@ -308,8 +308,8 @@ export default class MainMenu extends Scene {
 
 
         // add Level Select screen Buttons
-        this.levelButtons = new Array(15);
-        for(let i = 0; i < 15; i++)
+        this.levelButtons = new Array(12);
+        for(let i = 0; i < this.levelButtons.length; i++)
         {
             const lsnumSprite = this.add.animatedSprite(SpritesheetKeys.LEVELNUMS_KEY, MainMenuLayer.LEVEL_SELECT);
             const pos = new Vec2(210 + ((i % 5)*114), 372+(Math.floor(i/5)*102));

@@ -314,7 +314,10 @@ export default class MineBehavior2 implements AI {
 
             if(this.moveTime != null && this.timeSinceSpawn >= this.moveTime)
             {
-                this.movementIndex = (this.movementIndex + 1) % this.movementPatterns.length;
+                if(this.movementPatterns[this.movementIndex].jumpTo != null)
+                    this.movementIndex = this.movementPatterns[this.movementIndex].jumpTo;
+                else
+                    this.movementIndex = (this.movementIndex + 1) % this.movementPatterns.length;
                 this.setMovementInfo(this.movementPatterns[this.movementIndex]);
             }
 
@@ -328,7 +331,7 @@ export default class MineBehavior2 implements AI {
                 this.appeared = true;
             }
             */
-
+            this.owner.alpha = 1;
             switch(this.movementPattern)
             {
                 case movementPatterns.moveLeft:
@@ -563,6 +566,15 @@ export default class MineBehavior2 implements AI {
         else{
             this.speed = 100 * this.speedMod;
         }
+
+        if(info.setY != null)
+        {
+            console.log("setY");
+            this.owner.position = new Vec2(this.owner.position.x, info.setY);
+        }
+
+        this.timeSinceSpawn = 0;
+        this.spawnLoc = new Vec2(this.owner.position.x, this.owner.position.y);
             
 
         this.moveTime = info.length;

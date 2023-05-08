@@ -20,6 +20,7 @@ export type level = {
 	BACKGROUND_PATH: string;
 	SONG_PATH: string;
 	speedMod?: number;
+	boss?: boolean;
 }
 
 export const levels: level[] = [
@@ -57,57 +58,45 @@ export const levels: level[] = [
 	{
 		objs: level5Objs,
 		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
-		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
+		SONG_PATH: "hw2_assets/sounds/songs/eost1.mp3",
 	},
 	//level 6
 	{
 		objs: level6Objs,
 		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
-		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
+		SONG_PATH: "hw2_assets/sounds/songs/eost2.mp3",
 	},
 	{
 		objs: level7Objs,
 		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
-		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
+		SONG_PATH: "hw2_assets/sounds/songs/eost3.mp3",
 	},
 	{
 		objs: level8Objs,
 		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
-		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
+		SONG_PATH: "hw2_assets/sounds/songs/eost4bossmusic.mp3",
+		boss: true,
 	},
 	{
 		objs: level9Objs,
 		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
-		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
+		SONG_PATH: "hw2_assets/sounds/songs/eost1.mp3",
 	},
 	{
 		objs: level10Objs,
 		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
-		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
+		SONG_PATH: "hw2_assets/sounds/songs/eost2.mp3",
 	},
 	{
 		objs: level11Objs,
 		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
+		speedMod: 2,
 		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
 	},
 	{
 		objs: level12Objs,
 		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
-		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
-	},
-	{
-		objs: level13Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
-		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
-	},
-	{
-		objs: level14Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
-		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
-	},
-	{
-		objs: level15Objs,
-		BACKGROUND_PATH: "hw2_assets/sprites/bg1/",
-		SONG_PATH: "hw2_assets/sounds/songs/wind.mp3",
+		SONG_PATH: "hw2_assets/sounds/songs/eost4bossmusic.mp3",
+		boss: true,
 	},
 ]

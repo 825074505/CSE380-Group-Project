@@ -133,6 +133,8 @@ export default class GameOver extends Scene {
         this.levels_Unlocked = options.levels_Unlocked;
         if(this.dead == false)
             this.levels_Unlocked += 1;
+        if(this.arcadeMode && !this.dead)
+            this.curLevel+=1;
         this.bestScoreId = options.bestScoreId;
 
     }

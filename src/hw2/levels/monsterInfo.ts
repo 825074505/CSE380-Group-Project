@@ -23,6 +23,9 @@ export type movementInfo = {
 	moveDistance?: number; //how far to move left before stopping
 
 	speed?: number; //default 100 px/sec (canvas is 900x900)
+	jumpTo?: number; //index of movmement info to jump to after this is complete
+
+	setY?:number;
 }
 
 export type monsterInfo = {
