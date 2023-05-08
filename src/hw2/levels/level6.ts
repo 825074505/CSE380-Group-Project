@@ -156,11 +156,6 @@ const downPath : Array<monsterInfo> = [
 		spawnY: 800,
 		objs: fastpincer,
 	},
-	{
-		spawnTime: 5.0,
-		spawnY: 825,
-		objs: pincerWithEnemy,
-	},
 ]
 const threeGuysInARow: Array<monsterInfo> = [
 	{
@@ -247,13 +242,9 @@ export const level6Objs: Array<monsterInfo> = [
 	},
 	{
 		spawnTime: 18.0,
-		spawnY: 400,
-		objs: threeGuysInARowWTD,
-	},
-	{
-		spawnTime: 20.0,
-		spawnY: 500,
-		objs: threeGuysInARowWTD,
+		spriteKey: "MINE",
+		spawnY: 650,
+		monsterType: monsterTypes.weakToDark,
 	},
 	{
 		spawnTime: 22.0,
@@ -329,10 +320,9 @@ export const level6Objs: Array<monsterInfo> = [
 		monsterType: monsterTypes.weakToDark,
 	},
 	{
-		spawnTime: 57.0,
-		spriteKey: "MINE",
-		spawnY: 700,
-		monsterType: monsterTypes.weakToDark,
+		spawnTime: 60.0,
+		spawnY: 450,
+		objs: pincerWithEnemySpin,
 	},
 
 
