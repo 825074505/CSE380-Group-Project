@@ -4,6 +4,7 @@ Cheats for Testing
 Main Menu:
 Press q + number to go to level 0-9
 Press w + number to go to level 10-12
+press q + u to unlock all levels
 
 In Game:
 (Note: Need to hold q and then press some other key to activate the cheat)
