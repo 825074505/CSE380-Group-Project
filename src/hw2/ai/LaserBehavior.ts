@@ -34,7 +34,7 @@ export default class LaserBehavior implements AI {
     // The minimum and maximum size of the laser beam
     private minSize: Vec2;
     private maxSize: Vec2;
-
+    private levelSpeed: number;
     /**
      * @see AI.initializeAI
      */
@@ -46,7 +46,6 @@ export default class LaserBehavior implements AI {
         this.dst = Vec2.ZERO;
         this.minSize = new Vec2(Number.NEGATIVE_INFINITY, 0);
         this.maxSize = new Vec2(Number.POSITIVE_INFINITY, 18);
-
 
         this.activate(options);
     }
@@ -68,6 +67,7 @@ export default class LaserBehavior implements AI {
         this.owner.position.y = this.src.y;
 
         this.owner.rotation = options.angle;
+        this.levelSpeed = options.levelSpeed;
 
         const length = (this.dst.x - this.src.x)/2;
         //this.owner.position.y += length * Math.tan(this.angle);
@@ -107,7 +107,7 @@ export default class LaserBehavior implements AI {
             this.owner.size.y = MathUtils.changeRange(this.currentCharge, this.minCharge, this.maxCharge, this.minSize.y, this.maxSize.y);
             // Update the value of the charge on the laser
             this.currentCharge = MathUtils.clamp(this.currentCharge - 1, this.minCharge, this.maxCharge);
-            this.owner.position.sub(new Vec2(100*deltaT, 0));
+            this.owner.position.sub(new Vec2(100*deltaT*this.levelSpeed, 0));
 
 
             // If the laser is all out of juice - make it invisible (return it to it's object pool)

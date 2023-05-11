@@ -145,6 +145,9 @@ export const AudioKeys = {
 	ENEMYWEAKENING_AUDIO_KEY: "ENEMYWEAKENING",
     ENEMYWEAKENING_AUDIO_PATH: "hw2_assets/sounds/enemyWeakening1.wav",
 
+	ENEMYWEAKENINGLOOP_AUDIO_KEY: "ENEMYWEAKENINGLOOP",
+    ENEMYWEAKENINGLOOP_AUDIO_PATH: "hw2_assets/sounds/enemyWeakeningLoop.wav",
+
 	SPAWNENEMY_AUDIO_KEY: "SPAWNENEMY",
     SPAWNENEMY_AUDIO_PATH: "hw2_assets/sounds/spawn2.wav",
 
@@ -295,8 +298,10 @@ export default class HW2Scene extends Scene {
 	private stageClearSprite: AnimatedSprite;
 	private pauseResumeSprite: AnimatedSprite;
 	private pauseMenuSprite: AnimatedSprite;
+	private levelSpeed: number = 1;
 
 	private continues: number = 0;
+	private cheated: boolean = false;
 
 	private bestScoreId: string;
 	/** Scene lifecycle methods */
@@ -322,9 +327,15 @@ export default class HW2Scene extends Scene {
 		if(options.levels_Unlocked != null)
 			this.levels_Unlocked = options.levels_Unlocked;
 
+		if(options.cheated != null)
+			this.cheated = options.cheated;
+
 		this.bestScoreId = options.bestScoreId;
 		console.log(this.bestScoreId);
 		this.levels_Unlocked = Math.max(this.levels_Unlocked, this.currentLevel - 1);
+
+		if(levels[this.currentLevel].speedMod != null)
+			this.levelSpeed = levels[this.currentLevel].speedMod;
 
 
 	}
@@ -421,6 +432,7 @@ export default class HW2Scene extends Scene {
 		// Create a layer to serve as our main game - Feel free to use this for your own assets
 		// It is given a depth of 5 to be above our background
 		this.addLayer(HW2Layers.PRIMARY, 5);
+		this.addLayer("FRONT", 10);
 		// Initialize the player
 		this.initPlayer();
 		// Initialize the Timers
@@ -451,6 +463,7 @@ export default class HW2Scene extends Scene {
 		this.receiver.subscribe(HW2Events.FIRING_LASER);
 		this.receiver.subscribe(HW2Events.ENEMY_WEAKENED);
 		this.receiver.subscribe("explosionend");
+		this.receiver.subscribe("cheat");
 
 		this.emitter.fireEvent(GameEventType.PLAY_MUSIC, {key: HW2Scene.SONG_KEY, loop: true, holdReference: true});
 
@@ -517,11 +530,13 @@ export default class HW2Scene extends Scene {
 		}
 
 		//console.log(this.gameOverTimer.toString());
+		/*
 		if(Input.isKeyPressed("q") && Input.isKeyJustPressed("m"))
 		{
 			this.stopsounds();
 			this.sceneManager.changeToScene(GameOver, {current_Level: 4, arcadeMode: true, energyUsed: 2, hitsTaken: 3, dead:true, continues:1, bestScoreId:this.bestScoreId}, {});
 		}
+		*/
 		// Handle events
 		while (this.receiver.hasNextEvent()) {
 			this.handleEvent(this.receiver.getNextEvent());
@@ -638,6 +653,10 @@ export default class HW2Scene extends Scene {
 				this.explosion.visible = false;
 				break;
 			}
+			case "cheat": {
+				this.cheated = true;
+				break;
+			}
 			default: {
 				throw new Error(`Unhandled event with type ${event.type} caught in ${this.constructor.name}`);
 			}
@@ -676,7 +695,7 @@ export default class HW2Scene extends Scene {
 		this.playerHitboxes = new Array(3);
 		for(let i = 0; i < 3; i++)
 		{
-			let hb = this.add.graphic(GraphicType.RECT, HW2Layers.PRIMARY, {position: this.player.position.clone(), size: new Vec2(86, 32)});
+			let hb = this.add.graphic(GraphicType.RECT, HW2Layers.PRIMARY, {position: this.player.position.clone(), size: new Vec2(50, 16)});
 			hb.scale.set(0.4, 0.4);
 			hb.visible = false;
 			this.playerHitboxes[i] = hb;
@@ -1071,7 +1090,7 @@ export default class HW2Scene extends Scene {
 		if (laser) {
 			//this.handleShootCollisions(laser, src, angle, this.mines);
 			laser.visible = true;
-			laser.setAIActive(true, {src: src, dst: this.viewport.getHalfSize().scaled(4), angle: angle});
+			laser.setAIActive(true, {src: src, dst: this.viewport.getHalfSize().scaled(4), angle: angle, levelSpeed: this.levelSpeed});
 			return laser;
 		}
 		return null;
@@ -1267,7 +1286,7 @@ export default class HW2Scene extends Scene {
 		projectile.scale.set(3.0, 3.0);
 
 		// Give them a collision shape
-		let collider = new AABB(Vec2.ZERO, projectile.sizeWithZoom);
+		let collider = new AABB(Vec2.ZERO, projectile.sizeWithZoom.clone().scale(0.75));
 		projectile.setCollisionShape(collider);
 
 		this.projectiles.push(projectile);
@@ -1325,22 +1344,24 @@ export default class HW2Scene extends Scene {
 	 * It may be helpful to make your own drawings while figuring out the math for this part.
 	 */
 	public handleScreenDespawn(node: CanvasNode): void {
-		if(node.visible && node.position.x + node.sizeWithZoom.x < 0)
+		if(node.visible && (node.position.x + node.sizeWithZoom.x < 0 || node.position.y + node.sizeWithZoom.y > 1800))
 		{
+			
 			node.visible = false;
 			console.log("node despawn");
-			this.emitter.fireEvent(HW2Events.NODE_DESPAWN, {id: node.id});
+			if(!this.tutorial)
+				this.emitter.fireEvent(HW2Events.NODE_DESPAWN, {id: node.id});
 			if(this.tutorial)
 			{
 				if(this.completedCurrentSection)
 					this.startTutorialSection(this.current_tutorialSection + 1);
-				else
+				else{
 					this.startTutorialSection(this.current_tutorialSection);
+					console.log("Correct!");
+				}
 			}
 				
 		}
-			//node.visible = false;
-			//Todo set light for node to false if it has one by sending out an event
 
 	}
 
@@ -1609,7 +1630,6 @@ export default class HW2Scene extends Scene {
 	public handleShootCollisions(laser: Graphic, firePosition : Vec2, angle: number, mines: Array<Sprite>){
 		//TODO switch to circles and implement circle segment intersection?
 		//TODO Use two lines for the edges of the laser instead of center (will need some trig)
-		//TODO Stop the laser from going through invincible enemies
 		let collisions = 0;
 		//console.log(this.projectiles);
 		if (laser.visible) {
@@ -1639,10 +1659,18 @@ export default class HW2Scene extends Scene {
 					return firePosition.distanceTo(a.hitInfo.pos) - firePosition.distanceTo(b.hitInfo.pos);
 				});
 				let hitpos = hitMineList[0].hitInfo.pos;
+				console.log(hitpos);
+				console.log(firePosition);
 				//console.log(firePosition.distanceTo(hitpos));
-				//laser.size = new Vec2(firePosition.distanceTo(hitpos), laser.size.y);
-				laser.size.x = hitpos.distanceTo(firePosition) + 36;
-				laser.position.x = (firePosition.x + hitpos.x + 36)/2;
+				laser.size = new Vec2(Math.abs(firePosition.distanceTo(hitpos))+32, laser.size.y);
+				//laser.size.x = Math.abs(hitpos.distanceTo(firePosition));
+				//laser.size.x = 100;
+				
+				//laser.size.x = hitpos.x-firePosition.x;
+				//laser.position.x = (firePosition.x + hitpos.x)/2;// + Math.abs(angle/Math.PI) * laser.size.x;//+ Math.abs(angle * 10);
+				//laser.position.y = (firePosition.y + hitpos.y)/2;
+				//laser.position = new Vec2((firePosition.x + hitpos.x)/2, laser.position.y);
+				laser.position.x = (firePosition.x + laser.size.x * 0.5);
 				//console.log(laser.size);
 
 				this.emitter.fireEvent(HW2Events.LASER_MINE_COLLISION, { mineId: hitMineList[0].mine.id, laserId: laser.id, hit: hitMineList[0].hitInfo});
@@ -1671,7 +1699,7 @@ export default class HW2Scene extends Scene {
 		for (let mineInd in this.mines) {
 			let mine = this.mines[mineInd];
 			if (mine.visible && this.levelObjs[mineInd].monsterType == monsterTypes.stalactite) {
-				
+				let mineAI = mine.ai as MineBehavior2;
 				for (let mon of this.mines)
 				{
 					if(mon.visible && mon.id !== mine.id && mine.collisionShape.overlaps(mon.collisionShape))
@@ -1890,15 +1918,15 @@ export default class HW2Scene extends Scene {
 				//TODO track player stats and send them to a screen at the end, + add to leaderboard
 				if(this.dead || this.currentLevel == levels.length - 1)
 				{
-					this.sceneManager.changeToScene(GameOver, {current_Level: this.currentLevel, arcadeMode: this.arcadeMode, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, dead:this.dead, continues:this.continues, levels_Unlocked: this.levels_Unlocked, bestScoreId:this.bestScoreId}, {});
+					this.sceneManager.changeToScene(GameOver, {current_Level: this.currentLevel, arcadeMode: this.arcadeMode, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, dead:this.dead, continues:this.continues, levels_Unlocked: this.levels_Unlocked, bestScoreId:this.bestScoreId, cheated: this.cheated}, {});
 				}
 				else
 				{
-					this.sceneManager.changeToScene(HW2Scene, {level: this.currentLevel + 1, arcadeMode: true, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, continues: this.continues, levels_Unlocked: this.levels_Unlocked, bestScoreId:this.bestScoreId});
+					this.sceneManager.changeToScene(HW2Scene, {level: this.currentLevel + 1, arcadeMode: true, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, continues: this.continues, levels_Unlocked: this.levels_Unlocked, bestScoreId:this.bestScoreId, cheated: this.cheated});
 				}
 			}else
 			{
-				this.sceneManager.changeToScene(GameOver, {current_Level: this.currentLevel, arcadeMode: this.arcadeMode, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, dead:this.dead, continues:this.continues, levels_Unlocked: this.levels_Unlocked, bestScoreId:this.bestScoreId}, {});
+				this.sceneManager.changeToScene(GameOver, {current_Level: this.currentLevel, arcadeMode: this.arcadeMode, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, dead:this.dead, continues:this.continues, levels_Unlocked: this.levels_Unlocked, bestScoreId:this.bestScoreId, cheated: this.cheated}, {});
 				
 			}
 		}
@@ -1917,23 +1945,19 @@ export default class HW2Scene extends Scene {
 	protected moveBackgrounds(deltaT: number): void {
 		if(!this.paused)
 		{
-			let spdmod = 1;
-			
-			if(levels[this.currentLevel].speedMod != null)
-				spdmod = levels[this.currentLevel].speedMod;
 			
 			//console.log(levels[this.currentLevel]);
-			let move = new Vec2(40, 0).scale(spdmod);
+			let move = new Vec2(40, 0);
 			this.moveBackground(0, move, deltaT);
-			this.moveBackground(2, new Vec2(25, 0).scale(spdmod), deltaT);
-			this.moveBackground(4, new Vec2(50, 0).scale(spdmod), deltaT);
-			this.moveBackground(6, new Vec2(75, 0).scale(spdmod), deltaT);
-			this.moveBackground(8, new Vec2(100, 0).scale(spdmod), deltaT);
+			this.moveBackground(2, new Vec2(25, 0).scale(this.levelSpeed), deltaT);
+			this.moveBackground(4, new Vec2(50, 0).scale(this.levelSpeed), deltaT);
+			this.moveBackground(6, new Vec2(75, 0).scale(this.levelSpeed), deltaT);
+			this.moveBackground(8, new Vec2(100, 0).scale(this.levelSpeed), deltaT);
 
-			this.moveBackground(10, new Vec2(25, 0).scale(spdmod), deltaT);
-			this.moveBackground(12, new Vec2(50, 0).scale(spdmod), deltaT);
-			this.moveBackground(14, new Vec2(75, 0).scale(spdmod), deltaT);
-			this.moveBackground(16, new Vec2(100, 0).scale(spdmod), deltaT);
+			this.moveBackground(10, new Vec2(25, 0).scale(this.levelSpeed), deltaT);
+			this.moveBackground(12, new Vec2(50, 0).scale(this.levelSpeed), deltaT);
+			this.moveBackground(14, new Vec2(75, 0).scale(this.levelSpeed), deltaT);
+			this.moveBackground(16, new Vec2(100, 0).scale(this.levelSpeed), deltaT);
 
 
 			this.noiseSprite.position.sub(move.clone().scaled(deltaT));
@@ -2011,30 +2035,41 @@ export default class HW2Scene extends Scene {
 		let time = -1;
 		if(Input.isKeyPressed("q"))
 		{
-			if(Input.isKeyJustPressed("1"))
+			if(Input.isKeyJustPressed("1")){
 				time = 10;
-			if(Input.isKeyJustPressed("2"))
+			}
+			if(Input.isKeyJustPressed("2")){
 				time = 20;
-			if(Input.isKeyJustPressed("3"))
+			}
+			if(Input.isKeyJustPressed("3")){
 				time = 30;
-			if(Input.isKeyJustPressed("4"))
+			}
+			if(Input.isKeyJustPressed("4")){
 				time = 40;
-			if(Input.isKeyJustPressed("5"))
+			}
+			if(Input.isKeyJustPressed("5")){
 				time = 50;
-			if(Input.isKeyJustPressed("6"))
+			}
+			if(Input.isKeyJustPressed("6")){
 				time = 60;
-			if(Input.isKeyJustPressed("7"))
+			}
+			if(Input.isKeyJustPressed("7")){
 				time = 70;
-			if(Input.isKeyJustPressed("8"))
+			}
+			if(Input.isKeyJustPressed("8")){
 				time = 80;
-			if(Input.isKeyJustPressed("9"))
+			}
+			if(Input.isKeyJustPressed("9")){
 				time = 90;
-			if(Input.isKeyJustPressed("0"))
+			}
+			if(Input.isKeyJustPressed("0")){
 				time = 0;
+			}
 		}
 		
 		if(time != -1)
 		{
+			this.cheated = true;
 			this.setTime(time);
 		}
 	}

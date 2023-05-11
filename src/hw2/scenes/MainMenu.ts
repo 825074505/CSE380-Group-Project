@@ -512,8 +512,10 @@ export default class MainMenu extends Scene {
             keys = keys.filter(key => "0123456789".includes(key));
             if(keys.length > 0)
                 this.emitter.fireEvent(MainMenuEvent.LEVEL_PRESSED, {"level":Number(keys[0])});
+            /*
             else if (Input.isKeyJustPressed("m"))
                 this.sceneManager.changeToScene(GameOver, {current_Level: 4, arcadeMode: true, energyUsed: 2, hitsTaken: 3, dead:false, continues:1, bestScoreId: this.bestScoreId}, {});
+                */
             if(Input.isKeyJustPressed("u"))
             {
                 this.levels_Unlocked = 15;

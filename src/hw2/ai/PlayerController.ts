@@ -84,6 +84,7 @@ export default class PlayerController implements AI {
 	private blinkingLightMaxBrightness: number;
 	private blinkingLightMinBrightness: number;
 	private blinkingLightBrightnessIncreasing: boolean;
+	private blinkingLightSpeed: number = 0.01;
 
 	private hitboxes: Array<Graphic>;
 
@@ -95,6 +96,9 @@ export default class PlayerController implements AI {
 	private infiniteBattery: boolean = false;
 
 	private propSound:string = "";
+
+	private flashTimer:number = 0;
+	private hitAlpha = 0.25;
 
 	/**
 	 * This method initializes all variables inside of this AI class.
@@ -109,7 +113,7 @@ export default class PlayerController implements AI {
 		this.emitter = new Emitter();
 
 		this.laserTimer = new Timer(2500, this.handleLaserTimerEnd, false);
-		this.invinTimer = new Timer(500, this.handleInvinTimerEnd, false);
+		this.invinTimer = new Timer(750, this.handleInvinTimerEnd, false);
 		this.airTimer = new Timer(1000, this.handleAirTimer, true);
 		this.airTimer.start();
 		
@@ -210,27 +214,37 @@ export default class PlayerController implements AI {
 			}
             return;
         }
-
-		if(Input.isKeyPressed("q") && Input.isJustPressed(HW2Controls.DISABLE_LIGHTING))
-			this.renderingManager.lightingEnabled = !this.renderingManager.lightingEnabled;
-
-		if(Input.isKeyPressed("q") && Input.isJustPressed(HW2Controls.DISABLE_DOWNSAMPLING))
-			this.renderingManager.downsamplingEnabled = !this.renderingManager.downsamplingEnabled;
-
-		if(Input.isKeyPressed("q") && Input.isKeyJustPressed("i"))
+		//cheats
+		if(Input.isKeyPressed("q"))
 		{
-			this.infiniteHealth = !this.infiniteHealth;
-			this.currentHealth = this.maxHealth;
-			this.emitter.fireEvent(HW2Events.PLAYER_HEALTH_CHANGE, {curhealth: this.currentHealth, maxhealth: this.maxHealth});
-		}
+			if(Input.isJustPressed(HW2Controls.DISABLE_LIGHTING))
+			{
+				this.renderingManager.lightingEnabled = !this.renderingManager.lightingEnabled;
+				this.emitter.fireEvent("cheat");
+			}
 
-		if(Input.isKeyPressed("q") && Input.isKeyJustPressed("o"))
-		{
-			this.infiniteBattery = !this.infiniteBattery;
-			this.currentAir = this.maxAir;
-			this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
-		}
+			if(Input.isJustPressed(HW2Controls.DISABLE_DOWNSAMPLING))
+			{
+				this.renderingManager.downsamplingEnabled = !this.renderingManager.downsamplingEnabled;
+				this.emitter.fireEvent("cheat");
+			}
 
+			if(Input.isKeyJustPressed("i"))
+			{
+				this.infiniteHealth = !this.infiniteHealth;
+				this.currentHealth = this.maxHealth;
+				this.emitter.fireEvent(HW2Events.PLAYER_HEALTH_CHANGE, {curhealth: this.currentHealth, maxhealth: this.maxHealth});
+				this.emitter.fireEvent("cheat");
+			}
+
+			if(Input.isKeyJustPressed("o"))
+			{
+				this.infiniteBattery = !this.infiniteBattery;
+				this.currentAir = this.maxAir;
+				this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
+				this.emitter.fireEvent("cheat");
+			}
+		}
 		//propellerSounds
 		if(Input.isKeyJustPressed("a") || Input.isKeyJustPressed("d")  && this.propSound != AudioKeys.PROPELLERUP_AUDIO_KEY)
 		{
@@ -424,18 +438,36 @@ export default class PlayerController implements AI {
 		if(this.blinkingLightBrightnessIncreasing)
 		{
 			//this.blinkingLight.intensity += 0.005;
-			this.blinkingLight.intensity = MathUtils.lerp(this.blinkingLight.intensity, this.blinkingLightMaxBrightness, 0.01);
+			this.blinkingLight.intensity = MathUtils.lerp(this.blinkingLight.intensity, this.blinkingLightMaxBrightness, this.blinkingLightSpeed);
 		}else
 		{
 			//this.blinkingLight.intensity -= 0.005;
-			this.blinkingLight.intensity = MathUtils.lerp(this.blinkingLight.intensity, this.blinkingLightMinBrightness, 0.01);
+			this.blinkingLight.intensity = MathUtils.lerp(this.blinkingLight.intensity, this.blinkingLightMinBrightness, this.blinkingLightSpeed);
 		}
 
-		if(this.blinkingLight.intensity > this.blinkingLightMaxBrightness - 0.05 || this.blinkingLight.intensity < this.blinkingLightMinBrightness + 0.05)
+		if(this.blinkingLight.intensity > this.blinkingLightMaxBrightness - 0.05 || this.blinkingLight.intensity < this.blinkingLightMinBrightness + 0.15)
 		{
 			this.blinkingLightBrightnessIncreasing = !this.blinkingLightBrightnessIncreasing;
 		}
 
+		//blinking if invincible
+		if(!this.invinTimer.isStopped())
+		{
+			this.flashTimer += deltaT;
+			if(this.flashTimer > 0.1)
+			{
+				this.flashTimer = 0;
+				if(this.owner.alpha == 1){
+					this.owner.alpha = this.hitAlpha;
+					this.planeWings.alpha = this.hitAlpha;
+				}
+				else
+				{
+					this.owner.alpha = 1;
+					this.planeWings.alpha = 1;
+				}
+			}
+		}
 		}
 	}
 	/**
@@ -506,7 +538,7 @@ export default class PlayerController implements AI {
 	protected handlePlayerMineCollisionEvent(event: GameEvent): void {
 		//this.currentHealth -= 2;
 		let monsterType = event.data.get("monsterType");
-		if(!this.invincible)
+		if(!this.invincible && this.owner.visible)
 		{
 			switch(monsterType)
 			{
@@ -515,15 +547,7 @@ export default class PlayerController implements AI {
 					this.emitter.fireEvent(HW2Events.AIR_CHANGE, {curair: this.currentAir, maxair: this.maxAir});
 					break;
 				default:
-					if(!this.infiniteHealth)
-						this.currentHealth -= 1;
-					this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.PLAYERHIT_AUDIO_KEY, loop: false, holdReference: false});
-					this.emitter.fireEvent(HW2Events.PLAYER_HEALTH_CHANGE, {curhealth: this.currentHealth, maxhealth: this.maxHealth});
-					this.owner.animation.playIfNotAlready(PlayerAnimations.HIT, false);
-					this.owner.animation.queue(PlayerAnimations.IDLE, true);
-					this.invincible = true;
-					this.invinTimer.reset();
-					this.invinTimer.start();
+					this.gotHit();
 					break;
 			}
 		}
@@ -533,22 +557,31 @@ export default class PlayerController implements AI {
 		//this.currentHealth -= 2;
 		if(!this.invincible && this.owner.visible)
 		{
-			if(!this.infiniteHealth)
-				this.currentHealth -= 1;
-			this.emitter.fireEvent(HW2Events.PLAYER_HEALTH_CHANGE, {curhealth: this.currentHealth, maxhealth: this.maxHealth});
-			this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.PLAYERHIT_AUDIO_KEY, loop: false, holdReference: false});
-			this.owner.animation.playIfNotAlready(PlayerAnimations.HIT, false);
-			this.owner.animation.queue(PlayerAnimations.IDLE, true);
-			this.invincible = true;
-			this.invinTimer.reset();
-			this.invinTimer.start();
+			this.gotHit();
 		}
+	}
+
+	protected gotHit()
+	{
+		if(!this.infiniteHealth)
+			this.currentHealth -= 1;
+		this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.PLAYERHIT_AUDIO_KEY, loop: false, holdReference: false});
+		this.emitter.fireEvent(HW2Events.PLAYER_HEALTH_CHANGE, {curhealth: this.currentHealth, maxhealth: this.maxHealth});
+		//this.owner.animation.playIfNotAlready(PlayerAnimations.HIT, false);
+		//this.owner.animation.queue(PlayerAnimations.IDLE, true);
+		this.invincible = true;
+		this.invinTimer.reset();
+		this.invinTimer.start();
+		this.flashTimer = 0;
+		this.owner.alpha = this.hitAlpha;
+		this.planeWings.alpha = this.hitAlpha;
+		this.blinkingLightSpeed = 0.15;
 	}
 
 	protected handlePlayerDead(event: GameEvent): void {
 		this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.EXPLOSION_AUDIO_KEY, loop: false, holdReference: false});
 		this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: this.propSound});
-		this.owner.animation.playIfNotAlready(PlayerAnimations.DEATH, true);
+		//this.owner.animation.playIfNotAlready(PlayerAnimations.DEATH, true);
 		this.planeWings.visible = false;
 		this.owner.visible = false;
 		//this.destroy();
@@ -572,6 +605,9 @@ export default class PlayerController implements AI {
 
 	protected handleInvinTimerEnd = () => {
 		this.invincible = false;
+		this.owner.alpha = 1.0;
+		this.planeWings.alpha = 1.0;
+		this.blinkingLightSpeed = 0.01;
 	}
 
 	protected handleAirTimer = () => {

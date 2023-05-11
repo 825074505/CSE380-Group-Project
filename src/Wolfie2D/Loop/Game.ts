@@ -24,6 +24,7 @@ import InputReplayer from "../Playback/BasicReplayer";
 import { TimerState } from "../Timing/Timer";
 import PlaybackManager from "../Playback/PlaybackManager";
 import ShaderRegistry from "../Registry/Registries/ShaderRegistry";
+import Emitter from "../../Wolfie2D/Events/Emitter";
 
 /**
  * The main loop of the game engine.
@@ -34,6 +35,8 @@ export default class Game {
     gameOptions: GameOptions;
     private showDebug: boolean;
     private showStats: boolean;
+
+    private emitter: Emitter;
 
     // The game loop
     private loop: GameLoop;
@@ -113,6 +116,8 @@ export default class Game {
         this.sceneManager = new SceneManager(this.viewport, this.renderingManager);
         this.audioManager = AudioManager.getInstance();
         this.playbackManager = new PlaybackManager();
+
+        this.emitter = new Emitter();
         
     }
 
@@ -215,6 +220,7 @@ export default class Game {
             if(Input.isKeyPressed("q") && Input.isKeyJustPressed("g") && this.sinceDebugCounter >= 5){
                 this.sinceDebugCounter = 0;
                 this.showDebug = !this.showDebug;
+                this.emitter.fireEvent("cheat");
             }
             this.sinceDebugCounter = this.sinceDebugCounter >= 5 ? 5 : this.sinceDebugCounter + 1;
 

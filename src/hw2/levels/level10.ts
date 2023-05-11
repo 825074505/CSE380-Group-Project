@@ -49,6 +49,7 @@ const fastPincerWithEnemyWTL: Array<monsterInfo> = [
 		spawnTime: 1.25,
 		spriteKey: "MINE",
 		weakToLight: true,
+		timeToWeak: 0.5,
 		spawnY: 0,
 	}
 	
@@ -92,6 +93,7 @@ export const level10Objs: Array<monsterInfo> = [
 		spawnTime: 14,
 		spawnY: 450,
 		weakToLight: true,
+		timeToWeak: 0.5,
 		movementPatterns: [{
 			movementPattern: movementPatterns.sineWave,
 		}],
@@ -134,38 +136,21 @@ export const level10Objs: Array<monsterInfo> = [
 	{
 		spawnTime: 26,
 		spawnY: 450,
-		monsterType: monsterTypes.weakToDark,
 	},
 	{
 		spawnTime: 27.5,
 		spawnY: 350,
-		weakToLight: true
+		weakToLight: true,
+		timeToWeak: 0.5,
 	},
 	{
 		spawnTime: 28.5,
 		spawnY: 350,
-		weakToLight: true
 	},
 	{
 		spawnTime: 30,
 		spawnY: 500,
 		monsterType: monsterTypes.electricField,
-	},
-	{
-		spawnTime: 34,
-		spawnY: 450,
-		
-		movementPatterns: [{
-			movementPattern: movementPatterns.sineWave,
-		}],
-	},
-	{
-		spawnTime: 35,
-		spawnY: 500,
-		weakToLight:true,
-		movementPatterns: [{
-			movementPattern: movementPatterns.sineWave,
-		}],
 	},
 	{
 		spawnTime: 36,
@@ -179,49 +164,40 @@ export const level10Objs: Array<monsterInfo> = [
 		spawnTime: 37,
 		spawnY: 500,
 		weakToLight:true,
+		timeToWeak: 0.5,
+		movementPatterns: [{
+			movementPattern: movementPatterns.sineWave,
+		}],
+	},
+	{
+		spawnTime: 38,
+		spawnY: 450,
+		
 		movementPatterns: [{
 			movementPattern: movementPatterns.sineWave,
 		}],
 	},
 	{
 		spawnTime: 39,
-		spawnY: 550,
-		monsterType: monsterTypes.electricField,
-	},
-	{
-		spawnTime: 40,
-		spawnY: 400,
-		
+		spawnY: 500,
+		weakToLight:true,
+		timeToWeak: 0.5,
 		movementPatterns: [{
 			movementPattern: movementPatterns.sineWave,
 		}],
 	},
 	{
 		spawnTime: 41,
-		spawnY: 600,
-		
-		movementPatterns: [{
-			movementPattern: movementPatterns.sineWave,
-		}],
-	},
-	{
-		spawnTime: 42,
-		spawnY: 400,
-		
-		movementPatterns: [{
-			movementPattern: movementPatterns.sineWave,
-		}],
+		spawnY: 550,
+		monsterType: monsterTypes.electricField,
 	},
 	{
 		spawnTime: 43,
-		spawnY: 600,
-		
-		movementPatterns: [{
-			movementPattern: movementPatterns.sineWave,
-		}],
+		spawnY: 550,
+		monsterType: monsterTypes.electricField,
 	},
 	{
-		spawnTime: 44,
+		spawnTime: 47,
 		spawnY: 400,
 		
 		movementPatterns: [{
@@ -229,7 +205,39 @@ export const level10Objs: Array<monsterInfo> = [
 		}],
 	},
 	{
-		spawnTime: 45,
+		spawnTime: 48,
+		spawnY: 600,
+		
+		movementPatterns: [{
+			movementPattern: movementPatterns.sineWave,
+		}],
+	},
+	{
+		spawnTime: 49,
+		spawnY: 400,
+		
+		movementPatterns: [{
+			movementPattern: movementPatterns.sineWave,
+		}],
+	},
+	{
+		spawnTime: 50,
+		spawnY: 600,
+		
+		movementPatterns: [{
+			movementPattern: movementPatterns.sineWave,
+		}],
+	},
+	{
+		spawnTime: 51,
+		spawnY: 400,
+		
+		movementPatterns: [{
+			movementPattern: movementPatterns.sineWave,
+		}],
+	},
+	{
+		spawnTime: 52,
 		spawnY: 600,
 		
 		movementPatterns: [{

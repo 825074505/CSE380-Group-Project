@@ -168,7 +168,7 @@ export default class MineBehavior2 implements AI {
         if(options.speedMod != null)
             this.speedMod = options.speedMod;
         console.log(this.speedMod);
-
+        this.alive = true;
         if(info != null)
         {
             this.player = options.player;
@@ -397,7 +397,10 @@ export default class MineBehavior2 implements AI {
                 {
                     if(this.lightState != lightStates.narrow){
                         this.owner.animation.playIfNotAlready(MineAnimations.WEAKENING, true);
+                        if(this.timeToWeak > 5)
+                            this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.ENEMYWEAKENINGLOOP_AUDIO_KEY, loop: true, holdReference: true});
                         this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.ENEMYWEAKENING_AUDIO_KEY, loop: false, holdReference: true});
+
                         this.lightState = lightStates.narrow;
                     }
                     this.timeSinceLight += deltaT;
@@ -407,6 +410,7 @@ export default class MineBehavior2 implements AI {
                     if(this.lightState != lightStates.wide){
                         this.owner.animation.playIfNotAlready(this.invinAnim, true);
                         this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.ENEMYWEAKENING_AUDIO_KEY});
+                        this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.ENEMYWEAKENINGLOOP_AUDIO_KEY});
                         this.lightState = lightStates.wide;
                         this.monsterState = monsterStates.invincible;
                     }
@@ -417,6 +421,7 @@ export default class MineBehavior2 implements AI {
                     if(this.lightState != lightStates.dark){
                         this.owner.animation.playIfNotAlready(this.invinAnim, true);
                         this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.ENEMYWEAKENING_AUDIO_KEY});
+                        this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.ENEMYWEAKENINGLOOP_AUDIO_KEY});
                         this.lightState = lightStates.dark;
                         this.monsterState = monsterStates.invincible;
                     }
@@ -428,6 +433,7 @@ export default class MineBehavior2 implements AI {
                 {
                     this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.ENEMYWEAK_AUDIO_KEY, loop: false, holdReference: false});
                     this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.ENEMYWEAKENING_AUDIO_KEY});
+                    this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.ENEMYWEAKENINGLOOP_AUDIO_KEY});
                     this.emitter.fireEvent(HW2Events.ENEMY_WEAKENED);
                     this.monsterState = monsterStates.weak;
                     this.owner.animation.playIfNotAlready(this.weakAnim, true);
@@ -613,8 +619,9 @@ export default class MineBehavior2 implements AI {
                     if(this.monsterState == monsterStates.weak)
                     {
                         //Assuming only hit from leftside which is ok I think
-                        let angle = Math.atan((this.owner.position.y - hit.pos.y)/(this.owner.position.x - hit.pos.x)) + Math.PI;
-
+                        let angle = Math.atan2((this.owner.position.y - hit.pos.y), (this.owner.position.x - hit.pos.x))*-1 + Math.PI;
+                        console.log("current Angles: (" + ((Math.PI/2 + this.owner.rotation) % (2 * Math.PI)).toString(), ", " + (((3 * Math.PI)/2 + this.owner.rotation) % (2 * Math.PI)).toString() + ")");
+                        console.log("shotangle", angle);
                         if(angle > (Math.PI/2 + this.owner.rotation) % (2 * Math.PI)   &&    angle < ((3 * Math.PI)/2 + this.owner.rotation) % (2 * Math.PI))
                         {
                             this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: AudioKeys.HITENEMY_AUDIO_KEY, loop: false, holdReference: false});

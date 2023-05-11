@@ -110,6 +110,7 @@ export default class GameOver extends Scene {
 
     private bestScoreId: string;
     private enteredName: boolean = false;
+    private cheated: boolean;
 
     private continueLayer: Layer;
     private gameoverLayer: Layer;
@@ -122,6 +123,7 @@ export default class GameOver extends Scene {
         this.arcadeMode = options.arcadeMode;
         this.dead = options.dead;
         this.continues = options.continues;
+        this.cheated = options.cheated;
         if(options.name != null)
             this.name = options.name.toUpperCase();
 
@@ -483,13 +485,20 @@ export default class GameOver extends Scene {
         this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: AudioKeys.CONTINUE_AUDIO_KEY});
         if(this.arcadeMode)
         {
-            this.sceneManager.changeToScene(MainMenu, {newScore: {
-                player: this.name.toLowerCase(),
-                power: this.powerStr,
-                damage: this.damageStr,
-                level: this.levelStr,
-            }, levels_Unlocked: this.levels_Unlocked, bestScoreId:this.bestScoreId,
-            }, {});
+            if(!this.cheated)
+            {
+                this.sceneManager.changeToScene(MainMenu, {newScore: {
+                    player: this.name.toLowerCase(),
+                    power: this.powerStr,
+                    damage: this.damageStr,
+                    level: this.levelStr,
+                }, levels_Unlocked: this.levels_Unlocked, bestScoreId:this.bestScoreId,
+                }, {});
+            }else
+            {
+                this.sceneManager.changeToScene(MainMenu, {screen: "mainMenu"}, {});
+            }
+            
         }else{
             this.sceneManager.changeToScene(MainMenu, {screen: "levelSelect", levels_Unlocked: this.levels_Unlocked, bestScoreId:this.bestScoreId,}, {});
         }
@@ -498,7 +507,7 @@ export default class GameOver extends Scene {
     protected handleEvent(event: GameEvent): void {
         switch(event.type) {
             case "continue": {
-                this.sceneManager.changeToScene(Homework1_Scene, {level: this.curLevel, arcadeMode: true, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, continues: this.continues - 1, bestScoreId:this.bestScoreId,});
+                this.sceneManager.changeToScene(Homework1_Scene, {level: this.curLevel, arcadeMode: true, energyUsed: this.energyUsed, hitsTaken: this.hitsTaken, continues: this.continues - 1, bestScoreId:this.bestScoreId, cheated:this.cheated});
             }
             case "quit": {
                 this.continueScreen = false;
